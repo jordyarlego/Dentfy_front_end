@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Logotipo from '../../../public/assets/Logo.png';
 import { BellIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
-import Image from 'next/image'; // Importe o componente Image do Next.js
+import Image from 'next/image'; 
 
 export default function HeaderPerito() {
   return (
@@ -9,16 +9,16 @@ export default function HeaderPerito() {
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           
-          {/* Logo e Nome do Sistema */}
+          
           <div className="flex items-center">
             <Link href="/dashboard" className="flex-shrink-0 flex items-center">
               <Image
                 src={Logotipo}
                 alt="Dentfy Logo"
-                width={32} // Ajuste conforme necessário
-                height={32} // Ajuste conforme necessário
+                width={32} 
+                height={32} 
                 className="h-8 w-auto"
-                priority // Importante para imagens acima do scroll
+                priority 
               />
               <span className="ml-3 text-xl font-bold text-white hidden md:block">
                 Dentfy <span className="text-amber-400">Perito</span>
@@ -26,7 +26,7 @@ export default function HeaderPerito() {
             </Link>
           </div>
 
-          {/* Restante do seu código permanece igual */}
+          
           <nav className="hidden md:flex space-x-8">
             <Link href="/laudos" className="text-amber-100 hover:text-white px-3 py-2 text-sm font-medium flex items-center">
               <DocumentTextIcon className="h-5 w-5 mr-1" />
@@ -52,7 +52,7 @@ export default function HeaderPerito() {
                 <p className="text-xs text-amber-300">Perito Odontolegal</p>
               </div>
               <div className="relative">
-                {/* Avatar comentado */}
+                
                 <span className="absolute bottom-0 right-0 bg-green-500 rounded-full h-2 w-2 border border-[#12212B]"></span>
               </div>
             </div>
