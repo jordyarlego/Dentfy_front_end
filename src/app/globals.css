@@ -21,6 +21,17 @@
 
 body {
   background: var(--background);
-  color: var(--foreground);
+  /* color: var(--foreground); */
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ESSE EH O EFEITO DO DENTE SUBINDO E DESCENDO, NAO MEXE AKI */
+@keyframes floatVertical {
+  0%, 100% { background-position: center 30%; }
+  50% { background-position: center 70%; }
+}
+
+.hero-image-container {
+  background-size: 50% !important; 
+  animation: floatVertical 12s ease-in-out infinite !important;
 }

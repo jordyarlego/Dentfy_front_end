@@ -1,10 +1,12 @@
 
-import Login from "./Login";
+import Login from ".";
+
 
 export default function Home() {
   return (
    <>
    <Login/>
+   
    </>
   );
 }
