@@ -70,3 +70,28 @@ body {
     opacity: 0.8;
   }
 }
+
+
+
+/* to testando um bagui  */
+
+/* Cores personalizadas */
+.bg-pink-100 {
+  background-color: #fce4ec;
+}
+.text-pink-600 {
+  color: #AA0446;
+}
+.border-pink-600 {
+  border-color: #AA0446;
+}
+
+.bg-blue-100 {
+  background-color: #e3f2fd;
+}
+.text-blue-900 {
+  color: #06293F;
+}
+.border-blue-900 {
+  border-color: #06293F;
+}

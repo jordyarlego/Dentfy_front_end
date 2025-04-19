@@ -4,18 +4,17 @@ import SidebarPerito from "@/components/SidebarPerito";
 
 export default function DashboardPerito() {
   return (
-    <div className="flex flex-col h-screen">
-      {/* Header no topo */}
+    <div className="flex flex-col h-screen bg-gray-950 text-white">
+      
       <HeaderPerito />
 
-      {/* Corpo com Sidebar + Conteúdo */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar à esquerda */}
+      
+      <div className="flex flex-1 overflow-hidden flex-col sm:flex-row">
+        
         <SidebarPerito />
 
-        {/* Conteúdo principal */}
-        <main className="flex-1 p-4 overflow-auto bg-gray-100">
-          
+        
+        <main className="flex-1 p-4 sm:p-6 overflow-y-auto backdrop-blur-sm">
           <CasosPerito />
         </main>
       </div>
