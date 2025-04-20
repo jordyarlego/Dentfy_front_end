@@ -1,16 +1,17 @@
-'use client';
-import { useState } from 'react';
+"use client";
+import { criarCaso } from "../ModalNovoCasoPerito/API_NovoCaso";
+import { useState } from "react";
 import {
   FaVenus,
   FaMars,
   FaCalendarAlt,
   FaMapMarkerAlt,
   FaSave,
-  FaTimes
-} from 'react-icons/fa';
-import Image from 'next/image';
-import CaveiraPeste from '../../../public/assets/CaveiraPeste.png';
-import Logo from '../../../public/assets/Logo.png';
+  FaTimes,
+} from "react-icons/fa";
+import Image from "next/image";
+import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
+import Logo from "../../../public/assets/Logo.png";
 
 type ModalNovoCasoPeritoProps = {
   isOpen: boolean;
@@ -24,40 +25,68 @@ interface FormData {
   sexo: string;
   local: string;
   descricao: string;
+  status: string;
 }
 
-export default function ModalNovoCasoPerito({ isOpen, onClose, onSubmit }: ModalNovoCasoPeritoProps) {
+export default function ModalNovoCasoPerito({
+  isOpen,
+  onClose,
+  onSubmit,
+}: ModalNovoCasoPeritoProps) {
   const [formData, setFormData] = useState<FormData>({
-    titulo: '',
-    data: '',
-    sexo: '',
-    local: '',
-    descricao: ''
+    titulo: "",
+    data: "",
+    sexo: "",
+    local: "",
+    descricao: "",
+    status: "",
   });
+  const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
-    onClose();
-    setFormData({ titulo: '', data: '', sexo: '', local: '', descricao: '' });
+    setError(null); // Limpa erros anteriores
+
+    try {
+      await criarCaso(formData); // Envia os dados pro backend
+      onSubmit(formData); // Caso queira notificar o componente pai
+      onClose(); // Fecha o modal
+
+      // Reseta o formulário
+      setFormData({
+        titulo: "",
+        data: "",
+        sexo: "",
+        local: "",
+        descricao: "",
+        status: "",
+      });
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error("Erro ao criar caso:", err.message);
+        setError(err.message);
+      } else {
+        console.error("Erro desconhecido ao criar caso:", err);
+        setError("Erro inesperado ao criar caso.");
+      }
+    }
   };
 
   return (
     <>
       {isOpen && (
         <div className="fixed inset-0 z-[100]">
-          
           <div className="absolute inset-0 bg-black/60 backdrop-blur-x" />
 
-          
           <div className="relative flex items-center justify-center h-full p-4">
             <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto relative">
-              
               <div className="absolute inset-0 pointer-events-none opacity-5 mix-blend-overlay">
                 <Image
                   src={CaveiraPeste}
@@ -92,7 +121,10 @@ export default function ModalNovoCasoPerito({ isOpen, onClose, onSubmit }: Modal
 
                 <form onSubmit={handleSubmit}>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-amber-500" htmlFor="titulo">
+                    <label
+                      className="block text-sm font-medium mb-2 text-amber-500"
+                      htmlFor="titulo"
+                    >
                       Título
                     </label>
                     <input
@@ -107,7 +139,10 @@ export default function ModalNovoCasoPerito({ isOpen, onClose, onSubmit }: Modal
                   </div>
 
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-amber-500" htmlFor="data">
+                    <label
+                      className="block text-sm font-medium mb-2 text-amber-500"
+                      htmlFor="data"
+                    >
                       <FaCalendarAlt className="inline mr-2" />
                       Data
                     </label>
@@ -123,15 +158,19 @@ export default function ModalNovoCasoPerito({ isOpen, onClose, onSubmit }: Modal
                   </div>
 
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-amber-500">Sexo</label>
+                    <label className="block text-sm font-medium mb-2 text-amber-500">
+                      Sexo
+                    </label>
                     <div className="flex gap-3">
                       <button
                         type="button"
-                        onClick={() => setFormData({ ...formData, sexo: 'feminino' })}
+                        onClick={() =>
+                          setFormData({ ...formData, sexo: "feminino" })
+                        }
                         className={`flex-1 flex items-center justify-center p-3 rounded-lg border-2 text-sm transition-all ${
-                          formData.sexo === 'feminino' 
-                            ? 'border-pink-500 bg-pink-500/20 text-pink-400' 
-                            : 'border-gray-700 bg-gray-700/50 text-gray-300 hover:border-pink-500 hover:text-pink-400'
+                          formData.sexo === "feminino"
+                            ? "border-pink-500 bg-pink-500/20 text-pink-400"
+                            : "border-gray-700 bg-gray-700/50 text-gray-300 hover:border-pink-500 hover:text-pink-400"
                         } hover:scale-[1.02] cursor-pointer`}
                       >
                         <FaVenus className="mr-2" />
@@ -139,11 +178,13 @@ export default function ModalNovoCasoPerito({ isOpen, onClose, onSubmit }: Modal
                       </button>
                       <button
                         type="button"
-                        onClick={() => setFormData({ ...formData, sexo: 'masculino' })}
+                        onClick={() =>
+                          setFormData({ ...formData, sexo: "masculino" })
+                        }
                         className={`flex-1 flex items-center justify-center p-3 rounded-lg border-2 text-sm transition-all ${
-                          formData.sexo === 'masculino' 
-                            ? 'border-blue-500 bg-blue-500/20 text-blue-400' 
-                            : 'border-gray-700 bg-gray-700/50 text-gray-300 hover:border-blue-500 hover:text-blue-400'
+                          formData.sexo === "masculino"
+                            ? "border-blue-500 bg-blue-500/20 text-blue-400"
+                            : "border-gray-700 bg-gray-700/50 text-gray-300 hover:border-blue-500 hover:text-blue-400"
                         } hover:scale-[1.02] cursor-pointer`}
                       >
                         <FaMars className="mr-2" />
@@ -153,7 +194,10 @@ export default function ModalNovoCasoPerito({ isOpen, onClose, onSubmit }: Modal
                   </div>
 
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-amber-500" htmlFor="local">
+                    <label
+                      className="block text-sm font-medium mb-2 text-amber-500"
+                      htmlFor="local"
+                    >
                       <FaMapMarkerAlt className="inline mr-2" />
                       Local
                     </label>
@@ -168,8 +212,29 @@ export default function ModalNovoCasoPerito({ isOpen, onClose, onSubmit }: Modal
                     />
                   </div>
 
+                  <div className="mb-4">
+                    <label
+                      className="block text-sm font-medium mb-2 text-amber-500"
+                      htmlFor="status"
+                    >
+                      Status
+                    </label>
+                    <input
+                      type="text"
+                      id="status"
+                      name="status"
+                      value={formData.status}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 text-sm border-2 border-gray-700 bg-gray-700/50 text-gray-200 rounded-lg focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/30"
+                      required
+                    />
+                  </div>
+
                   <div className="mb-6">
-                    <label className="block text-sm font-medium mb-2 text-amber-500" htmlFor="descricao">
+                    <label
+                      className="block text-sm font-medium mb-2 text-amber-500"
+                      htmlFor="descricao"
+                    >
                       Descrição
                     </label>
                     <textarea
@@ -182,6 +247,12 @@ export default function ModalNovoCasoPerito({ isOpen, onClose, onSubmit }: Modal
                       required
                     ></textarea>
                   </div>
+
+                  {error && (
+                    <div className="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-500 text-red-400">
+                      {error}
+                    </div>
+                  )}
 
                   <div className="flex justify-end gap-3">
                     <button
