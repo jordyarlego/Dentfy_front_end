@@ -1,7 +1,32 @@
-import type { NextConfig } from "next";
+// next.config.ts
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  /* config options here */
-};
+  images: {
+    domains: ['seus-domínios-de-imagem.com'],
+    unoptimized: process.env.NODE_ENV === 'development',
+  },
+  webpack: (config, { isServer }) => {
+    // Configuração para arquivos de vídeo
+    config.module.rules.push({
+      test: /\.(mov|mp4|webm)$/,
+      use: [
+        {
+          loader: 'file-loader',
+          options: {
+            publicPath: '/_next/static/videos/',
+            outputPath: `${isServer ? '../' : ''}static/videos/`,
+            name: '[name].[hash].[ext]',
+          },
+        },
+      ],
+    })
 
-export default nextConfig;
+    return config
+  },
+  // Outras configurações globais podem ser adicionadas aqui
+  reactStrictMode: true,
+  swcMinify: true,
+}
+
+export default nextConfig
