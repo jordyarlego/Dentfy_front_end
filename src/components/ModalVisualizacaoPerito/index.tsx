@@ -1,12 +1,22 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { FaTimes, FaVenus, FaMars, FaCalendarAlt, FaMapMarkerAlt, FaDownload, FaPrint, FaPlus, FaRegFilePdf } from "react-icons/fa";
-import Image from 'next/image';
-import ModalNovaEvidencia from '../ModalNovaEvidencia';
-import EvidenciasSalvaSucess from '../EvidenciasSalvaSucess';
-import ModalGerarLaudo from '../ModalGerarLaudo';
-import CaveiraPeste from '../../../public/assets/CaveiraPeste.png';
-import Logo from '../../../public/assets/Logo.png';
+"use client";
+import { useState, useEffect } from "react";
+import {
+  FaTimes,
+  FaVenus,
+  FaMars,
+  FaCalendarAlt,
+  FaMapMarkerAlt,
+  FaDownload,
+  FaPrint,
+  FaPlus,
+  FaRegFilePdf,
+} from "react-icons/fa";
+import Image from "next/image";
+import ModalNovaEvidencia from "../ModalNovaEvidencia";
+import EvidenciasSalvaSucess from "../EvidenciasSalvaSucess";
+import ModalGerarLaudo from "../ModalGerarLaudo";
+import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
+import Logo from "../../../public/assets/Logo.png";
 
 interface Evidencia {
   id: number;
@@ -39,19 +49,21 @@ interface NovaEvidencia {
   arquivo: File | null;
 }
 
-export default function ModalVisualizacaoPerito({ 
-  isOpen, 
-  onClose, 
-  caso 
-}: { 
-  isOpen: boolean; 
-  onClose: () => void; 
-  caso: Caso 
+export default function ModalVisualizacaoPerito({
+  isOpen,
+  onClose,
+  caso,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  caso: Caso;
 }) {
   const [showNovaEvidencia, setShowNovaEvidencia] = useState(false);
   const [casoAtual, setCasoAtual] = useState(caso);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [selectedEvidencia, setSelectedEvidencia] = useState<Evidencia | undefined>(undefined);
+  const [selectedEvidencia, setSelectedEvidencia] = useState<
+    Evidencia | undefined
+  >(undefined);
 
   useEffect(() => {
     if (!isOpen) {
@@ -62,9 +74,9 @@ export default function ModalVisualizacaoPerito({
 
   const handleNovaEvidencia = (novaEvidencia: NovaEvidencia) => {
     if (!novaEvidencia.arquivo) return;
-    
+
     const fileUrl = URL.createObjectURL(novaEvidencia.arquivo);
-    
+
     const novaEvidenciaCompleta: Evidencia = {
       id: Date.now(),
       nome: novaEvidencia.arquivo.name,
@@ -73,22 +85,22 @@ export default function ModalVisualizacaoPerito({
       coletadoPor: novaEvidencia.coletadoPor,
       arquivo: fileUrl,
       dataAdicao: new Date().toISOString(),
-      mimeType: novaEvidencia.arquivo.type
+      mimeType: novaEvidencia.arquivo.type,
     };
-    
-    setCasoAtual(prev => ({
+
+    setCasoAtual((prev) => ({
       ...prev,
-      evidencias: [...prev.evidencias, novaEvidenciaCompleta]
+      evidencias: [...prev.evidencias, novaEvidenciaCompleta],
     }));
     setShowSuccess(true);
   };
 
   const handleSaveLaudo = (laudo: string, evidenciaId: number) => {
-    setCasoAtual(prev => ({
+    setCasoAtual((prev) => ({
       ...prev,
-      evidencias: prev.evidencias.map(ev => 
+      evidencias: prev.evidencias.map((ev) =>
         ev.id === evidenciaId ? { ...ev, laudo } : ev
-      )
+      ),
     }));
     setSelectedEvidencia(undefined);
   };
@@ -99,7 +111,6 @@ export default function ModalVisualizacaoPerito({
     <>
       <div className="fixed inset-0 z-[200] bg-black/60 flex items-start justify-center p-4 backdrop-blur-xl">
         <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-2xl w-full max-w-6xl min-h-[85vh] h-auto my-8 flex flex-col relative overflow-hidden">
-
           <div className="absolute inset-0 pointer-events-none opacity-5 mix-blend-overlay">
             <Image
               src={CaveiraPeste}
@@ -127,7 +138,9 @@ export default function ModalVisualizacaoPerito({
                 <h2 className="text-2xl font-bold text-gray-100">
                   Detalhes do Caso
                 </h2>
-                <p className="text-gray-400 text-sm mt-1">ID do Caso: <span className="text-amber-500">#{caso.id}</span></p>
+                <p className="text-gray-400 text-sm mt-1">
+                  ID do Caso: <span className="text-amber-500">#{caso.id}</span>
+                </p>
               </div>
             </div>
             <button
@@ -141,7 +154,6 @@ export default function ModalVisualizacaoPerito({
           <div className="flex-1 overflow-hidden flex flex-col">
             <div className="flex-1 overflow-y-auto p-6">
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                
                 <div className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium mb-2 text-amber-500">
@@ -159,14 +171,16 @@ export default function ModalVisualizacaoPerito({
                         Data
                       </label>
                       <p className="bg-gray-700/50 p-4 rounded-lg text-gray-200">
-                        {new Date(casoAtual.data).toLocaleDateString('pt-BR')}
+                        {new Date(casoAtual.data).toLocaleDateString("pt-BR")}
                       </p>
                     </div>
-                    
+
                     <div>
-                      <label className="block text-sm font-medium mb-2 text-amber-500">Sexo</label>
+                      <label className="block text-sm font-medium mb-2 text-amber-500">
+                        Sexo
+                      </label>
                       <div className="bg-gray-700/50 p-4 rounded-lg flex items-center gap-3">
-                        {casoAtual.sexo === 'feminino' ? (
+                        {casoAtual.sexo === "feminino" ? (
                           <>
                             <FaVenus className="text-pink-400 text-xl" />
                             <span className="text-gray-200">Feminino</span>
@@ -194,12 +208,18 @@ export default function ModalVisualizacaoPerito({
 
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-amber-500">Status</label>
-                    <div className={`p-4 rounded-lg text-lg ${
-                      casoAtual.status === 'Concluído' ? 'bg-green-900/30 text-green-400' :
-                      casoAtual.status === 'Em análise' ? 'bg-amber-900/30 text-amber-400' :
-                      'bg-red-900/30 text-red-400'
-                    }`}>
+                    <label className="block text-sm font-medium mb-2 text-amber-500">
+                      Status
+                    </label>
+                    <div
+                      className={`p-4 rounded-lg text-lg ${
+                        casoAtual.status === "Concluído"
+                          ? "bg-green-900/30 text-green-400"
+                          : casoAtual.status === "Em análise"
+                          ? "bg-amber-900/30 text-amber-400"
+                          : "bg-red-900/30 text-red-400"
+                      }`}
+                    >
                       {casoAtual.status}
                     </div>
                   </div>
@@ -209,7 +229,7 @@ export default function ModalVisualizacaoPerito({
                       <h3 className="text-lg font-semibold text-amber-500">
                         Evidências
                       </h3>
-                      <button 
+                      <button
                         onClick={() => setShowNovaEvidencia(true)}
                         className="flex items-center px-4 py-2 bg-amber-800/30 hover:bg-amber-800/50 border border-amber-900/50 rounded-lg transition-all cursor-pointer hover:scale-[1.02] active:scale-95"
                       >
@@ -217,35 +237,56 @@ export default function ModalVisualizacaoPerito({
                         <span className="text-amber-100">Nova Evidência</span>
                       </button>
                     </div>
-                    
+
                     <div className="border border-amber-900/30 rounded-lg overflow-hidden">
                       <table className="w-full">
                         <thead className="bg-amber-900/20">
                           <tr>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-amber-500">Nome</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-amber-500">Tipo</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-amber-500">Data</th>
-                            <th className="px-4 py-3 text-right text-sm font-medium text-amber-500">Ações</th>
+                            <th className="px-4 py-3 text-left text-sm font-medium text-amber-500">
+                              Nome
+                            </th>
+                            <th className="px-4 py-3 text-left text-sm font-medium text-amber-500">
+                              Tipo
+                            </th>
+                            <th className="px-4 py-3 text-left text-sm font-medium text-amber-500">
+                              Data
+                            </th>
+                            <th className="px-4 py-3 text-right text-sm font-medium text-amber-500">
+                              Ações
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
                           {casoAtual.evidencias.map((evidencia) => (
-                            <tr key={evidencia.id} className="border-t border-amber-900/30 hover:bg-amber-900/10 transition-colors">
-                              <td className="px-4 py-3 text-sm text-gray-200 font-mono">{evidencia.nome}</td>
-                              <td className="px-4 py-3 text-sm text-gray-200">{evidencia.tipo}</td>
+                            <tr
+                              key={evidencia.id}
+                              className="border-t border-amber-900/30 hover:bg-amber-900/10 transition-colors"
+                            >
+                              <td className="px-4 py-3 text-sm text-gray-200 font-mono">
+                                {evidencia.nome}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-200">
+                                {evidencia.tipo}
+                              </td>
                               <td className="px-4 py-3 text-sm text-amber-500 font-mono">
-                                {new Date(evidencia.dataAdicao).toLocaleDateString('pt-BR')}
+                                {new Date(
+                                  evidencia.dataAdicao
+                                ).toLocaleDateString("pt-BR")}
                               </td>
                               <td className="px-4 py-3 text-right">
                                 <button
-                                  onClick={() => setSelectedEvidencia(evidencia)}
+                                  onClick={() =>
+                                    setSelectedEvidencia(evidencia)
+                                  }
                                   className={`px-3 py-1 rounded-md text-sm transition-all ${
-                                    evidencia.laudo 
-                                      ? 'bg-green-900/30 text-green-400 hover:bg-green-900/50'
-                                      : 'bg-amber-900/30 text-amber-400 hover:bg-amber-900/50'
+                                    evidencia.laudo
+                                      ? "bg-green-900/30 text-green-400 hover:bg-green-900/50"
+                                      : "bg-amber-900/30 text-amber-400 hover:bg-amber-900/50"
                                   }`}
                                 >
-                                  {evidencia.laudo ? 'Editar Laudo' : 'Gerar Laudo'}
+                                  {evidencia.laudo
+                                    ? "Editar Laudo"
+                                    : "Gerar Laudo"}
                                 </button>
                               </td>
                             </tr>
@@ -258,7 +299,9 @@ export default function ModalVisualizacaoPerito({
               </div>
 
               <div className="mt-8">
-                <label className="block text-sm font-medium mb-2 text-amber-500">Descrição</label>
+                <label className="block text-sm font-medium mb-2 text-amber-500">
+                  Descrição
+                </label>
                 <p className="bg-gray-700/50 p-4 rounded-lg text-gray-200 whitespace-pre-line">
                   {casoAtual.descricao}
                 </p>
@@ -300,9 +343,7 @@ export default function ModalVisualizacaoPerito({
       />
 
       {showSuccess && (
-        <EvidenciasSalvaSucess 
-          onClose={() => setShowSuccess(false)}
-        />
+        <EvidenciasSalvaSucess onClose={() => setShowSuccess(false)} />
       )}
     </>
   );

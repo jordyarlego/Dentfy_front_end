@@ -165,10 +165,10 @@ export default function ModalNovoCasoPerito({
                       <button
                         type="button"
                         onClick={() =>
-                          setFormData({ ...formData, sexo: "feminino" })
+                          setFormData({ ...formData, sexo: "Feminino" })
                         }
                         className={`flex-1 flex items-center justify-center p-3 rounded-lg border-2 text-sm transition-all ${
-                          formData.sexo === "feminino"
+                          formData.sexo === "Feminino"
                             ? "border-pink-500 bg-pink-500/20 text-pink-400"
                             : "border-gray-700 bg-gray-700/50 text-gray-300 hover:border-pink-500 hover:text-pink-400"
                         } hover:scale-[1.02] cursor-pointer`}
@@ -179,10 +179,10 @@ export default function ModalNovoCasoPerito({
                       <button
                         type="button"
                         onClick={() =>
-                          setFormData({ ...formData, sexo: "masculino" })
+                          setFormData({ ...formData, sexo: "Masculino" })
                         }
                         className={`flex-1 flex items-center justify-center p-3 rounded-lg border-2 text-sm transition-all ${
-                          formData.sexo === "masculino"
+                          formData.sexo === "Masculino"
                             ? "border-blue-500 bg-blue-500/20 text-blue-400"
                             : "border-gray-700 bg-gray-700/50 text-gray-300 hover:border-blue-500 hover:text-blue-400"
                         } hover:scale-[1.02] cursor-pointer`}
@@ -213,21 +213,27 @@ export default function ModalNovoCasoPerito({
                   </div>
 
                   <div className="mb-4">
-                    <label
-                      className="block text-sm font-medium mb-2 text-amber-500"
-                      htmlFor="status"
-                    >
+                    <label className="block text-sm font-medium mb-2 text-amber-500">
                       Status
                     </label>
-                    <input
-                      type="text"
-                      id="status"
-                      name="status"
-                      value={formData.status}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 text-sm border-2 border-gray-700 bg-gray-700/50 text-gray-200 rounded-lg focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/30"
-                      required
-                    />
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFormData({ ...formData, status: "Em andamento" })
+                        }
+                        className={`flex-1 flex items-center justify-center p-3 rounded-lg border-2 text-sm transition-all
+        ${
+          formData.status === "Em andamento"
+            ? "border-amber-400 bg-amber-400/20 text-amber-300"
+            : "border-gray-700 bg-gray-700/50 text-gray-300 hover:border-amber-400 hover:text-amber-300"
+        }
+        hover:scale-[1.02] cursor-pointer`}
+                      >
+                        <span className="mr-2">⏳</span>
+                        Em andamento
+                      </button>
+                    </div>
                   </div>
 
                   <div className="mb-6">
