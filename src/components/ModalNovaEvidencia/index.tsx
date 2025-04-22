@@ -1,10 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FaTimes, FaSave, FaUpload } from "react-icons/fa";
+import { FaTimes, FaSave, FaUpload, FaEye } from "react-icons/fa";
 import Image from "next/image";
 import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
 import Logo from "../../../public/assets/Logo.png";
 import EvidenciasSalvaSucess from "../EvidenciasSalvaSucess";
+import { useRouter } from "next/navigation";
 
 interface Caso {
   _id: string;
@@ -43,6 +44,7 @@ export default function ModalNovaEvidencia({
   caso: Caso;
   onSave: (evidencia: NovaEvidencia) => void;
 }) {
+  const router = useRouter();
   const [formData, setFormData] = useState<NovaEvidencia>({
     descricao: "",
     data: "",
@@ -97,6 +99,10 @@ export default function ModalNovaEvidencia({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     setFormData((prev) => ({ ...prev, arquivo: file }));
+  };
+
+  const handleViewCases = () => {
+    router.push(`/casos/${caso._id}`);
   };
 
   if (!isOpen) return null;
@@ -297,22 +303,33 @@ export default function ModalNovaEvidencia({
                     )}
                   </div>
 
-                  <div className="flex justify-end gap-3 mt-6">
+                  <div className="flex justify-between mt-6">
                     <button
                       type="button"
-                      onClick={onClose}
-                      className="px-5 py-2.5 text-sm font-medium rounded-lg border-2 border-gray-700 bg-gray-700/50 text-gray-300 hover:border-red-500 hover:bg-red-500/20 hover:text-red-400 transition-all cursor-pointer"
+                      onClick={handleViewCases}
+                      className="px-5 py-2.5 text-sm font-medium rounded-lg border-2 border-gray-700 bg-gray-700/50 text-gray-300 hover:border-blue-500 hover:bg-blue-500/20 hover:text-blue-400 transition-all cursor-pointer flex items-center gap-2"
                     >
-                      Cancelar
+                      <FaEye />
+                      Visualizar Caso
                     </button>
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="px-5 py-2.5 text-sm font-medium rounded-lg border-2 border-amber-600 bg-amber-900/30 text-amber-400 hover:bg-amber-900/50 disabled:opacity-50 transition-all flex items-center cursor-pointer"
-                    >
-                      <FaSave className="mr-2" />
-                      {isSubmitting ? "Salvando..." : "Salvar Evidência"}
-                    </button>
+                    
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={onClose}
+                        className="px-5 py-2.5 text-sm font-medium rounded-lg border-2 border-gray-700 bg-gray-700/50 text-gray-300 hover:border-red-500 hover:bg-red-500/20 hover:text-red-400 transition-all cursor-pointer"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="px-5 py-2.5 text-sm font-medium rounded-lg border-2 border-amber-600 bg-amber-900/30 text-amber-400 hover:bg-amber-900/50 disabled:opacity-50 transition-all flex items-center cursor-pointer"
+                      >
+                        <FaSave className="mr-2" />
+                        {isSubmitting ? "Salvando..." : "Salvar Evidência"}
+                      </button>
+                    </div>
                   </div>
                 </form>
               </div>
