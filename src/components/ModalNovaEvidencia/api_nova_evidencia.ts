@@ -12,7 +12,7 @@ export interface EvidenciaFormData {
 
 // Resposta esperada da API
 export interface EvidenciaResponse {
-  id: number;
+  _id: string;
   tipo: string;
   dataColeta: string;
   coletadoPor: string;
@@ -27,7 +27,7 @@ export interface EvidenciaResponse {
  */
 export async function criarEvidencia(
   evidenciaData: EvidenciaFormData,
-  casoId: number
+  casoId: string
 ): Promise<EvidenciaResponse> {
   try {
     // Obter o token do localStorage

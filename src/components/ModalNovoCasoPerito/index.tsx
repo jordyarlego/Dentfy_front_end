@@ -49,7 +49,6 @@ export default function ModalNovoCasoPerito({
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null); // Limpa erros anteriores
@@ -78,7 +77,6 @@ export default function ModalNovoCasoPerito({
       }
     }
   };
-
   return (
     <>
       {isOpen && (

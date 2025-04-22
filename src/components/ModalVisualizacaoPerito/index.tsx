@@ -19,7 +19,7 @@ import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
 import Logo from "../../../public/assets/Logo.png";
 
 interface Evidencia {
-  id: number;
+  _id: string;
   nome: string;
   tipo: string;
   descricao: string;
@@ -31,7 +31,7 @@ interface Evidencia {
 }
 
 interface Caso {
-  id: number;
+  _id: string;
   titulo: string;
   data: string;
   sexo: string;
@@ -78,7 +78,7 @@ export default function ModalVisualizacaoPerito({
     const fileUrl = URL.createObjectURL(novaEvidencia.arquivo);
 
     const novaEvidenciaCompleta: Evidencia = {
-      id: Date.now(),
+      _id: Date.now().toString(),
       nome: novaEvidencia.arquivo.name,
       tipo: novaEvidencia.tipo,
       descricao: novaEvidencia.descricao,
@@ -95,11 +95,11 @@ export default function ModalVisualizacaoPerito({
     setShowSuccess(true);
   };
 
-  const handleSaveLaudo = (laudo: string, evidenciaId: number) => {
+  const handleSaveLaudo = (laudo: string, evidenciaId: string) => {
     setCasoAtual((prev) => ({
       ...prev,
       evidencias: prev.evidencias.map((ev) =>
-        ev.id === evidenciaId ? { ...ev, laudo } : ev
+        ev._id === evidenciaId ? { ...ev, laudo } : ev
       ),
     }));
     setSelectedEvidencia(undefined);
@@ -139,7 +139,8 @@ export default function ModalVisualizacaoPerito({
                   Detalhes do Caso
                 </h2>
                 <p className="text-gray-400 text-sm mt-1">
-                  ID do Caso: <span className="text-amber-500">#{caso.id}</span>
+                  ID do Caso:{" "}
+                  <span className="text-amber-500">#{caso._id}</span>
                 </p>
               </div>
             </div>
@@ -259,7 +260,7 @@ export default function ModalVisualizacaoPerito({
                         <tbody>
                           {casoAtual.evidencias.map((evidencia) => (
                             <tr
-                              key={evidencia.id}
+                              key={evidencia._id}
                               className="border-t border-amber-900/30 hover:bg-amber-900/10 transition-colors"
                             >
                               <td className="px-4 py-3 text-sm text-gray-200 font-mono">

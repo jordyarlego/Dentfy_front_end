@@ -7,9 +7,9 @@ import Logo from "../../../public/assets/Logo.png";
 import EvidenciasSalvaSucess from "../EvidenciasSalvaSucess";
 
 interface Caso {
-  id: number;
+  _id: string;
   evidencias: {
-    id: number;
+    _id: string;
     nome: string;
     tipo: string;
     dataAdicao: string;
@@ -139,7 +139,7 @@ export default function ModalNovaEvidencia({
                       />
                     </div>
                     <h2 className="text-xl font-bold text-gray-100 border-l-4 border-amber-600 pl-3">
-                      Nova Evidência - Caso #{caso.id}
+                      Nova Evidência - Caso #{caso._id}
                     </h2>
                   </div>
                   <button

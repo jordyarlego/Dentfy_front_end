@@ -6,7 +6,7 @@ import ModalNovoCasoPerito from "../ModalNovoCasoPerito";
 import ModalVisualizacaoPerito from "../ModalVisualizacaoPerito";
 
 export interface Evidencia {
-  id: number;
+  _id: string;
   nome: string;
   tipo: string;
   descricao: string;
@@ -17,7 +17,7 @@ export interface Evidencia {
 }
 
 export interface Caso {
-  id: number;
+  _id: string;
   titulo: string;
   status: string;
   data: string;
@@ -65,11 +65,11 @@ export default function CasosPerito() {
     carregarCasos();
   }, []);
 
-  const handleSubmitCaso = (novoCaso: FormData, id?: number) => {
-    if (id) {
+  const handleSubmitCaso = (novoCaso: FormData, _id?: string) => {
+    if (_id) {
       setCasos((prev) =>
         prev.map((caso) =>
-          caso.id === id
+          caso._id === _id
             ? {
                 ...caso,
                 ...novoCaso,
@@ -80,7 +80,7 @@ export default function CasosPerito() {
       );
     } else {
       const novoItem: Caso = {
-        id: casos.length + 1,
+        _id: casos.length + 1,
         ...novoCaso,
         status: "Pendente",
         evidencias: [],
@@ -255,7 +255,7 @@ export default function CasosPerito() {
             ) : (
               casosFiltrados.map((caso) => (
                 <tr
-                  key={caso.id}
+                  key={caso._id}
                   className="border-t border-gray-750 hover:bg-gray-750/50 transition-all duration-200 cursor-pointer"
                 >
                   <td className="px-4 sm:px-6 py-3 font-medium text-gray-200 group-hover:text-white">
@@ -382,7 +382,7 @@ export default function CasosPerito() {
           ) : (
             casosFiltrados.map((caso) => (
               <div
-                key={caso.id}
+                key={caso._id}
                 className="border border-gray-700 rounded-lg p-4 bg-gray-800/90 hover:bg-gray-750/50 transition-all duration-200 cursor-pointer"
               >
                 <div className="flex justify-between items-start mb-3">
