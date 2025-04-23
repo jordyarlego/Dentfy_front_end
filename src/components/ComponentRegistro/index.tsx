@@ -5,6 +5,7 @@ import { FaSave, FaTimes } from "react-icons/fa";
 import Image from "next/image";
 import Logo from "../../../public/assets/Logo.png";
 import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
+import { PostUsuario } from "../../../services/api_users";
 
 interface FormUsuario {
   nome: string;
@@ -29,7 +30,11 @@ interface RegistroProps {
   } | null;
 }
 
-export default function ComponentRegistro({ onClose, onSave, usuarioEditando }: RegistroProps) {
+export default function ComponentRegistro({
+  onClose,
+  onSave,
+  usuarioEditando,
+}: RegistroProps) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormUsuario>({
@@ -38,7 +43,7 @@ export default function ComponentRegistro({ onClose, onSave, usuarioEditando }: 
     senha: "",
     confirmarSenha: "",
     cpf: "",
-    cargo: "Perito"
+    cargo: "Perito",
   });
 
   useEffect(() => {
@@ -49,7 +54,7 @@ export default function ComponentRegistro({ onClose, onSave, usuarioEditando }: 
         senha: usuarioEditando.senha,
         confirmarSenha: usuarioEditando.senha,
         cpf: usuarioEditando.cpf,
-        cargo: usuarioEditando.cargo
+        cargo: usuarioEditando.cargo,
       });
     }
   }, [usuarioEditando]);
@@ -61,7 +66,7 @@ export default function ComponentRegistro({ onClose, onSave, usuarioEditando }: 
 
   const validateCPF = (cpf: string) => {
     // Remove caracteres não numéricos
-    const cpfLimpo = cpf.replace(/\D/g, '');
+    const cpfLimpo = cpf.replace(/\D/g, "");
     return cpfLimpo.length === 11;
   };
 
@@ -69,18 +74,20 @@ export default function ComponentRegistro({ onClose, onSave, usuarioEditando }: 
     return senha.length >= 6;
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    
-    if (name === 'cpf') {
+
+    if (name === "cpf") {
       // Remove caracteres não numéricos
-      const cpfLimpo = value.replace(/\D/g, '');
+      const cpfLimpo = value.replace(/\D/g, "");
       // Limita a 11 caracteres
       if (cpfLimpo.length <= 11) {
-        setFormData(prev => ({ ...prev, [name]: cpfLimpo }));
+        setFormData((prev) => ({ ...prev, [name]: cpfLimpo }));
       }
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
@@ -112,6 +119,9 @@ export default function ComponentRegistro({ onClose, onSave, usuarioEditando }: 
     }
 
     try {
+      await PostUsuario(formData); // Envia os dados pro backend
+      onClose(); // fecha o formulario so isso de codigo de integração
+
       onSave(formData);
       setShowSuccess(true);
       // Limpar o formulário após o sucesso
@@ -121,7 +131,7 @@ export default function ComponentRegistro({ onClose, onSave, usuarioEditando }: 
         senha: "",
         confirmarSenha: "",
         cpf: "",
-        cargo: "Perito"
+        cargo: "Perito",
       });
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -155,12 +165,7 @@ export default function ComponentRegistro({ onClose, onSave, usuarioEditando }: 
           <div className="flex justify-between items-center mb-8">
             <div className="flex items-center gap-4">
               <div className="relative w-16 h-8 animate-pulse">
-                <Image
-                  src={Logo}
-                  alt="Logo"
-                  className="object-contain"
-                  fill
-                />
+                <Image src={Logo} alt="Logo" className="object-contain" fill />
               </div>
               <h2 className="text-2xl font-bold text-amber-100 border-l-4 border-amber-600 pl-3">
                 {usuarioEditando ? "Editar Usuário" : "Registro de Usuário"}
@@ -304,8 +309,16 @@ export default function ComponentRegistro({ onClose, onSave, usuarioEditando }: 
         <SuccessModal
           isOpen={showSuccess}
           onClose={handleSuccessClose}
-          title={usuarioEditando ? "Usuário Atualizado com Sucesso!" : "Usuário Registrado com Sucesso!"}
-          message={usuarioEditando ? "O usuário foi atualizado no sistema." : "O usuário foi cadastrado no sistema."}
+          title={
+            usuarioEditando
+              ? "Usuário Atualizado com Sucesso!"
+              : "Usuário Registrado com Sucesso!"
+          }
+          message={
+            usuarioEditando
+              ? "O usuário foi atualizado no sistema."
+              : "O usuário foi cadastrado no sistema."
+          }
           subMessage="Você pode cadastrar mais usuários ou voltar para a lista."
         />
       )}

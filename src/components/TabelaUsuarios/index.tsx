@@ -1,10 +1,22 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Registro from "../ComponentRegistro";
 import ModalVisualizacaoUsuario from "../ModalVisualizacaoUsuario";
 import FeedbackModal from "../FeedbackModal";
 import ModalConfirmacaoExclusao from "../ModalConfirmacaoExclusao";
-import { FaSearch, FaPlus, FaEdit, FaTrash, FaUser, FaEnvelope, FaUserTie, FaLock, FaUnlock, FaEye } from "react-icons/fa";
+import {
+  FaSearch,
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaUser,
+  FaEnvelope,
+  FaUserTie,
+  FaLock,
+  FaUnlock,
+  FaEye,
+} from "react-icons/fa";
+import { GetUsuarios } from "../../../services/api_users";
 
 type Cargo = "Perito" | "Assistente";
 type Status = "ativo" | "inativo";
@@ -32,9 +44,13 @@ export default function TabelaUsuarios() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showRegistro, setShowRegistro] = useState(false);
   const [showVisualizacao, setShowVisualizacao] = useState(false);
-  const [usuarioSelecionado, setUsuarioSelecionado] = useState<Usuario | null>(null);
+  const [usuarioSelecionado, setUsuarioSelecionado] = useState<Usuario | null>(
+    null
+  );
   const [showConfirmacaoExclusao, setShowConfirmacaoExclusao] = useState(false);
-  const [usuarioParaExcluir, setUsuarioParaExcluir] = useState<string | null>(null);
+  const [usuarioParaExcluir, setUsuarioParaExcluir] = useState<string | null>(
+    null
+  );
   const [feedback, setFeedback] = useState<{
     isOpen: boolean;
     type: "success" | "error";
@@ -42,35 +58,20 @@ export default function TabelaUsuarios() {
     message: string;
     subMessage?: string;
   } | null>(null);
-  const [usuarios, setUsuarios] = useState<Usuario[]>([
-    {
-      id: "1",
-      nome: "João Silva",
-      email: "joao@email.com",
-      senha: "••••••••",
-      cpf: "12345678900",
-      cargo: "Perito",
-      status: "ativo"
-    },
-    {
-      id: "2",
-      nome: "Maria Souza",
-      email: "maria@email.com",
-      senha: "••••••••",
-      cpf: "98765432100",
-      cargo: "Assistente",
-      status: "ativo"
-    },
-    {
-      id: "3",
-      nome: "Carlos Oliveira",
-      email: "carlos@email.com",
-      senha: "••••••••",
-      cpf: "45678912300",
-      cargo: "Perito",
-      status: "inativo"
-    }
-  ]);
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]); // estado começa vazio
+
+  useEffect(() => {
+    const fetchUsuarios = async () => {
+      try {
+        const response = await GetUsuarios(); // sua função de GET
+        setUsuarios(response); // atualiza o estado com os dados da API
+      } catch (error) {
+        console.error("Erro ao buscar usuários:", error);
+      }
+    };
+
+    fetchUsuarios();
+  }, []);
 
   const filteredUsuarios = usuarios.filter((usuario) => {
     const term = searchTerm.toLowerCase();
@@ -101,36 +102,38 @@ export default function TabelaUsuarios() {
     setShowRegistro(true);
   };
 
-  const handleAddUsuario = (novoUsuario: Omit<Usuario, 'id' | 'status'>) => {
+  const handleAddUsuario = (novoUsuario: Omit<Usuario, "id" | "status">) => {
     if (usuarioSelecionado) {
       // Edição
-      setUsuarios(usuarios.map(usuario => 
-        usuario.id === usuarioSelecionado.id
-          ? { ...usuario, ...novoUsuario }
-          : usuario
-      ));
+      setUsuarios(
+        usuarios.map((usuario) =>
+          usuario.id === usuarioSelecionado.id
+            ? { ...usuario, ...novoUsuario }
+            : usuario
+        )
+      );
       setUsuarioSelecionado(null);
       setFeedback({
         isOpen: true,
         type: "success",
         title: "Usuário Atualizado!",
         message: "As alterações foram salvas com sucesso.",
-        subMessage: "O usuário foi atualizado no sistema."
+        subMessage: "O usuário foi atualizado no sistema.",
       });
     } else {
       // Novo usuário
       const novoUsuarioCompleto: Usuario = {
         id: Math.random().toString(36).substring(2, 9),
         ...novoUsuario,
-        status: "ativo"
+        status: "ativo",
       };
-      setUsuarios(prevUsuarios => [...prevUsuarios, novoUsuarioCompleto]);
+      setUsuarios((prevUsuarios) => [...prevUsuarios, novoUsuarioCompleto]);
       setFeedback({
         isOpen: true,
         type: "success",
         title: "Usuário Cadastrado!",
         message: "O usuário foi cadastrado com sucesso.",
-        subMessage: "Bem-vindo à equipe!"
+        subMessage: "Bem-vindo à equipe!",
       });
     }
     handleCloseRegistro();
@@ -143,39 +146,44 @@ export default function TabelaUsuarios() {
 
   const confirmarExclusao = () => {
     if (usuarioParaExcluir) {
-      setUsuarios(usuarios.filter(usuario => usuario.id !== usuarioParaExcluir));
+      setUsuarios(
+        usuarios.filter((usuario) => usuario.id !== usuarioParaExcluir)
+      );
       setFeedback({
         isOpen: true,
         type: "success",
         title: "Usuário Excluído!",
         message: "O usuário foi removido do sistema.",
-        subMessage: "A operação foi concluída com sucesso."
+        subMessage: "A operação foi concluída com sucesso.",
       });
       setUsuarioParaExcluir(null);
     }
   };
 
   const toggleStatus = (id: string) => {
-    setUsuarios(usuarios.map(usuario => 
-      usuario.id === id 
-        ? { ...usuario, status: usuario.status === "ativo" ? "inativo" : "ativo" } 
-        : usuario
-    ));
+    setUsuarios(
+      usuarios.map((usuario) =>
+        usuario.id === id
+          ? {
+              ...usuario,
+              status: usuario.status === "ativo" ? "inativo" : "ativo",
+            }
+          : usuario
+      )
+    );
     setFeedback({
       isOpen: true,
       type: "success",
       title: "Status Atualizado!",
       message: "O status do usuário foi alterado.",
-      subMessage: "A operação foi concluída com sucesso."
+      subMessage: "A operação foi concluída com sucesso.",
     });
   };
 
   return (
     <div className="p-4 sm:p-6 bg-transparent min-h-screen">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-100">
-          
-        </h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-100"></h1>
 
         <button
           onClick={handleNovoUsuario}
@@ -226,7 +234,10 @@ export default function TabelaUsuarios() {
           <tbody className="divide-y divide-gray-700">
             {filteredUsuarios.length > 0 ? (
               filteredUsuarios.map((usuario) => (
-                <tr key={usuario.id} className="hover:bg-gray-700/50 transition-colors">
+                <tr
+                  key={usuario.id}
+                  className="hover:bg-gray-700/50 transition-colors"
+                >
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
                     {usuario.nome}
                   </td>
@@ -234,11 +245,13 @@ export default function TabelaUsuarios() {
                     {usuario.email}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      usuario.cargo === "Perito" 
-                        ? "bg-gray-700/50 text-gray-300" 
-                        : "bg-gray-700/50 text-gray-300"
-                    }`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        usuario.cargo === "Perito"
+                          ? "bg-gray-700/50 text-gray-300"
+                          : "bg-gray-700/50 text-gray-300"
+                      }`}
+                    >
                       {usuario.cargo}
                     </span>
                   </td>
@@ -252,9 +265,13 @@ export default function TabelaUsuarios() {
                       }`}
                     >
                       {usuario.status === "ativo" ? (
-                        <><FaLock size={10} /> Ativo</>
+                        <>
+                          <FaLock size={10} /> Ativo
+                        </>
                       ) : (
-                        <><FaUnlock size={10} /> Inativo</>
+                        <>
+                          <FaUnlock size={10} /> Inativo
+                        </>
                       )}
                     </button>
                   </td>
@@ -298,7 +315,7 @@ export default function TabelaUsuarios() {
 
       {/* Modal de Registro */}
       {showRegistro && (
-        <Registro 
+        <Registro
           onClose={handleCloseRegistro}
           onSave={handleAddUsuario}
           usuarioEditando={usuarioSelecionado}
