@@ -4,41 +4,55 @@ import { FaCheck, FaThumbsUp } from 'react-icons/fa';
 import Image from 'next/image';
 import CaveiraPeste from '../../../public/assets/CaveiraPeste.png';
 
-
-interface EvidenciasSalvaSucessProps {
+interface SuccessModalProps {
+  isOpen: boolean;
   onClose: () => void;
+  title: string;
+  message: string;
+  subMessage?: string;
 }
 
-export default function EvidenciasSalvaSucess({ onClose }: EvidenciasSalvaSucessProps) {
+export default function SuccessModal({
+  isOpen,
+  onClose,
+  title,
+  message,
+  subMessage
+}: SuccessModalProps) {
   const [progress, setProgress] = useState(0);
   const [showMessage, setShowMessage] = useState(false);
 
   useEffect(() => {
-    const duration = 2000; // 2 segundos
-    const interval = 50; // Atualizar a cada 50ms
-    const steps = duration / interval;
-    const increment = 100 / steps;
+    if (isOpen) {
+      setProgress(0);
+      setShowMessage(false);
+      
+      const duration = 2000; // 2 segundos
+      const interval = 50; // Atualizar a cada 50ms
+      const steps = duration / interval;
+      const increment = 100 / steps;
 
-    const timer = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(timer);
-          return 100;
-        }
-        return prev + increment;
-      });
-    }, interval);
+      const timer = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(timer);
+            return 100;
+          }
+          return prev + increment;
+        });
+      }, interval);
 
-    // Mostrar mensagem após 500ms
-    const messageTimer = setTimeout(() => {
-      setShowMessage(true);
-    }, 500);
+      // Mostrar mensagem após 500ms
+      const messageTimer = setTimeout(() => {
+        setShowMessage(true);
+      }, 500);
 
-    return () => {
-      clearInterval(timer);
-      clearTimeout(messageTimer);
-    };
-  }, []);
+      return () => {
+        clearInterval(timer);
+        clearTimeout(messageTimer);
+      };
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (progress >= 100) {
@@ -48,6 +62,8 @@ export default function EvidenciasSalvaSucess({ onClose }: EvidenciasSalvaSucess
       return () => clearTimeout(closeTimer);
     }
   }, [progress, onClose]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/80 backdrop-blur-xl">
@@ -72,16 +88,18 @@ export default function EvidenciasSalvaSucess({ onClose }: EvidenciasSalvaSucess
           </div>
 
           <h3 className="text-xl font-bold text-amber-100 mb-2 text-center">
-            Laudo Salvo com Sucesso!
+            {title}
           </h3>
 
           {showMessage && (
             <div className="text-center mb-4 animate-fadeIn">
-              <p className="text-amber-400 mb-2">O laudo foi salvo e anexado à evidência.</p>
-              <div className="flex items-center justify-center gap-2 text-amber-500">
-                <FaThumbsUp className="animate-bounce" />
-                <span>Ótimo trabalho!</span>
-              </div>
+              <p className="text-amber-400 mb-2">{message}</p>
+              {subMessage && (
+                <div className="flex items-center justify-center gap-2 text-amber-500">
+                  <FaThumbsUp className="animate-bounce" />
+                  <span>{subMessage}</span>
+                </div>
+              )}
             </div>
           )}
 
@@ -99,4 +117,4 @@ export default function EvidenciasSalvaSucess({ onClose }: EvidenciasSalvaSucess
       </div>
     </div>
   );
-}
+} 

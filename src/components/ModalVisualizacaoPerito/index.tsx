@@ -127,9 +127,9 @@ export default function ModalVisualizacaoPerito({
     <>
       <div className="fixed inset-0 z-[200] overflow-y-auto">
         <div className="flex min-h-full items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fadeIn" onClick={onClose} />
           
-          <div className="relative w-full max-w-4xl max-h-[90vh] bg-gray-800 border border-gray-700 rounded-lg shadow-2xl overflow-hidden flex flex-col">
+          <div className="relative w-full max-w-4xl max-h-[90vh] bg-gray-800 border border-gray-700 rounded-lg shadow-2xl overflow-hidden flex flex-col animate-slideIn">
             <div className="absolute inset-0 pointer-events-none opacity-5 mix-blend-overlay">
               <Image
                 src={CaveiraPeste}

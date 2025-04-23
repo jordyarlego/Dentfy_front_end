@@ -120,7 +120,7 @@ export default function CasosPerito() {
     <div className="p-4 sm:p-6 bg-transparent min-h-screen">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-100">
-          Casos do Perito
+          
         </h1>
 
         <button

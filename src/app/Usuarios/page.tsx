@@ -1,10 +1,10 @@
 'use client';
 
-import CasosPerito from "@/components/CasosPerito";
-import HeaderPerito from "@/components/HeaderPerito";
 import SidebarPerito from "@/components/SidebarPerito";
+import HeaderPerito from "@/components/HeaderPerito";
+import TabelaUsuarios from "@/components/TabelaUsuarios";
 
-export default function DashboardPerito() {
+export default function Usuarios() {
   return (
     <div className="flex h-screen bg-gray-900">
       <SidebarPerito />
@@ -14,9 +14,9 @@ export default function DashboardPerito() {
         
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-100 mb-6 animate-fadeIn">
-            Casos do Perito
+            Gerenciamento de Usuários
           </h1>
-          <CasosPerito />
+          <TabelaUsuarios />
         </main>
       </div>
 
