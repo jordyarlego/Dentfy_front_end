@@ -80,7 +80,7 @@ export default function CasosPerito() {
       );
     } else {
       const novoItem: Caso = {
-        _id: casos.length + 1,
+        _id: "",
         ...novoCaso,
         status: "Pendente",
         evidencias: [],

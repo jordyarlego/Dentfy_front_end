@@ -21,11 +21,12 @@ type ModalNovoCasoPeritoProps = {
 
 interface FormData {
   titulo: string;
-  data: string;
-  sexo: string;
-  local: string;
   descricao: string;
-  status: string;
+  responsavel: string;
+  status: "Em andamento";
+  dataAbertura: string;
+  sexo: "Masculino" | "Feminino";
+  local: string;
 }
 
 export default function ModalNovoCasoPerito({
@@ -35,37 +36,61 @@ export default function ModalNovoCasoPerito({
 }: ModalNovoCasoPeritoProps) {
   const [formData, setFormData] = useState<FormData>({
     titulo: "",
-    data: "",
-    sexo: "",
-    local: "",
     descricao: "",
-    status: "",
+    responsavel: "",
+    status: "Em andamento",
+    dataAbertura: new Date().toISOString().split('T')[0],
+    sexo: "Masculino",
+    local: "",
   });
   const [error, setError] = useState<string | null>(null);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null); // Limpa erros anteriores
+    setError(null);
+
+    // Validações
+    if (!formData.titulo.trim()) {
+      setError("O título é obrigatório");
+      return;
+    }
+
+    if (!formData.descricao.trim()) {
+      setError("A descrição é obrigatória");
+      return;
+    }
+
+    if (!formData.responsavel.trim()) {
+      setError("O responsável é obrigatório");
+      return;
+    }
+
+    if (!formData.local.trim()) {
+      setError("O local é obrigatório");
+      return;
+    }
 
     try {
-      await criarCaso(formData); // Envia os dados pro backend
-      onSubmit(formData); // Caso queira notificar o componente pai
-      onClose(); // Fecha o modal
+      await criarCaso(formData);
+      onSubmit(formData);
+      onClose();
 
       // Reseta o formulário
       setFormData({
         titulo: "",
-        data: "",
-        sexo: "",
-        local: "",
         descricao: "",
-        status: "",
+        responsavel: "",
+        status: "Em andamento",
+        dataAbertura: new Date().toISOString().split('T')[0],
+        sexo: "Masculino",
+        local: "",
       });
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -77,6 +102,7 @@ export default function ModalNovoCasoPerito({
       }
     }
   };
+
   return (
     <>
       {isOpen && (
@@ -103,7 +129,7 @@ export default function ModalNovoCasoPerito({
                     />
                   </div>
                   <h2 className="text-xl font-bold text-amber-100 border-l-4 border-amber-600 pl-3">
-                    Novo Caso de Perito
+                    Novo Caso
                   </h2>
                 </div>
                 <button
@@ -133,12 +159,12 @@ export default function ModalNovoCasoPerito({
                   <div>
                     <label className="block text-sm font-medium mb-2 text-amber-500">
                       <FaCalendarAlt className="inline mr-2" />
-                      Data
+                      Data de Abertura
                     </label>
                     <input
                       type="date"
-                      name="data"
-                      value={formData.data}
+                      name="dataAbertura"
+                      value={formData.dataAbertura}
                       onChange={handleChange}
                       className="w-full px-4 py-2 text-sm border-2 border-amber-500/30 bg-[#0E1A26] text-amber-100 rounded-lg focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/30"
                       required
@@ -196,22 +222,16 @@ export default function ModalNovoCasoPerito({
 
                   <div>
                     <label className="block text-sm font-medium mb-2 text-amber-500">
-                      Status
+                      Responsável
                     </label>
-                    <div className="flex gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setFormData({ ...formData, status: "Em andamento" })}
-                        className={`flex-1 flex items-center justify-center p-3 rounded-lg border-2 text-sm transition-all ${
-                          formData.status === "Em andamento"
-                            ? "border-amber-400 bg-amber-400/20 text-amber-300"
-                            : "border-gray-700 bg-gray-700/50 text-gray-300 hover:border-amber-400 hover:text-amber-300"
-                        }`}
-                      >
-                        <span className="mr-2">⏳</span>
-                        Em andamento
-                      </button>
-                    </div>
+                    <input
+                      type="text"
+                      name="responsavel"
+                      value={formData.responsavel}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 text-sm border-2 border-amber-500/30 bg-[#0E1A26] text-amber-100 rounded-lg focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/30"
+                      required
+                    />
                   </div>
 
                   <div>

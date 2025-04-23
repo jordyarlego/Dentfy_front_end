@@ -3,11 +3,12 @@ import { AxiosError } from "axios";
 
 interface CasoData {
   titulo: string;
-  data: string;
-  sexo: string;
-  local: string;
   descricao: string;
-  status: string;
+  responsavel: string;
+  status: "Em andamento";
+  dataAbertura: string;
+  sexo: "Masculino" | "Feminino";
+  local: string;
 }
 
 export async function criarCaso(data: CasoData) {

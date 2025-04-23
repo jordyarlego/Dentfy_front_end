@@ -6,11 +6,11 @@ import Logo from '../../../public/assets/Logo.png';
 import CaveiraPeste from '../../../public/assets/CaveiraPeste.png';
 
 interface Usuario {
-  id: string;
-  nome: string;
+  _id: string;
+  name: string;
   email: string;
   cpf: string;
-  cargo: string;
+  role: "perito" | "assistente";
   status: string;
 }
 
@@ -18,7 +18,7 @@ interface ModalVisualizacaoUsuarioProps {
   usuario: Usuario;
   onClose: () => void;
   onEdit: (usuario: Usuario) => void;
-  onDelete: (id: string) => void;
+  onDelete: (_id: string) => void;
 }
 
 export default function ModalVisualizacaoUsuario({
@@ -61,10 +61,13 @@ export default function ModalVisualizacaoUsuario({
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1 text-amber-500">
+                <p className="bg-black-500 mb-5"> ID #{usuario._id}</p>
                   <FaUser className="inline mr-2" />
+                  
                   Nome Completo
+                  
                 </label>
-                <p className="text-amber-100">{usuario.nome}</p>
+                <p className="text-amber-100">{usuario.name}</p>
               </div>
 
               <div>
@@ -90,14 +93,14 @@ export default function ModalVisualizacaoUsuario({
                   <FaUserTie className="inline mr-2" />
                   Cargo
                 </label>
-                <p className="text-amber-100">{usuario.cargo}</p>
+                <p className="text-amber-100">{usuario.role}</p>
               </div>
             </div>
           </div>
 
           <div className="mt-6 flex justify-end gap-3">
             <button
-              onClick={() => onDelete(usuario.id)}
+              onClick={() => onDelete(usuario._id)}
               className="px-4 py-2 rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600/30 transition-colors duration-200"
             >
               Excluir

@@ -12,32 +12,27 @@ import {
   FaUser,
   FaEnvelope,
   FaUserTie,
-  FaLock,
-  FaUnlock,
   FaEye,
 } from "react-icons/fa";
-import { GetUsuarios } from "../../../services/api_users";
+import { GetUsuarios, DeleteUsuario } from "../../../services/api_users";
 
-type Cargo = "Perito" | "Assistente";
-type Status = "ativo" | "inativo";
+type Role = "perito" | "assistente";
 
 interface Usuario {
-  id: string;
-  nome: string;
+  _id: string;
+  name: string;
   email: string;
-  senha: string;
+  password: string;
   cpf: string;
-  cargo: Cargo;
-  status: Status;
+  role: Role;
 }
 
 interface UsuarioVisualizacao {
-  id: string;
-  nome: string;
+  _id: string;
+  name: string;
   email: string;
   cpf: string;
-  cargo: Cargo;
-  status: Status;
+  role: Role;
 }
 
 export default function TabelaUsuarios() {
@@ -76,14 +71,17 @@ export default function TabelaUsuarios() {
   const filteredUsuarios = usuarios.filter((usuario) => {
     const term = searchTerm.toLowerCase();
     return (
-      usuario.nome?.toLowerCase().includes(term) ||
+      usuario.name?.toLowerCase().includes(term) ||
       usuario.email.toLowerCase().includes(term) ||
-      usuario.cargo.toLowerCase().includes(term) ||
+      usuario.role.toLowerCase().includes(term) ||
       usuario.cpf.includes(term)
     );
   });
 
-  const handleNovoUsuario = () => setShowRegistro(true);
+  const handleNovoUsuario = () => {
+    setUsuarioSelecionado(null);
+    setShowRegistro(true);
+  };
   const handleCloseRegistro = () => setShowRegistro(false);
 
   const handleVisualizarUsuario = (usuario: Usuario) => {
@@ -102,12 +100,12 @@ export default function TabelaUsuarios() {
     setShowRegistro(true);
   };
 
-  const handleAddUsuario = (novoUsuario: Omit<Usuario, "id" | "status">) => {
+  const handleAddUsuario = (novoUsuario: Omit<Usuario, "_id">) => {
     if (usuarioSelecionado) {
       // Edição
       setUsuarios(
         usuarios.map((usuario) =>
-          usuario.id === usuarioSelecionado.id
+          usuario._id === usuarioSelecionado._id
             ? { ...usuario, ...novoUsuario }
             : usuario
         )
@@ -123,9 +121,8 @@ export default function TabelaUsuarios() {
     } else {
       // Novo usuário
       const novoUsuarioCompleto: Usuario = {
-        id: Math.random().toString(36).substring(2, 9),
+        _id: Math.random().toString(36).substring(2, 9),
         ...novoUsuario,
-        status: "ativo",
       };
       setUsuarios((prevUsuarios) => [...prevUsuarios, novoUsuarioCompleto]);
       setFeedback({
@@ -139,45 +136,36 @@ export default function TabelaUsuarios() {
     handleCloseRegistro();
   };
 
-  const handleExcluirUsuario = (id: string) => {
-    setUsuarioParaExcluir(id);
+  const handleExcluirUsuario = (_id: string) => {
+    setUsuarioParaExcluir(_id);
     setShowConfirmacaoExclusao(true);
   };
 
-  const confirmarExclusao = () => {
+  const confirmarExclusao = async () => {
     if (usuarioParaExcluir) {
-      setUsuarios(
-        usuarios.filter((usuario) => usuario.id !== usuarioParaExcluir)
-      );
-      setFeedback({
-        isOpen: true,
-        type: "success",
-        title: "Usuário Excluído!",
-        message: "O usuário foi removido do sistema.",
-        subMessage: "A operação foi concluída com sucesso.",
-      });
-      setUsuarioParaExcluir(null);
+      try {
+        await DeleteUsuario(usuarioParaExcluir);
+        setUsuarios(
+          usuarios.filter((usuario) => usuario._id !== usuarioParaExcluir)
+        );
+        setFeedback({
+          isOpen: true,
+          type: "success",
+          title: "Usuário Excluído!",
+          message: "O usuário foi removido do sistema.",
+          subMessage: "A operação foi concluída com sucesso.",
+        });
+        setUsuarioParaExcluir(null);
+      } catch (error) {
+        setFeedback({
+          isOpen: true,
+          type: "error",
+          title: "Erro ao Excluir",
+          message: "Não foi possível excluir o usuário.",
+          subMessage: "Por favor, tente novamente mais tarde.",
+        });
+      }
     }
-  };
-
-  const toggleStatus = (id: string) => {
-    setUsuarios(
-      usuarios.map((usuario) =>
-        usuario.id === id
-          ? {
-              ...usuario,
-              status: usuario.status === "ativo" ? "inativo" : "ativo",
-            }
-          : usuario
-      )
-    );
-    setFeedback({
-      isOpen: true,
-      type: "success",
-      title: "Status Atualizado!",
-      message: "O status do usuário foi alterado.",
-      subMessage: "A operação foi concluída com sucesso.",
-    });
   };
 
   return (
@@ -223,9 +211,6 @@ export default function TabelaUsuarios() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                 <FaUserTie className="inline mr-2" /> Cargo
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                Status
-              </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
                 Ações
               </th>
@@ -239,7 +224,7 @@ export default function TabelaUsuarios() {
                   className="hover:bg-gray-700/50 transition-colors"
                 >
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
-                    {usuario.nome}
+                    {usuario.name}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                     {usuario.email}
@@ -247,33 +232,13 @@ export default function TabelaUsuarios() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        usuario.cargo === "Perito"
-                          ? "bg-gray-700/50 text-gray-300"
-                          : "bg-gray-700/50 text-gray-300"
+                        usuario.role === "perito"
+                          ? "bg-blue-700/50 text-blue-300"
+                          : "bg-purple-700/50 text-purple-300"
                       }`}
                     >
-                      {usuario.cargo}
+                      {usuario.role}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <button
-                      onClick={() => toggleStatus(usuario.id)}
-                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${
-                        usuario.status === "ativo"
-                          ? "bg-green-900/30 text-green-400 hover:bg-green-900/40"
-                          : "bg-red-900/30 text-red-400 hover:bg-red-900/40"
-                      }`}
-                    >
-                      {usuario.status === "ativo" ? (
-                        <>
-                          <FaLock size={10} /> Ativo
-                        </>
-                      ) : (
-                        <>
-                          <FaUnlock size={10} /> Inativo
-                        </>
-                      )}
-                    </button>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end gap-2">
@@ -292,7 +257,7 @@ export default function TabelaUsuarios() {
                         <FaEdit />
                       </button>
                       <button
-                        onClick={() => handleExcluirUsuario(usuario.id)}
+                        onClick={() => handleExcluirUsuario(usuario._id)}
                         className="text-red-500 hover:text-red-400 p-1 transition-colors"
                         title="Excluir"
                       >
@@ -304,7 +269,7 @@ export default function TabelaUsuarios() {
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-gray-400">
+                <td colSpan={4} className="px-6 py-8 text-center text-gray-400">
                   Nenhum usuário encontrado com os critérios de busca.
                 </td>
               </tr>
