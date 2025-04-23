@@ -61,7 +61,7 @@ export default function TabelaUsuarios() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]); // estado começa vazio
 
   useEffect(() => {
-    const fetchUsuarios = async () => {
+    const APIUsuarios = async () => {
       try {
         const response = await GetUsuarios(); // sua função de GET
         setUsuarios(response); // atualiza o estado com os dados da API
@@ -70,13 +70,13 @@ export default function TabelaUsuarios() {
       }
     };
 
-    fetchUsuarios();
+    APIUsuarios();
   }, []);
 
   const filteredUsuarios = usuarios.filter((usuario) => {
     const term = searchTerm.toLowerCase();
     return (
-      usuario.nome.toLowerCase().includes(term) ||
+      usuario.nome?.toLowerCase().includes(term) ||
       usuario.email.toLowerCase().includes(term) ||
       usuario.cargo.toLowerCase().includes(term) ||
       usuario.cpf.includes(term)
