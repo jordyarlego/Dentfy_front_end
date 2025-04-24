@@ -24,6 +24,8 @@ export interface Caso {
   sexo: string;
   local: string;
   descricao: string;
+  tipo: string;
+  responsavel: string;
   evidencias: Evidencia[];
 }
 
@@ -33,6 +35,8 @@ interface FormData {
   sexo: string;
   local: string;
   descricao: string;
+  tipo: string;
+  responsavel: string;
 }
 
 export default function CasosPerito() {

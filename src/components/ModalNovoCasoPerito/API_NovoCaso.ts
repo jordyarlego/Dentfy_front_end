@@ -5,7 +5,8 @@ interface CasoData {
   titulo: string;
   descricao: string;
   responsavel: string;
-  status: "Em andamento";
+  status: "Em andamento" | "Finalizado" | "Arquivado";
+  tipo: "Vitima" | "Desaparecido" | "Outros";
   dataAbertura: string;
   sexo: "Masculino" | "Feminino";
   local: string;

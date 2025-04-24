@@ -23,7 +23,8 @@ interface FormData {
   titulo: string;
   descricao: string;
   responsavel: string;
-  status: "Em andamento";
+  status: "Em andamento" | "Finalizado" | "Arquivado";
+  tipo: "Vitima" | "Desaparecido" | "Outros";
   dataAbertura: string;
   sexo: "Masculino" | "Feminino";
   local: string;
@@ -39,6 +40,7 @@ export default function ModalNovoCasoPerito({
     descricao: "",
     responsavel: "",
     status: "Em andamento",
+    tipo: "Vitima",
     dataAbertura: new Date().toISOString().split('T')[0],
     sexo: "Masculino",
     local: "",
@@ -88,6 +90,7 @@ export default function ModalNovoCasoPerito({
         descricao: "",
         responsavel: "",
         status: "Em andamento",
+        tipo: "Vitima",
         dataAbertura: new Date().toISOString().split('T')[0],
         sexo: "Masculino",
         local: "",
@@ -247,31 +250,65 @@ export default function ModalNovoCasoPerito({
                       required
                     />
                   </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-amber-500">
+                      Tipo do Caso
+                    </label>
+                    <select
+                      name="tipo"
+                      value={formData.tipo}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 text-sm border-2 border-amber-500/30 bg-[#0E1A26] text-amber-100 rounded-lg focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/30"
+                      required
+                    >
+                      <option value="Vitima">Vítima</option>
+                      <option value="Desaparecido">Desaparecido</option>
+                      <option value="Outros">Outros</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-amber-500">
+                      Status
+                    </label>
+                    <select
+                      name="status"
+                      value={formData.status}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 text-sm border-2 border-amber-500/30 bg-[#0E1A26] text-amber-100 rounded-lg focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/30"
+                      required
+                    >
+                      <option value="Em andamento">Em andamento</option>
+                      <option value="Finalizado">Finalizado</option>
+                      <option value="Arquivado">Arquivado</option>
+                    </select>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="col-span-2">
+                    <p className="text-red-500 text-sm">{error}</p>
+                  </div>
+                )}
+
+                <div className="col-span-2 flex justify-end gap-4 mt-6">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-6 py-2 text-sm text-amber-100 hover:text-amber-500 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors flex items-center gap-2"
+                  >
+                    <FaSave />
+                    Salvar Caso
+                  </button>
                 </div>
               </form>
-
-              {error && (
-                <div className="mt-4 p-3 rounded-lg bg-red-500/20 border border-red-500 text-red-400">
-                  {error}
-                </div>
-              )}
-
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 rounded-lg bg-[#1A3446] text-amber-100 hover:bg-[#23405a] transition-colors duration-200"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-lg bg-amber-600 text-[#0E1A26] hover:bg-amber-700 transition-colors duration-200 font-medium"
-                >
-                  <FaSave className="inline mr-2" />
-                  Salvar
-                </button>
-              </div>
             </div>
           </div>
         </div>

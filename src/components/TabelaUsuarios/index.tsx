@@ -157,6 +157,7 @@ export default function TabelaUsuarios() {
         });
         setUsuarioParaExcluir(null);
       } catch (error) {
+        console.error("Erro ao excluir usuário:", error);
         setFeedback({
           isOpen: true,
           type: "error",
@@ -220,7 +221,7 @@ export default function TabelaUsuarios() {
             {filteredUsuarios.length > 0 ? (
               filteredUsuarios.map((usuario) => (
                 <tr
-                  key={usuario.id}
+                  key={usuario._id}
                   className="hover:bg-gray-700/50 transition-colors"
                 >
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
