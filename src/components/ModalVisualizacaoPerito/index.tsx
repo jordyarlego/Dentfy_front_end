@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FaTimes, FaPlus, FaFileAlt, FaImage, FaVideo,  FaTrash } from "react-icons/fa";
+import { FaTimes, FaPlus, FaFileAlt, FaImage, FaVideo, FaTrash, FaFileDownload } from "react-icons/fa";
 import Image from "next/image";
 import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
 import Logo from "../../../public/assets/Logo.png";
@@ -8,9 +8,8 @@ import ModalNovaEvidencia from "../ModalNovaEvidencia";
 import EvidenciasSalvaSucess from "../EvidenciasSalvaSucess";
 import ModalGerarLaudo from "../ModalGerarLaudo";
 import { CasoData, Evidencia, adicionarEvidencia, atualizarEvidencia, deletarEvidencia, atualizarCaso, deletarCaso } from "../ModalNovoCasoPerito/API_NovoCaso";
-import { Caso } from "../CasosPerito";
 
-interface Caso extends CasoData {
+interface CasoCompleto extends CasoData {
   _id: string;
   evidencias?: Evidencia[];
 }
@@ -25,7 +24,7 @@ interface NovaEvidencia {
 interface ModalVisualizacaoPeritoProps {
   isOpen: boolean;
   onClose: () => void;
-  caso: Caso;
+  caso: CasoCompleto;
   onEvidenciaAdicionada: () => void;
 }
 
@@ -39,8 +38,7 @@ export default function ModalVisualizacaoPerito({
   const [mostrarSucesso, setMostrarSucesso] = useState(false);
   const [evidenciaParaLaudo, setEvidenciaParaLaudo] = useState<Evidencia | null>(null);
   const [evidencias, setEvidencias] = useState<Evidencia[]>(caso.evidencias || []);
-  const [editandoCaso, setEditandoCaso] = useState(false);
-  const [casoEditado, setCasoEditado] = useState<Caso>(caso);
+  const [modalGerarRelatorioOpen, setModalGerarRelatorioOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -52,32 +50,6 @@ export default function ModalVisualizacaoPerito({
   }, [isOpen]);
 
   if (!isOpen) return null;
-
-  const getIconePorTipo = (tipo: string) => {
-    switch (tipo.toLowerCase()) {
-      case "documento":
-        return <FaFileAlt className="text-blue-400" />;
-      case "foto":
-        return <FaImage className="text-green-400" />;
-      case "video":
-        return <FaVideo className="text-red-400" />;
-      default:
-        return <FaFileAlt className="text-gray-400" />;
-    }
-  };
-
-  const getStatusColor = () => {
-    switch (caso.status) {
-      case "Finalizado":
-        return "bg-green-500";
-      case "Em andamento":
-        return "bg-amber-500";
-      case "Arquivado":
-        return "bg-red-500";
-      default:
-        return "bg-gray-500";
-    }
-  };
 
   const handleSalvarNovaEvidencia = async (novaEvidencia: NovaEvidencia) => {
     try {
@@ -125,15 +97,6 @@ export default function ModalVisualizacaoPerito({
     }
   };
 
-  const handleEditarCaso = async () => {
-    try {
-      const casoAtualizado = await atualizarCaso(caso._id, casoEditado);
-      setEditandoCaso(false);
-    } catch (error) {
-      console.error("Erro ao atualizar caso:", error);
-    }
-  };
-
   const handleDeletarCaso = async () => {
     if (window.confirm("Tem certeza que deseja excluir este caso?")) {
       try {
@@ -143,6 +106,10 @@ export default function ModalVisualizacaoPerito({
         console.error("Erro ao deletar caso:", error);
       }
     }
+  };
+
+  const handleGerarRelatorio = () => {
+    setModalGerarRelatorioOpen(true);
   };
 
   return (
@@ -172,18 +139,27 @@ export default function ModalVisualizacaoPerito({
                 Detalhes do Caso
               </h2>
             </div>
-            <button
-              onClick={handleDeletarCaso}
-              className="text-amber-100 hover:text-amber-500 transition-colors group"
-            >
-              <FaTrash className="h-6 w-6 group-hover:scale-110 transition-transform" />
-            </button>
-            <button
-              onClick={onClose}
-              className="text-amber-100 hover:text-amber-500 transition-colors group"
-            >
-              <FaTimes className="h-6 w-6 group-hover:rotate-90 transition-transform" />
-            </button>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleGerarRelatorio}
+                className="text-amber-100 hover:text-amber-500 transition-all duration-300 group flex items-center gap-2 cursor-pointer hover:scale-105"
+              >
+                <FaFileDownload className="h-6 w-6 group-hover:scale-110 transition-transform" />
+                <span className="text-sm">Gerar Relatório</span>
+              </button>
+              <button
+                onClick={handleDeletarCaso}
+                className="text-amber-100 hover:text-amber-500 transition-all duration-300 group cursor-pointer hover:scale-105"
+              >
+                <FaTrash className="h-6 w-6 group-hover:scale-110 transition-transform" />
+              </button>
+              <button
+                onClick={onClose}
+                className="text-amber-100 hover:text-amber-500 transition-all duration-300 group cursor-pointer hover:scale-105"
+              >
+                <FaTimes className="h-6 w-6 group-hover:rotate-90 transition-transform" />
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-6">
@@ -249,9 +225,9 @@ export default function ModalVisualizacaoPerito({
               <h3 className="text-lg font-medium text-amber-100">Evidências</h3>
               <button
                 onClick={() => setModalNovaEvidenciaOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-all duration-300 cursor-pointer hover:scale-105 hover:shadow-lg hover:shadow-amber-500/20"
               >
-                <FaPlus />
+                <FaPlus className="group-hover:rotate-90 transition-transform" />
                 Nova Evidência
               </button>
             </div>
@@ -260,9 +236,17 @@ export default function ModalVisualizacaoPerito({
               {evidencias.map((evidencia) => (
                 <div
                   key={evidencia._id}
-                  className="bg-gray-800/50 border border-gray-700 rounded-lg p-4"
+                  className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:bg-gray-800/70 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-amber-500/10"
                 >
-                  <h4 className="text-amber-100 font-medium mb-2">{evidencia.nome}</h4>
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="text-amber-100 font-medium">{evidencia.nome}</h4>
+                    <button
+                      onClick={() => handleDeletarEvidencia(evidencia._id)}
+                      className="text-gray-400 hover:text-red-400 transition-all duration-300 cursor-pointer hover:scale-110"
+                    >
+                      <FaTrash className="h-4 w-4" />
+                    </button>
+                  </div>
                   <p className="text-gray-300 text-sm mb-2">{evidencia.descricao}</p>
                   <div className="flex flex-wrap gap-2">
                     <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">
@@ -272,6 +256,12 @@ export default function ModalVisualizacaoPerito({
                       {evidencia.coletadoPor}
                     </span>
                   </div>
+                  {evidencia.laudo && (
+                    <div className="mt-2">
+                      <h5 className="text-xs font-medium text-amber-500 mb-1">Laudo</h5>
+                      <p className="text-gray-300 text-sm">{evidencia.laudo}</p>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -283,9 +273,7 @@ export default function ModalVisualizacaoPerito({
         <ModalNovaEvidencia
           isOpen={modalNovaEvidenciaOpen}
           onClose={() => setModalNovaEvidenciaOpen(false)}
-          onSave={(evidencia) => {
-            handleSalvarNovaEvidencia(evidencia);
-          }}
+          onSave={handleSalvarNovaEvidencia}
         />
       )}
 
@@ -299,8 +287,20 @@ export default function ModalVisualizacaoPerito({
         <ModalGerarLaudo
           isOpen={!!evidenciaParaLaudo}
           onClose={() => setEvidenciaParaLaudo(null)}
-          evidencia={evidenciaParaLaudo}
           onSave={(laudo) => handleSalvarLaudo(laudo, evidenciaParaLaudo._id)}
+          evidencia={evidenciaParaLaudo}
+        />
+      )}
+
+      {modalGerarRelatorioOpen && (
+        <ModalGerarLaudo
+          isOpen={modalGerarRelatorioOpen}
+          onClose={() => setModalGerarRelatorioOpen(false)}
+          onSave={(laudo) => {
+            // Implementar lógica de geração de relatório
+            setModalGerarRelatorioOpen(false);
+          }}
+          evidencia={evidencias[0] || undefined}
         />
       )}
     </div>

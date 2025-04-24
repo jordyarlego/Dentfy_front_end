@@ -30,6 +30,7 @@ export default function SidebarPerito() {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('@dentfy:usuario');
     router.push('/Login');
   };
 
@@ -37,11 +38,15 @@ export default function SidebarPerito() {
     return null;
   }
 
+  const isActive = (path: string) => {
+    return pathname === path;
+  };
+
   return (
     <div className={`relative bg-[#0E1A26] border-r border-cyan-900/30 h-full transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'}`}>
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-20 bg-[#0E1A26] border border-cyan-900/30 rounded-full p-1 text-amber-100 hover:text-white transition-colors duration-200"
+        className="absolute -right-3 top-20 bg-[#0E1A26] border border-cyan-900/30 rounded-full p-1 text-amber-100 hover:text-white transition-all duration-300 cursor-pointer hover:scale-110"
       >
         {isCollapsed ? (
           <ChevronRightIcon className="h-4 w-4" />
@@ -53,45 +58,84 @@ export default function SidebarPerito() {
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
         <Link 
           href="/dashboard" 
-          className={`flex items-center space-x-3 p-3 rounded-lg text-amber-100 hover:bg-[#12212B] hover:text-white transition-colors duration-200 group ${
-            pathname === '/dashboard' ? 'bg-[#12212B] text-white' : ''
+          className={`flex items-center space-x-3 p-3 rounded-lg text-amber-100 hover:bg-[#12212B] hover:text-white transition-all duration-300 group cursor-pointer ${
+            isActive('/dashboard') 
+              ? 'bg-[#12212B] text-white scale-105' 
+              : 'hover:scale-105'
           }`}
         >
-          <ChartBarIcon className="h-5 w-5 group-hover:text-white" />
-          {!isCollapsed && <span className="font-medium">Dashboard</span>}
+          <ChartBarIcon className={`h-5 w-5 transition-all duration-300 ${
+            isActive('/dashboard') 
+              ? 'text-amber-500 scale-110' 
+              : 'group-hover:text-white group-hover:scale-110'
+          }`} />
+          {!isCollapsed && (
+            <span className={`font-medium transition-all duration-300 ${
+              isActive('/dashboard') 
+                ? 'text-amber-500 animate-pulse' 
+                : 'group-hover:text-white'
+            }`}>
+              Dashboard
+            </span>
+          )}
         </Link>
 
         <Link 
           href="/CasosPerito" 
-          className={`flex items-center space-x-3 p-3 rounded-lg text-amber-100 hover:bg-[#12212B] hover:text-white transition-colors duration-200 group ${
-            pathname === '/casos' ? 'bg-[#12212B] text-white' : ''
+          className={`flex items-center space-x-3 p-3 rounded-lg text-amber-100 hover:bg-[#12212B] hover:text-white transition-all duration-300 group cursor-pointer ${
+            isActive('/CasosPerito') 
+              ? 'bg-[#12212B] text-white scale-105' 
+              : 'hover:scale-105'
           }`}
         >
-          <FolderIcon className="h-5 w-5 group-hover:text-white" />
-          {!isCollapsed && <span className="font-medium">Casos</span>}
+          <FolderIcon className={`h-5 w-5 transition-all duration-300 ${
+            isActive('/CasosPerito') 
+              ? 'text-amber-500 scale-110' 
+              : 'group-hover:text-white group-hover:scale-110'
+          }`} />
+          {!isCollapsed && (
+            <span className={`font-medium transition-all duration-300 ${
+              isActive('/CasosPerito') 
+                ? 'text-amber-500 animate-pulse' 
+                : 'group-hover:text-white'
+            }`}>
+              Casos
+            </span>
+          )}
         </Link>
 
         <Link 
           href="/Usuarios" 
-          className={`flex items-center space-x-3 p-3 rounded-lg text-amber-100 hover:bg-[#12212B] hover:text-white transition-colors duration-200 group ${
-            pathname === '/usuarios' ? 'bg-[#12212B] text-white' : ''
+          className={`flex items-center space-x-3 p-3 rounded-lg text-amber-100 hover:bg-[#12212B] hover:text-white transition-all duration-300 group cursor-pointer ${
+            isActive('/Usuarios') 
+              ? 'bg-[#12212B] text-white scale-105' 
+              : 'hover:scale-105'
           }`}
         >
-          <UserGroupIcon className="h-5 w-5 group-hover:text-white" />
-          {!isCollapsed && <span className="font-medium">Usuários</span>}
+          <UserGroupIcon className={`h-5 w-5 transition-all duration-300 ${
+            isActive('/Usuarios') 
+              ? 'text-amber-500 scale-110' 
+              : 'group-hover:text-white group-hover:scale-110'
+          }`} />
+          {!isCollapsed && (
+            <span className={`font-medium transition-all duration-300 ${
+              isActive('/Usuarios') 
+                ? 'text-amber-500 animate-pulse' 
+                : 'group-hover:text-white'
+            }`}>
+              Usuários
+            </span>
+          )}
         </Link>
       </div>
 
       <div className="p-4 border-t border-cyan-900/30">
-        <button 
+        <button
           onClick={() => setShowLogoutModal(true)}
-          className={`flex items-center space-x-3 p-3 w-full rounded-lg text-amber-100 hover:bg-[#12212B] hover:text-white transition-colors duration-200 group relative overflow-hidden ${
-            isCollapsed ? 'justify-center' : ''
-          }`}
+          className="flex items-center space-x-3 p-3 rounded-lg text-amber-100 hover:bg-[#12212B] hover:text-white transition-all duration-300 group cursor-pointer w-full hover:scale-105"
         >
-          <ArrowLeftOnRectangleIcon className="h-5 w-5 group-hover:text-white" />
+          <ArrowLeftOnRectangleIcon className="h-5 w-5 group-hover:scale-110 transition-transform" />
           {!isCollapsed && <span className="font-medium">Sair</span>}
-          <span className="absolute inset-0 bg-amber-500 opacity-0 group-hover:opacity-10 hover:cursor-pointer transition-opacity duration-300"></span>
         </button>
       </div>
 
@@ -103,13 +147,13 @@ export default function SidebarPerito() {
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setShowLogoutModal(false)}
-                className="px-4 py-2 rounded-lg bg-[#1A3446] text-amber-100 hover:bg-[#23405a] transition-colors duration-200"
+                className="px-4 py-2 rounded-lg bg-[#1A3446] text-amber-100 hover:bg-[#23405a] transition-all duration-300 cursor-pointer hover:scale-105"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 rounded-lg bg-amber-600 text-[#12212B] hover:bg-amber-700 transition-colors duration-200 font-medium"
+                className="px-4 py-2 rounded-lg bg-amber-600 text-[#12212B] hover:bg-amber-700 transition-all duration-300 cursor-pointer hover:scale-105 font-medium"
               >
                 Confirmar
               </button>
