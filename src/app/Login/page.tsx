@@ -3,7 +3,7 @@
 import { useState } from "react";
 import InputTeste from "../../components/ComponentInput";
 import HeroLogin from "../../components/HeroLogin";
-import Link from "next/link";
+
 import { useRouter } from "next/navigation";
 import api from "../../../lib/axios";
 import { AxiosError } from "axios";
@@ -45,16 +45,35 @@ export default function Login() {
         password,
       });
 
+      console.log("Resposta da API:", response.data);
+
       if (!response.data.token) {
         throw new Error("Token não encontrado na resposta");
       }
 
-      const { token } = response.data;
+      const { token, user } = response.data;
+      console.log("Dados do usuário:", user);
+
       localStorage.setItem("token", token);
+      localStorage.setItem("@dentfy:usuario", JSON.stringify({
+        nome: user.name,
+        cargo: user.role === "admin" ? "Administrador" : 
+               user.role === "perito" ? "Perito Criminal" : "Assistente"
+      }));
+
+      console.log("Dados salvos no localStorage:", {
+        token,
+        usuario: {
+          nome: user.name,
+          cargo: user.role === "admin" ? "Administrador" : 
+                 user.role === "perito" ? "Perito Criminal" : "Assistente"
+        }
+      });
+
       router.push("/CasosPerito");
     } catch (err) {
       const axiosError = err as AxiosError<{ message?: string }>;
-      console.error("Erro na requisição de login:", axiosError); // Para depuração
+      console.error("Erro na requisição de login:", axiosError);
       setError(
         axiosError.response?.data?.message ||
           "Erro ao fazer login. Tente novamente."
@@ -86,50 +105,24 @@ export default function Login() {
             <div className="text-red-500 text-center mb-4">{error}</div>
           )}
 
-          <form className="space-y-4 lg:space-y-6" onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="space-y-4">
             <InputTeste
               label="CPF"
               type="text"
-              placeholder="Digite seu CPF"
               value={cpf}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setCpf(e.target.value)
-              }
+              onChange={(e) => setCpf(e.target.value)}
               error={cpfError}
+              placeholder="Digite seu CPF"
             />
+
             <InputTeste
               label="Senha"
               type="password"
-              placeholder="Digite sua senha"
               value={password}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setPassword(e.target.value)
-              }
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Digite sua senha"
             />
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300 rounded"
-                />
-                <label
-                  htmlFor="remember-me"
-                  className="ml-2 block text-sm text-cyan-100"
-                >
-                  Lembrar de mim
-                </label>
-              </div>
-              <div className="text-sm">
-                <Link
-                  href="/esqueci-senha"
-                  className="font-medium text-cyan-400 hover:text-cyan-300 underline"
-                >
-                  Esqueceu a senha?
-                </Link>
-              </div>
-            </div>
+
             <button
               type="submit"
               disabled={loading}

@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FaTimes, FaPlus, FaFileAlt, FaImage, FaVideo, FaEye, FaTrash } from "react-icons/fa";
+import { FaTimes, FaPlus, FaFileAlt, FaImage, FaVideo,  FaTrash } from "react-icons/fa";
 import Image from "next/image";
 import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
 import Logo from "../../../public/assets/Logo.png";

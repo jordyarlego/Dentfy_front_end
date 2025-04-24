@@ -13,13 +13,27 @@ export default function HeaderPerito() {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
 
   useEffect(() => {
-    // Aqui você deve buscar os dados do usuário logado
-    // Por enquanto, vamos usar dados de exemplo
-    setUsuario({
-      nome: 'Dr. João Silva',
-      cargo: 'Perito Criminal'
-    });
+    const usuarioStorage = localStorage.getItem('@dentfy:usuario');
+    console.log("Dados do usuário no localStorage:", usuarioStorage);
+    
+    if (usuarioStorage) {
+      try {
+        const usuarioData = JSON.parse(usuarioStorage);
+        console.log("Dados do usuário parseados:", usuarioData);
+        setUsuario(usuarioData);
+      } catch (error) {
+        console.error("Erro ao fazer parse dos dados do usuário:", error);
+      }
+    }
   }, []);
+
+  const getIniciais = (nome: string) => {
+    const palavras = nome.split(' ');
+    if (palavras.length >= 2) {
+      return `${palavras[0][0]}${palavras[1][0]}`;
+    }
+    return palavras[0][0];
+  };
 
   return (
     <header className="bg-[#0E1A26] border-b border-cyan-900/30 h-16">
@@ -49,8 +63,7 @@ export default function HeaderPerito() {
             </div>
             <div className="w-10 h-10 rounded-full bg-amber-600 flex items-center justify-center animate-pulse">
               <span className="text-[#0E1A26] font-bold">
-                {usuario.nome.split(' ')[0][0]}
-                {usuario.nome.split(' ')[1][0]}
+                {getIniciais(usuario.nome)}
               </span>
             </div>
           </div>
