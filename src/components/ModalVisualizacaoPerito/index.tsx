@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FaTimes, FaPlus, FaFileAlt, FaImage, FaVideo, FaTrash, FaFileDownload } from "react-icons/fa";
+import { FaTimes, FaPlus, FaFileAlt, FaImage, FaVideo, FaTrash, FaFileDownload, FaEye } from "react-icons/fa";
 import Image from "next/image";
 import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
 import Logo from "../../../public/assets/Logo.png";
@@ -39,6 +39,7 @@ export default function ModalVisualizacaoPerito({
   const [evidenciaParaLaudo, setEvidenciaParaLaudo] = useState<Evidencia | null>(null);
   const [evidencias, setEvidencias] = useState<Evidencia[]>(caso.evidencias || []);
   const [modalGerarRelatorioOpen, setModalGerarRelatorioOpen] = useState(false);
+  const [evidenciaSelecionada, setEvidenciaSelecionada] = useState<Evidencia | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -240,12 +241,20 @@ export default function ModalVisualizacaoPerito({
                 >
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="text-amber-100 font-medium">{evidencia.nome}</h4>
-                    <button
-                      onClick={() => handleDeletarEvidencia(evidencia._id)}
-                      className="text-gray-400 hover:text-red-400 transition-all duration-300 cursor-pointer hover:scale-110"
-                    >
-                      <FaTrash className="h-4 w-4" />
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setEvidenciaSelecionada(evidencia)}
+                        className="text-gray-400 hover:text-amber-400 transition-all duration-300 cursor-pointer hover:scale-110"
+                      >
+                        <FaEye className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeletarEvidencia(evidencia._id)}
+                        className="text-gray-400 hover:text-red-400 transition-all duration-300 cursor-pointer hover:scale-110"
+                      >
+                        <FaTrash className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                   <p className="text-gray-300 text-sm mb-2">{evidencia.descricao}</p>
                   <div className="flex flex-wrap gap-2">
@@ -277,6 +286,73 @@ export default function ModalVisualizacaoPerito({
         />
       )}
 
+      {evidenciaSelecionada && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-[#0E1A26] border border-amber-500/30 rounded-xl shadow-2xl w-full max-w-4xl p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-amber-100">Detalhes da Evidência</h3>
+              <button
+                onClick={() => setEvidenciaSelecionada(null)}
+                className="text-amber-100 hover:text-amber-500 transition-all duration-300"
+              >
+                <FaTimes className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {evidenciaSelecionada.tipo === "imagem" && (
+                <div className="relative w-full h-64 rounded-lg overflow-hidden">
+                  <Image
+                    src={evidenciaSelecionada.arquivo}
+                    alt={evidenciaSelecionada.nome}
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="text-sm font-medium text-amber-500 mb-2">Nome</h4>
+                  <p className="text-gray-200">{evidenciaSelecionada.nome}</p>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-medium text-amber-500 mb-2">Tipo</h4>
+                  <p className="text-gray-200">{evidenciaSelecionada.tipo}</p>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-medium text-amber-500 mb-2">Coletado Por</h4>
+                  <p className="text-gray-200">{evidenciaSelecionada.coletadoPor}</p>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-medium text-amber-500 mb-2">Data de Adição</h4>
+                  <p className="text-gray-200">
+                    {new Date(evidenciaSelecionada.dataAdicao).toLocaleDateString("pt-BR")}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-medium text-amber-500 mb-2">Descrição</h4>
+                <p className="text-gray-200">{evidenciaSelecionada.descricao}</p>
+              </div>
+
+              {evidenciaSelecionada.tipo === "texto" && (
+                <div>
+                  <h4 className="text-sm font-medium text-amber-500 mb-2">Conteúdo</h4>
+                  <div className="bg-gray-800/50 p-4 rounded-lg">
+                    <p className="text-gray-200 whitespace-pre-wrap">{evidenciaSelecionada.arquivo}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {mostrarSucesso && (
         <EvidenciasSalvaSucess
           onClose={() => setMostrarSucesso(false)}
@@ -296,8 +372,7 @@ export default function ModalVisualizacaoPerito({
         <ModalGerarLaudo
           isOpen={modalGerarRelatorioOpen}
           onClose={() => setModalGerarRelatorioOpen(false)}
-          onSave={(laudo) => {
-            // Implementar lógica de geração de relatório
+          onSave={() => {
             setModalGerarRelatorioOpen(false);
           }}
           evidencia={evidencias[0] || undefined}

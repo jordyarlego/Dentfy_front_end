@@ -6,7 +6,7 @@ import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
 import Logo from "../../../public/assets/Logo.png";
 
 interface NovaEvidencia {
-  tipo: string;
+  tipo: "imagem" | "texto";
   descricao: string;
   coletadoPor: string;
   arquivo: File | null;
@@ -24,7 +24,7 @@ export default function ModalNovaEvidencia({
   onSave,
 }: ModalNovaEvidenciaProps) {
   const [formData, setFormData] = useState<NovaEvidencia>({
-    tipo: "",
+    tipo: "imagem",
     descricao: "",
     coletadoPor: "",
     arquivo: null,
@@ -50,8 +50,13 @@ export default function ModalNovaEvidencia({
     e.preventDefault();
     setError(null);
 
-    if (!formData.arquivo) {
-      setError("Por favor, selecione um arquivo");
+    if (formData.tipo === "imagem" && !formData.arquivo) {
+      setError("Por favor, selecione uma imagem");
+      return;
+    }
+
+    if (formData.tipo === "texto" && !formData.descricao) {
+      setError("Por favor, digite o conteúdo do texto");
       return;
     }
 
@@ -109,10 +114,8 @@ export default function ModalNovaEvidencia({
                   className="w-full px-4 py-2 text-sm border-2 border-amber-500/30 bg-[#0E1A26] text-amber-100 rounded-lg focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/30"
                   required
                 >
-                  <option value="">Selecione o tipo</option>
-                  <option value="foto">Foto</option>
-                  <option value="video">Vídeo</option>
-                  <option value="documento">Documento</option>
+                  <option value="imagem">Imagem</option>
+                  <option value="texto">Texto</option>
                 </select>
               </div>
 
@@ -145,47 +148,39 @@ export default function ModalNovaEvidencia({
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2 text-amber-500">
-                Arquivo
-              </label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-amber-500/30 border-dashed rounded-lg hover:border-amber-500 transition-colors">
-                <div className="space-y-1 text-center">
-                  <FaCloudUploadAlt className="mx-auto h-12 w-12 text-amber-500" />
-                  <div className="flex text-sm text-amber-100">
-                    <label
-                      htmlFor="file-upload"
-                      className="relative cursor-pointer rounded-md font-medium text-amber-500 hover:text-amber-400 focus-within:outline-none"
-                    >
-                      <span>Upload um arquivo</span>
-                      <input
-                        id="file-upload"
-                        name="arquivo"
-                        type="file"
-                        className="sr-only"
-                        onChange={handleFileChange}
-                        accept={
-                          formData.tipo === "foto"
-                            ? "image/*"
-                            : formData.tipo === "video"
-                            ? "video/*"
-                            : ".pdf,.doc,.docx"
-                        }
-                        required
-                      />
-                    </label>
-                    <p className="pl-1">ou arraste e solte</p>
+            {formData.tipo === "imagem" && (
+              <div>
+                <label className="block text-sm font-medium mb-2 text-amber-500">
+                  Imagem
+                </label>
+                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-amber-500/30 border-dashed rounded-lg hover:border-amber-500 transition-colors">
+                  <div className="space-y-1 text-center">
+                    <FaCloudUploadAlt className="mx-auto h-12 w-12 text-amber-500" />
+                    <div className="flex text-sm text-amber-100">
+                      <label
+                        htmlFor="file-upload"
+                        className="relative cursor-pointer rounded-md font-medium text-amber-500 hover:text-amber-400 focus-within:outline-none"
+                      >
+                        <span>Upload uma imagem</span>
+                        <input
+                          id="file-upload"
+                          name="arquivo"
+                          type="file"
+                          className="sr-only"
+                          onChange={handleFileChange}
+                          accept="image/*"
+                          required
+                        />
+                      </label>
+                      <p className="pl-1">ou arraste e solte</p>
+                    </div>
+                    <p className="text-xs text-amber-500">
+                      PNG, JPG, GIF até 10MB
+                    </p>
                   </div>
-                  <p className="text-xs text-amber-500">
-                    {formData.tipo === "foto"
-                      ? "PNG, JPG, GIF até 10MB"
-                      : formData.tipo === "video"
-                      ? "MP4, AVI até 100MB"
-                      : "PDF, DOC até 10MB"}
-                  </p>
                 </div>
               </div>
-            </div>
+            )}
 
             {error && (
               <div className="p-3 rounded-lg bg-red-500/20 border border-red-500 text-red-400">
@@ -203,9 +198,8 @@ export default function ModalNovaEvidencia({
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 rounded-lg bg-amber-600 text-[#0E1A26] hover:bg-amber-700 transition-colors duration-200 font-medium"
+                className="px-4 py-2 rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition-colors duration-200"
               >
-                <FaSave className="inline mr-2" />
                 Salvar
               </button>
             </div>
