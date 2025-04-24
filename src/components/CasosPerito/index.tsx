@@ -4,6 +4,10 @@ import api from "../../../lib/axios";
 import { useEffect, useState } from "react";
 import ModalNovoCasoPerito from "../ModalNovoCasoPerito";
 import ModalVisualizacaoPerito from "../ModalVisualizacaoPerito";
+import ModalEditarCaso from "../ModalEditarCaso";
+import FeedbackModal from "../FeedbackModal";
+import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
+import { atualizarCaso, deletarCaso, CasoData } from "../ModalNovoCasoPerito/API_NovoCaso";
 
 export interface Evidencia {
   _id: string;
@@ -16,34 +20,23 @@ export interface Evidencia {
   laudo?: string;
 }
 
-export interface Caso {
+export interface Caso extends CasoData {
   _id: string;
-  titulo: string;
-  status: string;
-  data: string;
-  sexo: string;
-  local: string;
-  descricao: string;
-  tipo: string;
-  responsavel: string;
   evidencias: Evidencia[];
-}
-
-interface FormData {
-  titulo: string;
-  data: string;
-  sexo: string;
-  local: string;
-  descricao: string;
-  tipo: string;
-  responsavel: string;
 }
 
 export default function CasosPerito() {
   const [search, setSearch] = useState("");
   const [filtro, setFiltro] = useState("todos");
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalEditarOpen, setModalEditarOpen] = useState(false);
   const [casoSelecionado, setCasoSelecionado] = useState<Caso | null>(null);
+  const [editandoCaso, setEditandoCaso] = useState<CasoData | undefined>(undefined);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [casoParaDeletar, setCasoParaDeletar] = useState<string | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackType, setFeedbackType] = useState<"success" | "edit" | "delete">("success");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
 
   const [casos, setCasos] = useState<Caso[]>([]);
 
@@ -51,15 +44,11 @@ export default function CasosPerito() {
     const carregarCasos = async () => {
       try {
         const token = localStorage.getItem("token");
-
-        // Corrigido: fechamento correto dos parênteses e chaves
         const response = await api.get("/api/cases", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-
-        // Corrigido: para passar a resposta dos casos corretamente
         setCasos(response.data.casos);
       } catch (error) {
         console.error("Erro ao buscar casos:", error);
@@ -69,34 +58,83 @@ export default function CasosPerito() {
     carregarCasos();
   }, []);
 
-  const handleSubmitCaso = (novoCaso: FormData, _id?: string) => {
-    if (_id) {
-      setCasos((prev) =>
-        prev.map((caso) =>
-          caso._id === _id
-            ? {
-                ...caso,
-                ...novoCaso,
-                evidencias: caso.evidencias,
-              }
-            : caso
-        )
-      );
-    } else {
-      const novoItem: Caso = {
-        _id: "",
-        ...novoCaso,
-        status: "Pendente",
-        evidencias: [],
-      };
-      setCasos([...casos, novoItem]);
+  const handleSubmitCaso = async (novoCaso: CasoData) => {
+    try {
+      if (editandoCaso) {
+        const casoAtualizado = await atualizarCaso(casoSelecionado!._id, novoCaso);
+        setCasos(casos.map(caso => 
+          caso._id === casoSelecionado!._id ? { ...casoAtualizado, evidencias: caso.evidencias } : caso
+        ));
+        setFeedbackType("edit");
+        setFeedbackMessage("O caso foi atualizado com sucesso!");
+      } else {
+        const novoItem: Caso = {
+          _id: Math.random().toString(36).substr(2, 9),
+          titulo: novoCaso.titulo || "",
+          descricao: novoCaso.descricao || "",
+          responsavel: novoCaso.responsavel || "",
+          status: novoCaso.status || "Em andamento",
+          tipo: novoCaso.tipo || "Vitima",
+          dataAbertura: novoCaso.dataAbertura || new Date().toISOString().split('T')[0],
+          sexo: novoCaso.sexo || "Masculino",
+          local: novoCaso.local || "",
+          evidencias: [],
+        };
+        setCasos([...casos, novoItem]);
+        setFeedbackType("success");
+        setFeedbackMessage("Novo caso criado com sucesso!");
+      }
+      setModalOpen(false);
+      setModalEditarOpen(false);
+      setEditandoCaso(undefined);
+      setCasoSelecionado(null);
+      setShowFeedback(true);
+    } catch (error) {
+      console.error("Erro ao salvar caso:", error);
     }
-    setModalOpen(false);
+  };
+
+  const handleEditarCaso = async (caso: Caso) => {
+    setCasoSelecionado(caso);
+    setEditandoCaso({
+      titulo: caso.titulo,
+      descricao: caso.descricao,
+      responsavel: caso.responsavel,
+      status: caso.status,
+      tipo: caso.tipo,
+      dataAbertura: caso.dataAbertura,
+      sexo: caso.sexo,
+      local: caso.local,
+    });
+    setModalEditarOpen(true);
+  };
+
+  const handleDeletarCaso = async (casoId: string) => {
+    setCasoParaDeletar(casoId);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmarDelecao = async () => {
+    if (casoParaDeletar) {
+      try {
+        await deletarCaso(casoParaDeletar);
+        setCasos(casos.filter(caso => caso._id !== casoParaDeletar));
+        setShowDeleteConfirm(false);
+        setCasoParaDeletar(null);
+        setFeedbackType("delete");
+        setFeedbackMessage("O caso foi excluído com sucesso!");
+        setShowFeedback(true);
+      } catch (error) {
+        console.error("Erro ao deletar caso:", error);
+      }
+    }
   };
 
   const casosFiltrados = casos.filter((caso) => {
+    if (!caso || !caso.titulo) return false;
+
     const nomeMatch = caso.titulo.toLowerCase().includes(search.toLowerCase());
-    const data = new Date(caso.data);
+    const data = new Date(caso.dataAbertura);
     const hoje = new Date();
 
     if (filtro === "semana") {
@@ -248,11 +286,11 @@ export default function CasosPerito() {
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                       />
                     </svg>
-                    <span className="text-lg">Nenhum caso encontrado</span>
+                    <p>Nenhum caso encontrado</p>
                   </div>
                 </td>
               </tr>
@@ -260,100 +298,52 @@ export default function CasosPerito() {
               casosFiltrados.map((caso) => (
                 <tr
                   key={caso._id}
-                  className="border-t border-gray-750 hover:bg-gray-750/50 transition-all duration-200 cursor-pointer"
+                  className="border-t border-gray-700 hover:bg-gray-750/50 transition-colors"
                 >
-                  <td className="px-4 sm:px-6 py-3 font-medium text-gray-200 group-hover:text-white">
-                    <div className="flex items-center space-x-3">
-                      <div
-                        className={`h-2.5 w-2.5 rounded-full ${
-                          caso.status === "Concluído"
-                            ? "bg-green-500"
-                            : caso.status === "Em análise"
-                            ? "bg-amber-500"
-                            : "bg-red-500"
-                        }`}
-                      ></div>
-                      <span className="truncate max-w-xs">{caso.titulo}</span>
-                    </div>
+                  <td className="px-4 sm:px-6 py-4 text-gray-200">
+                    {caso.titulo}
                   </td>
-                  <td className="px-4 sm:px-6 py-3">
+                  <td className="px-4 sm:px-6 py-4">
                     <span
-                      className={`px-3 py-1 rounded-md text-xs font-medium ${
-                        caso.status === "Concluído"
-                          ? "bg-green-900/30 text-green-400 hover:bg-green-900/40"
-                          : caso.status === "Em análise"
-                          ? "bg-amber-900/30 text-amber-400 hover:bg-amber-900/40"
-                          : "bg-red-900/30 text-red-400 hover:bg-red-900/40"
-                      } transition-colors duration-200 cursor-default`}
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        caso.status === "Finalizado"
+                          ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                          : caso.status === "Em andamento"
+                          ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                          : "bg-red-500/20 text-red-400 border border-red-500/30"
+                      }`}
                     >
                       {caso.status}
                     </span>
                   </td>
-                  <td className="px-4 sm:px-6 py-3 text-gray-400 group-hover:text-gray-300">
-                    {new Date(caso.data).toLocaleDateString("pt-BR")}
+                  <td className="px-4 sm:px-6 py-4 text-gray-300">
+                    {new Date(caso.dataAbertura).toLocaleDateString("pt-BR")}
                   </td>
-                  <td className="px-4 sm:px-6 py-3">
-                    <div className="flex justify-center space-x-2 sm:space-x-3">
+                  <td className="px-4 sm:px-6 py-4">
+                    <div className="flex items-center justify-center gap-3">
                       <button
                         onClick={() => setCasoSelecionado(caso)}
-                        className="bg-gray-700/80 text-gray-300 px-3 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-gray-600 transition-all duration-300 border border-gray-600 hover:border-gray-500 text-xs sm:text-sm font-medium flex items-center space-x-1 sm:space-x-2 cursor-pointer shadow hover:shadow-md hover:shadow-gray-700/20"
+                        className="group relative inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-amber-500 hover:text-amber-400 transition-all duration-300"
                       >
-                        <svg
-                          className="w-3.5 h-3.5 sm:w-4 sm:h-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                          />
-                        </svg>
-                        <span>Detalhes</span>
+                        <span className="absolute inset-0 bg-amber-500/10 rounded-lg transform scale-0 group-hover:scale-100 transition-transform duration-300" />
+                        <FaEye className="relative z-10 group-hover:scale-110 transition-transform duration-300" />
+                        <span className="relative z-10">Visualizar</span>
                       </button>
                       <button
-                        onClick={() => {}}
-                        className="bg-gray-700/80 text-gray-300 px-3 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-gray-600 transition-all duration-300 border border-gray-600 hover:border-gray-500 text-xs sm:text-sm font-medium flex items-center space-x-1 sm:space-x-2 cursor-not-allowed opacity-50"
-                        disabled
+                        onClick={() => handleEditarCaso(caso)}
+                        className="group relative inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-500 hover:text-blue-400 transition-all duration-300"
                       >
-                        <svg
-                          className="w-3.5 h-3.5 sm:w-4 sm:h-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                          />
-                        </svg>
-                        <span>Editar</span>
+                        <span className="absolute inset-0 bg-blue-500/10 rounded-lg transform scale-0 group-hover:scale-100 transition-transform duration-300" />
+                        <FaEdit className="relative z-10 group-hover:scale-110 transition-transform duration-300" />
+                        <span className="relative z-10">Editar</span>
                       </button>
-                      <button className="bg-gray-700/80 text-gray-300 px-3 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-gray-600 transition-all duration-300 border border-gray-600 hover:border-gray-500 text-xs sm:text-sm font-medium flex items-center space-x-1 sm:space-x-2 cursor-pointer shadow hover:shadow-md hover:shadow-gray-700/20">
-                        <svg
-                          className="w-3.5 h-3.5 sm:w-4 sm:h-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                          />
-                        </svg>
-                        <span>Baixar</span>
+                      <button
+                        onClick={() => handleDeletarCaso(caso._id)}
+                        className="group relative inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-red-500 hover:text-red-400 transition-all duration-300"
+                      >
+                        <span className="absolute inset-0 bg-red-500/10 rounded-lg transform scale-0 group-hover:scale-100 transition-transform duration-300" />
+                        <FaTrash className="relative z-10 group-hover:scale-110 transition-transform duration-300" />
+                        <span className="relative z-10">Excluir</span>
                       </button>
                     </div>
                   </td>
@@ -362,143 +352,97 @@ export default function CasosPerito() {
             )}
           </tbody>
         </table>
-
-        <div className="sm:hidden space-y-3 p-3">
-          {casosFiltrados.length === 0 ? (
-            <div className="text-center px-6 py-10 text-gray-500">
-              <div className="flex flex-col items-center justify-center space-y-2">
-                <svg
-                  className="h-12 w-12 text-gray-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <span className="text-lg">Nenhum caso encontrado</span>
-              </div>
-            </div>
-          ) : (
-            casosFiltrados.map((caso) => (
-              <div
-                key={caso._id}
-                className="border border-gray-700 rounded-lg p-4 bg-gray-800/90 hover:bg-gray-750/50 transition-all duration-200 cursor-pointer"
-              >
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex items-center space-x-3">
-                    <div
-                      className={`h-2.5 w-2.5 rounded-full ${
-                        caso.status === "Concluído"
-                          ? "bg-green-500"
-                          : caso.status === "Em análise"
-                          ? "bg-amber-500"
-                          : "bg-red-500"
-                      }`}
-                    ></div>
-                    <h3 className="text-gray-200 font-medium truncate max-w-[180px]">
-                      {caso.titulo}
-                    </h3>
-                  </div>
-                  <span
-                    className={`px-2 py-1 rounded-md text-xs font-medium ${
-                      caso.status === "Concluído"
-                        ? "bg-green-900/30 text-green-400"
-                        : caso.status === "Em análise"
-                        ? "bg-amber-900/30 text-amber-400"
-                        : "bg-red-900/30 text-red-400"
-                    }`}
-                  >
-                    {caso.status}
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center mt-4">
-                  <span className="text-gray-400 text-sm">
-                    {new Date(caso.data).toLocaleDateString("pt-BR")}
-                  </span>
-
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => setCasoSelecionado(caso)}
-                      className="bg-gray-700/80 text-gray-300 p-2 rounded-md hover:bg-gray-600 transition-all duration-300 border border-gray-600 hover:border-gray-500 cursor-pointer shadow hover:shadow-gray-700/20"
-                    >
-                      <svg
-                        className="h-4 w-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      className="bg-gray-700/80 text-gray-300 p-2 rounded-md opacity-50 cursor-not-allowed"
-                      disabled
-                    >
-                      <svg
-                        className="h-4 w-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                      </svg>
-                    </button>
-                    <button className="bg-gray-700/80 text-gray-300 p-2 rounded-md hover:bg-gray-600 transition-all duration-300 border border-gray-600 hover:border-gray-500 cursor-pointer shadow hover:shadow-gray-700/20">
-                      <svg
-                        className="h-4 w-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
       </div>
 
-      <ModalNovoCasoPerito
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSubmit={handleSubmitCaso}
-      />
+      {modalOpen && (
+        <ModalNovoCasoPerito
+          isOpen={modalOpen}
+          onClose={() => {
+            setModalOpen(false);
+            setEditandoCaso(undefined);
+            setCasoSelecionado(null);
+          }}
+          onSubmit={handleSubmitCaso}
+          casoEditando={editandoCaso}
+        />
+      )}
 
-      {casoSelecionado && (
+      {modalEditarOpen && editandoCaso && (
+        <ModalEditarCaso
+          isOpen={modalEditarOpen}
+          onClose={() => {
+            setModalEditarOpen(false);
+            setEditandoCaso(undefined);
+            setCasoSelecionado(null);
+          }}
+          onSubmit={handleSubmitCaso}
+          caso={editandoCaso}
+        />
+      )}
+
+      {casoSelecionado && !modalOpen && !modalEditarOpen && (
         <ModalVisualizacaoPerito
           isOpen={!!casoSelecionado}
           onClose={() => setCasoSelecionado(null)}
           caso={casoSelecionado}
+          onEvidenciaAdicionada={() => {
+            // Recarregar casos após adicionar evidência
+            const carregarCasos = async () => {
+              try {
+                const token = localStorage.getItem("token");
+                const response = await api.get("/api/cases", {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                });
+                setCasos(response.data.casos);
+              } catch (error) {
+                console.error("Erro ao buscar casos:", error);
+              }
+            };
+            carregarCasos();
+          }}
+        />
+      )}
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4 animate-fadeIn">
+          <div className="bg-[#0E1A26] border border-amber-500/30 rounded-xl shadow-2xl w-full max-w-md p-6 animate-slideIn">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
+                <FaTrash className="text-red-500 text-xl" />
+              </div>
+              <h3 className="text-xl font-bold text-amber-100">Confirmar Exclusão</h3>
+            </div>
+            <p className="text-gray-300 mb-6">Tem certeza que deseja excluir este caso? Esta ação não pode ser desfeita.</p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setCasoParaDeletar(null);
+                }}
+                className="px-4 py-2 text-sm text-gray-300 hover:text-gray-100 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmarDelecao}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2"
+              >
+                <FaTrash className="text-sm" />
+                Confirmar Exclusão
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showFeedback && (
+        <FeedbackModal
+          isOpen={showFeedback}
+          onClose={() => setShowFeedback(false)}
+          type={feedbackType}
+          message={feedbackMessage}
         />
       )}
     </div>

@@ -1,6 +1,6 @@
 "use client";
-import { criarCaso } from "../ModalNovoCasoPerito/API_NovoCaso";
-import { useState } from "react";
+import { criarCaso, CasoData } from "../ModalNovoCasoPerito/API_NovoCaso";
+import { useState, useEffect } from "react";
 import {
   FaVenus,
   FaMars,
@@ -16,26 +16,17 @@ import Logo from "../../../public/assets/Logo.png";
 type ModalNovoCasoPeritoProps = {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: FormData) => void;
+  onSubmit: (data: CasoData) => void;
+  casoEditando?: CasoData;
 };
-
-interface FormData {
-  titulo: string;
-  descricao: string;
-  responsavel: string;
-  status: "Em andamento" | "Finalizado" | "Arquivado";
-  tipo: "Vitima" | "Desaparecido" | "Outros";
-  dataAbertura: string;
-  sexo: "Masculino" | "Feminino";
-  local: string;
-}
 
 export default function ModalNovoCasoPerito({
   isOpen,
   onClose,
   onSubmit,
+  casoEditando,
 }: ModalNovoCasoPeritoProps) {
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<CasoData>({
     titulo: "",
     descricao: "",
     responsavel: "",
@@ -46,6 +37,32 @@ export default function ModalNovoCasoPerito({
     local: "",
   });
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (casoEditando) {
+      setFormData({
+        titulo: casoEditando.titulo,
+        descricao: casoEditando.descricao,
+        responsavel: casoEditando.responsavel,
+        status: casoEditando.status,
+        tipo: casoEditando.tipo,
+        dataAbertura: casoEditando.dataAbertura,
+        sexo: casoEditando.sexo,
+        local: casoEditando.local,
+      });
+    } else {
+      setFormData({
+        titulo: "",
+        descricao: "",
+        responsavel: "",
+        status: "Em andamento",
+        tipo: "Vitima",
+        dataAbertura: new Date().toISOString().split('T')[0],
+        sexo: "Masculino",
+        local: "",
+      });
+    }
+  }, [casoEditando]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -80,8 +97,8 @@ export default function ModalNovoCasoPerito({
     }
 
     try {
-      await criarCaso(formData);
-      onSubmit(formData);
+      const casoCriado = await criarCaso(formData);
+      onSubmit(casoCriado);
       onClose();
 
       // Reseta o formulário
@@ -132,7 +149,7 @@ export default function ModalNovoCasoPerito({
                     />
                   </div>
                   <h2 className="text-xl font-bold text-amber-100 border-l-4 border-amber-600 pl-3">
-                    Novo Caso
+                    {casoEditando ? "Editar Caso" : "Novo Caso"}
                   </h2>
                 </div>
                 <button
@@ -264,7 +281,7 @@ export default function ModalNovoCasoPerito({
                     >
                       <option value="Vitima">Vítima</option>
                       <option value="Desaparecido">Desaparecido</option>
-                      <option value="Outros">Outros</option>
+                      <option value="Outro">Outro</option>
                     </select>
                   </div>
 
@@ -305,7 +322,7 @@ export default function ModalNovoCasoPerito({
                     className="px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors flex items-center gap-2"
                   >
                     <FaSave />
-                    Salvar Caso
+                    {casoEditando ? "Salvar Alterações" : "Salvar Caso"}
                   </button>
                 </div>
               </form>
