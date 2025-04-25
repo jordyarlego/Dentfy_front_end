@@ -89,7 +89,7 @@ export default function Login() {
         <div className="bg-[#12212B] p-6 lg:p-8 rounded-2xl shadow-md w-full max-w-md">
           <div className="flex flex-col items-center mb-6 lg:mb-8">
             <h1 className="text-white font-bold text-4xl lg:text-5xl mb-2 tracking-tighter transform hover:scale-105 transition duration-300">
-              Dentfy
+              Dent<span className="text-amber-500">ify</span>
             </h1>
             <p className="text-cyan-100 text-center mb-4 text-sm lg:text-base max-w-md">
               Bem-vindo à plataforma de registros periciais odonto-legais!
