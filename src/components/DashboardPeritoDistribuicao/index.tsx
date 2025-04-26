@@ -9,14 +9,10 @@ import {
   Title,
 } from 'chart.js';
 
-// Registrando os componentes necessários
-ChartJS.register(
-  ArcElement,
-  Tooltip,
-  Legend,
-  Title
-);
+// Registrando componentes do ChartJS
+ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
+// 👇 Adiciona props
 interface DashboardPeritoDistribuicaoProps {
   casosEmAndamento: number;
   casosFinalizados: number;
@@ -28,50 +24,43 @@ export default function DashboardPeritoDistribuicao({
   casosFinalizados,
   casosArquivados,
 }: DashboardPeritoDistribuicaoProps) {
+  
+  // agora NÃO usa mais useResumoDashboard aqui!
+
+  const dadosCarregando =
+    casosEmAndamento === 0 &&
+    casosFinalizados === 0 &&
+    casosArquivados === 0;
+
+  if (dadosCarregando) {
+    return <div className="text-white">Carregando dados do gráfico...</div>;
+  }
+
   const dadosPizzaConfig = {
     labels: ['Em Andamento', 'Finalizados', 'Arquivados'],
-    datasets: [
-      {
-        data: [casosEmAndamento, casosFinalizados, casosArquivados],
-        backgroundColor: [
-          'rgba(234, 179, 8, 0.8)',   // Amarelo escuro para em andamento
-          'rgba(34, 197, 94, 0.8)',   // Verde escuro para finalizados
-          'rgba(139, 92, 246, 0.8)',  // Roxo escuro para arquivados
-        ],
-        borderColor: [
-          'rgba(234, 179, 8, 1)',
-          'rgba(34, 197, 94, 1)',
-          'rgba(139, 92, 246, 1)',
-        ],
-        borderWidth: 1,
-      },
-    ],
+    datasets: [{
+      data: [casosEmAndamento, casosFinalizados, casosArquivados],
+      backgroundColor: ['#0E1A26', '#21466b', '#565c61'],
+      borderColor: ['#0E1A26', '#21466b', '#565c61'],
+      borderWidth: 1,
+    }],
   };
 
   const opcoesPizza = {
-    responsive: true,
-    animation: {
-      animateScale: true,
-      animateRotate: true,
-      duration: 2000,
-      easing: 'easeOutQuart',
-    },
     plugins: {
       legend: {
         position: 'bottom' as const,
         labels: {
-          color: 'white',
-          font: {
-            size: 12,
-          },
+          color: '#374151',
+          font: { size: 12 },
         },
       },
       title: {
         display: true,
         text: 'Distribuição dos Casos',
-        color: 'white',
+        color: '#ffffff',
         font: {
-          size: 16,
+          size: 18,
           weight: 'bold' as const,
         },
       },
@@ -79,7 +68,7 @@ export default function DashboardPeritoDistribuicao({
   };
 
   return (
-    <div className="bg-gray-800/80 p-4 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn">
+    <div className="bg-white dark:bg-gray-800/80 p-4 rounded-lg shadow-md dark:border dark:border-gray-700">
       <Pie data={dadosPizzaConfig} options={opcoesPizza} />
     </div>
   );

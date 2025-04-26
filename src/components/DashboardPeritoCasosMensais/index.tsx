@@ -1,6 +1,7 @@
 'use client';
 
 import { Bar } from 'react-chartjs-2';
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -11,7 +12,6 @@ import {
   Legend,
 } from 'chart.js';
 
-// Registrando os componentes necessários
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -21,18 +21,18 @@ ChartJS.register(
   Legend
 );
 
-interface CasoMensal {
-  mes: string;
+interface CasoTipo {
+  tipo: string;
   quantidade: number;
 }
 
 interface DashboardPeritoCasosMensaisProps {
-  casos: CasoMensal[];
+  casos: CasoTipo[];
 }
 
 export default function DashboardPeritoCasosMensais({ casos }: DashboardPeritoCasosMensaisProps) {
   const dadosColunaConfig = {
-    labels: casos.map(caso => caso.mes),
+    labels: casos.map(caso => caso.tipo),
     datasets: [
       {
         label: 'Quantidade de Casos',
@@ -40,6 +40,8 @@ export default function DashboardPeritoCasosMensais({ casos }: DashboardPeritoCa
         backgroundColor: 'rgba(139, 92, 246, 0.8)',
         borderColor: 'rgba(139, 92, 246, 1)',
         borderWidth: 1,
+        barPercentage: 0.5, // Mais fino
+        categoryPercentage: 0.5, // Mais espaço entre elas
       },
     ],
   };
@@ -51,15 +53,13 @@ export default function DashboardPeritoCasosMensais({ casos }: DashboardPeritoCa
       easing: 'easeOutQuart',
     },
     plugins: {
-      legend: {
-        display: false,
-      },
+      legend: { display: false },
       title: {
         display: true,
-        text: 'Casos por Mês',
-        color: 'white',
+        text: 'Casos por Tipo',
+        color: '#ffffff', // cinza bem escuro
         font: {
-          size: 16,
+          size: 18,
           weight: 'bold' as const,
         },
       },
@@ -68,27 +68,30 @@ export default function DashboardPeritoCasosMensais({ casos }: DashboardPeritoCa
       y: {
         beginAtZero: true,
         ticks: {
-          color: 'white',
+          color: '#374151', // gray-700
           stepSize: 1,
         },
         grid: {
-          color: 'rgba(255, 255, 255, 0.1)',
+          color: 'rgba(0, 0, 0, 0.05)',
+          drawBorder: false,
         },
       },
       x: {
         ticks: {
-          color: 'white',
+          color: '#374151',
         },
         grid: {
-          color: 'rgba(255, 255, 255, 0.1)',
+          color: 'rgba(0, 0, 0, 0.05)',
         },
       },
-    },
+    }
   };
 
   return (
-    <div className="bg-gray-800/80 p-4 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn">
-      <Bar data={dadosColunaConfig} options={opcoesColuna} />
-    </div>
+    <div className="bg-white dark:bg-gray-800/80 p-4 rounded-lg shadow-md dark:border dark:border-gray-700">
+
+    <Bar data={dadosColunaConfig} options={opcoesColuna} />
+  </div>
+  
   );
-} 
+}
