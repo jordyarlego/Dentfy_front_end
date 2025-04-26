@@ -4,24 +4,16 @@ import DashboardPeritoDistribuicao from '../../components/DashboardPeritoDistrib
 import DashboardPeritoCasosMensais from '../../components/DashboardPeritoCasosMensais';
 import SidebarPerito from '../../components/SidebarPerito';
 import HeaderPerito from '../../components/HeaderPerito';
+import { useResumoDashboard, useCasosPorTipo } from '../../../services/api_dashboard';
 import { FolderIcon, CheckCircleIcon, ClockIcon, ArchiveBoxIcon } from '@heroicons/react/24/outline';
 
 export default function Dashboard() {
-  // Dados de exemplo para o gráfico de distribuição
-  const casosEmAndamento = 15;
-  const casosFinalizados = 8;
-  const casosArquivados = 3;
+  const { casosEmAndamento, casosFinalizados, casosArquivados } = useResumoDashboard();
   const totalCasos = casosEmAndamento + casosFinalizados + casosArquivados;
 
   // Dados de exemplo para o gráfico de casos mensais
-  const casosMensais = [
-    { mes: 'Jan', quantidade: 5 },
-    { mes: 'Fev', quantidade: 8 },
-    { mes: 'Mar', quantidade: 12 },
-    { mes: 'Abr', quantidade: 7 },
-    { mes: 'Mai', quantidade: 10 },
-    { mes: 'Jun', quantidade: 15 },
-  ];
+   const { casosPorTipo } = useCasosPorTipo();
+  
 
   return (
     <div className="flex h-screen bg-gray-900">
@@ -85,7 +77,7 @@ export default function Dashboard() {
               casosFinalizados={casosFinalizados}
               casosArquivados={casosArquivados}
             />
-            <DashboardPeritoCasosMensais casos={casosMensais} />
+            <DashboardPeritoCasosMensais casos={casosPorTipo} />
           </div>
         </main>
       </div>

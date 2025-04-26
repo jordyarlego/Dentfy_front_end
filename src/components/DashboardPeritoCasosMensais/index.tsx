@@ -1,6 +1,7 @@
 'use client';
 
 import { Bar } from 'react-chartjs-2';
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -91,6 +92,6 @@ export default function DashboardPeritoCasosMensais({ casos }: DashboardPeritoCa
 
     <Bar data={dadosColunaConfig} options={opcoesColuna} />
   </div>
-
+  
   );
 }
