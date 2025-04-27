@@ -1,81 +1,93 @@
 import api from "../lib/axios";
 
 interface CriarEvidenciaAPI {
+  tipo: "imagem" | "texto";
+  dataColeta: string;
+  coletadoPor: string;
+  descricao: string;
+  caso: string;
+  arquivo?: File;
+}
+
+interface Evidencia {
+  _id: string;
   tipo: string;
-  dataColeta: Date;
-  coletadoPor: string; 
-  imagemURL: string;
-  caso: string; 
+  dataColeta: string;
+  coletadoPor: string;
+  descricao: string;
+  caso: string;
+  imagemURL?: string;
 }
 
 export const postEvidencia = async (dados: CriarEvidenciaAPI) => {
-  const token = localStorage.getItem("token");
-
-  if (!token) {
-    throw new Error("Token não encontrado!");
-  }
-
   try {
-    const response = await api.post("/api/evidences", dados, {
+    const formData = new FormData();
+    
+    formData.append('tipo', dados.tipo);
+    formData.append('dataColeta', dados.dataColeta);
+    formData.append('coletadoPor', dados.coletadoPor);
+    formData.append('descricao', dados.descricao);
+    formData.append('caso', dados.caso);
+
+    if (dados.arquivo) {
+      formData.append('arquivo', dados.arquivo);
+    }
+
+    console.log('Dados sendo enviados:', {
+      tipo: dados.tipo,
+      dataColeta: dados.dataColeta,
+      coletadoPor: dados.coletadoPor,
+      descricao: dados.descricao,
+      caso: dados.caso,
+      temArquivo: !!dados.arquivo
+    });
+
+    const response = await api.post("/api/evidences", formData, {
       headers: {
-        Authorization: ⁠ Bearer ${token} ⁠,
         "Content-Type": "multipart/form-data",
       },
     });
 
     return response.data;
   } catch (error: any) {
-    console.error(
-      "Erro no Axios:",
-      error.response?.data || error.message || error
-    );
+    console.error("Erro detalhado:", {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
     throw error;
   }
 };
-// falta verificar o caso para ver se é o certo
-export const getEvidencia = async (caso: string) => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    throw new Error("Token JWT não encontrado.");
-  }
 
-  const response = await api.get("/api/evidences/by-case{caseId}", {
-    headers: {
-      Authorization: ⁠ Bearer ${token} ⁠,
-    },
-    params: caso ? { caso } : {},
-  });
-  return response.data;
+// Visualizar evidencia
+export const getEvidenciaByCaseId = async (casoId: string) => {
+  try {
+    const response = await api.get(`/api/evidences/by-case/${casoId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao buscar evidências:", error);
+    throw error;
+  }
 };
 
-export const putEvidencia = async (caso: string) => {
-  const token = localStorage.getItem("token");
-
-  if (!token) {
-    throw new Error("Token JWT não encontrado.");
+// Atualizar evidencias
+export const putEvidencia = async (id: string, data: Partial<Evidencia>) => {
+  try {
+    const response = await api.patch(`/api/evidences/${id}`, data);
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao atualizar evidência:", error);
+    throw error;
   }
-
-  const response = await api.put("/api/evidences/{id}", {
-    headers: {
-      Authorization: ⁠ Bearer ${token} ⁠,
-    },
-    params: caso ? { caso } : {},
-  });
-  return response.data;
 };
 
-export const deleteEvidencia = async (caso: string) => {
-  const token = localStorage.getItem("token");
-
-  if (!token) {
-    throw new Error("Token JWT não encontrado.");
+// Deletar evidencias
+export const deleteEvidencia = async (id: string) => {
+  try {
+    const response = await api.delete(`/api/evidences/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao deletar evidência:", error);
+    throw error;
   }
-
-  const response = await api.delete("/api/evidences/{id}", {
-    headers: {
-      Authorization: ⁠ Bearer ${token} ⁠,
-    },
-    params: caso ? { caso } : {},
-  });
-  return response.data;
 };

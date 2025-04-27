@@ -8,6 +8,7 @@ import ModalEditarCaso from "../ModalEditarCaso";
 import FeedbackModal from "../FeedbackModal";
 import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
 import { atualizarCaso, deletarCaso, CasoData } from "../ModalNovoCasoPerito/API_NovoCaso";
+import ModalConfirmacaoDelete from "../ModalConfirmacaoDelete";
 
 export interface Evidencia {
   _id: string;
@@ -32,11 +33,11 @@ export default function CasosPerito() {
   const [modalEditarOpen, setModalEditarOpen] = useState(false);
   const [casoSelecionado, setCasoSelecionado] = useState<Caso | null>(null);
   const [editandoCaso, setEditandoCaso] = useState<CasoData | undefined>(undefined);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [casoParaDeletar, setCasoParaDeletar] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackType, setFeedbackType] = useState<"success" | "edit" | "delete">("success");
   const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [modalDeleteOpen, setModalDeleteOpen] = useState(false);
+  const [casoParaDeletar, setCasoParaDeletar] = useState<Caso | null>(null);
 
   const [casos, setCasos] = useState<Caso[]>([]);
 
@@ -109,18 +110,16 @@ export default function CasosPerito() {
     setModalEditarOpen(true);
   };
 
-  const handleDeletarCaso = async (casoId: string) => {
-    setCasoParaDeletar(casoId);
-    setShowDeleteConfirm(true);
+  const handleDeletarCaso = (caso: Caso) => {
+    setCasoParaDeletar(caso);
+    setModalDeleteOpen(true);
   };
 
   const confirmarDelecao = async () => {
     if (casoParaDeletar) {
       try {
-        await deletarCaso(casoParaDeletar);
-        setCasos(casos.filter(caso => caso._id !== casoParaDeletar));
-        setShowDeleteConfirm(false);
-        setCasoParaDeletar(null);
+        await deletarCaso(casoParaDeletar._id);
+        setCasos(casos.filter(caso => caso._id !== casoParaDeletar._id));
         setFeedbackType("delete");
         setFeedbackMessage("O caso foi excluído com sucesso!");
         setShowFeedback(true);
@@ -338,7 +337,7 @@ export default function CasosPerito() {
                         <span className="relative z-10">Editar</span>
                       </button>
                       <button
-                        onClick={() => handleDeletarCaso(caso._id)}
+                        onClick={() => handleDeletarCaso(caso)}
                         className="group relative inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-red-500 hover:text-red-400 transition-all duration-300"
                       >
                         <span className="absolute inset-0 bg-red-500/10 rounded-lg transform scale-0 group-hover:scale-100 transition-transform duration-300" />
@@ -405,44 +404,23 @@ export default function CasosPerito() {
         />
       )}
 
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4 animate-fadeIn">
-          <div className="bg-[#0E1A26] border border-amber-500/30 rounded-xl shadow-2xl w-full max-w-md p-6 animate-slideIn">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
-                <FaTrash className="text-red-500 text-xl" />
-              </div>
-              <h3 className="text-xl font-bold text-amber-100">Confirmar Exclusão</h3>
-            </div>
-            <p className="text-gray-300 mb-6">Tem certeza que deseja excluir este caso? Esta ação não pode ser desfeita.</p>
-            <div className="flex justify-end gap-4">
-              <button
-                onClick={() => {
-                  setShowDeleteConfirm(false);
-                  setCasoParaDeletar(null);
-                }}
-                className="px-4 py-2 text-sm text-gray-300 hover:text-gray-100 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={confirmarDelecao}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2"
-              >
-                <FaTrash className="text-sm" />
-                Confirmar Exclusão
-              </button>
-            </div>
-          </div>
-        </div>
+      {modalDeleteOpen && casoParaDeletar && (
+        <ModalConfirmacaoDelete
+          isOpen={modalDeleteOpen}
+          onClose={() => {
+            setModalDeleteOpen(false);
+            setCasoParaDeletar(null);
+          }}
+          onConfirm={confirmarDelecao}
+          titulo={casoParaDeletar.titulo}
+        />
       )}
 
       {showFeedback && (
         <FeedbackModal
-          isOpen={showFeedback}
-          onClose={() => setShowFeedback(false)}
           type={feedbackType}
           message={feedbackMessage}
+          onClose={() => setShowFeedback(false)}
         />
       )}
     </div>

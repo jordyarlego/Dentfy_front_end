@@ -8,6 +8,9 @@ import ModalNovaEvidencia from "../ModalNovaEvidencia";
 import EvidenciasSalvaSucess from "../EvidenciasSalvaSucess";
 import ModalGerarLaudo from "../ModalGerarLaudo";
 import { CasoData, Evidencia, adicionarEvidencia, atualizarEvidencia, deletarEvidencia, atualizarCaso, deletarCaso } from "../ModalNovoCasoPerito/API_NovoCaso";
+import { postEvidencia, getEvidenciaByCaseId, deleteEvidencia as deleteEvidenciaAPI } from '../../../services/api_nova_evidencia';
+import ModalRelatorio from "../ModalRelatorio";
+import ModalConfirmacaoDelete from "../ModalConfirmacaoDelete";
 
 interface CasoCompleto extends CasoData {
   _id: string;
@@ -40,6 +43,10 @@ export default function ModalVisualizacaoPerito({
   const [evidencias, setEvidencias] = useState<Evidencia[]>(caso.evidencias || []);
   const [modalGerarRelatorioOpen, setModalGerarRelatorioOpen] = useState(false);
   const [evidenciaSelecionada, setEvidenciaSelecionada] = useState<Evidencia | null>(null);
+  const [modalRelatorioOpen, setModalRelatorioOpen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [modalDeleteOpen, setModalDeleteOpen] = useState(false);
+  const [evidenciaParaDeletar, setEvidenciaParaDeletar] = useState<Evidencia | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -50,22 +57,38 @@ export default function ModalVisualizacaoPerito({
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (isOpen && caso._id) {
+      carregarEvidencias();
+    }
+  }, [isOpen, caso._id]);
+
+  const carregarEvidencias = async () => {
+    try {
+      const data = await getEvidenciaByCaseId(caso._id);
+      setEvidencias(data);
+    } catch (error) {
+      console.error("Erro ao carregar evidências:", error);
+    }
+  };
+
   if (!isOpen) return null;
 
-  const handleSalvarNovaEvidencia = async (novaEvidencia: NovaEvidencia) => {
+  const handleSalvarNovaEvidencia = async (novaEvidencia: any) => {
     try {
-      const evidenciaParaSalvar: Omit<Evidencia, '_id'> = {
-        nome: novaEvidencia.descricao.substring(0, 20) + (novaEvidencia.descricao.length > 20 ? "..." : ""),
+      const dadosEvidencia: CriarEvidenciaAPI = {
         tipo: novaEvidencia.tipo,
-        descricao: novaEvidencia.descricao,
+        dataColeta: new Date().toISOString(),
         coletadoPor: novaEvidencia.coletadoPor,
-        arquivo: novaEvidencia.arquivo?.name || "arquivo_salvo.jpg",
-        dataAdicao: new Date().toISOString(),
-        mimeType: novaEvidencia.arquivo?.type
+        descricao: novaEvidencia.descricao || 'Sem descrição',
+        caso: caso._id,
+        arquivo: novaEvidencia.arquivo
       };
 
-      const evidenciaSalva = await adicionarEvidencia(caso._id, evidenciaParaSalvar);
-      setEvidencias([...evidencias, evidenciaSalva]);
+      console.log('Enviando evidência:', dadosEvidencia);
+
+      await postEvidencia(dadosEvidencia);
+      await carregarEvidencias();
       setModalNovaEvidenciaOpen(false);
       setMostrarSucesso(true);
       
@@ -74,6 +97,8 @@ export default function ModalVisualizacaoPerito({
       }
     } catch (error) {
       console.error("Erro ao salvar evidência:", error);
+      // Adicionar feedback visual de erro
+      alert("Erro ao salvar evidência. Por favor, tente novamente.");
     }
   };
 
@@ -89,28 +114,41 @@ export default function ModalVisualizacaoPerito({
     }
   };
 
-  const handleDeletarEvidencia = async (evidenciaId: string) => {
-    try {
-      await deletarEvidencia(caso._id, evidenciaId);
-      setEvidencias(evidencias.filter(ev => ev._id !== evidenciaId));
-    } catch (error) {
-      console.error("Erro ao deletar evidência:", error);
-    }
+  const handleDeletarEvidencia = (evidencia: Evidencia) => {
+    setEvidenciaParaDeletar(evidencia);
+    setModalDeleteOpen(true);
   };
 
-  const handleDeletarCaso = async () => {
-    if (window.confirm("Tem certeza que deseja excluir este caso?")) {
-      try {
-        await deletarCaso(caso._id);
-        onClose();
-      } catch (error) {
-        console.error("Erro ao deletar caso:", error);
-      }
+  const handleDeletarCaso = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmarDelecao = async () => {
+    try {
+      await deletarCaso(caso._id);
+      onClose();
+      // Aqui você pode adicionar uma notificação de sucesso se desejar
+    } catch (error) {
+      console.error("Erro ao deletar caso:", error);
+      // Aqui você pode adicionar uma notificação de erro se desejar
     }
   };
 
   const handleGerarRelatorio = () => {
     setModalGerarRelatorioOpen(true);
+  };
+
+  const confirmarDelecaoEvidencia = async () => {
+    if (evidenciaParaDeletar) {
+      try {
+        await deleteEvidenciaAPI(evidenciaParaDeletar._id);
+        await carregarEvidencias();
+        setModalDeleteOpen(false);
+        setEvidenciaParaDeletar(null);
+      } catch (error) {
+        console.error("Erro ao deletar evidência:", error);
+      }
+    }
   };
 
   return (
@@ -142,11 +180,11 @@ export default function ModalVisualizacaoPerito({
             </div>
             <div className="flex items-center gap-4">
               <button
-                onClick={handleGerarRelatorio}
+                onClick={() => setModalRelatorioOpen(true)}
                 className="text-amber-100 hover:text-amber-500 transition-all duration-300 group flex items-center gap-2 cursor-pointer hover:scale-105"
               >
-                <FaFileDownload className="h-6 w-6 group-hover:scale-110 transition-transform" />
-                <span className="text-sm">Gerar Relatório</span>
+                <FaFileAlt className="h-6 w-6 group-hover:scale-110 transition-transform" />
+                Gerar Relatório
               </button>
               <button
                 onClick={handleDeletarCaso}
@@ -249,7 +287,7 @@ export default function ModalVisualizacaoPerito({
                         <FaEye className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => handleDeletarEvidencia(evidencia._id)}
+                        onClick={() => handleDeletarEvidencia(evidencia)}
                         className="text-gray-400 hover:text-red-400 transition-all duration-300 cursor-pointer hover:scale-110"
                       >
                         <FaTrash className="h-4 w-4" />
@@ -376,6 +414,35 @@ export default function ModalVisualizacaoPerito({
             setModalGerarRelatorioOpen(false);
           }}
           evidencia={evidencias[0] || undefined}
+        />
+      )}
+
+      {modalRelatorioOpen && (
+        <ModalRelatorio
+          isOpen={modalRelatorioOpen}
+          onClose={() => setModalRelatorioOpen(false)}
+          caso={caso}
+        />
+      )}
+
+      {showDeleteConfirm && (
+        <ModalConfirmacaoDelete
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={confirmarDelecao}
+          titulo={caso.titulo}
+        />
+      )}
+
+      {modalDeleteOpen && evidenciaParaDeletar && (
+        <ModalConfirmacaoDelete
+          isOpen={modalDeleteOpen}
+          onClose={() => {
+            setModalDeleteOpen(false);
+            setEvidenciaParaDeletar(null);
+          }}
+          onConfirm={confirmarDelecaoEvidencia}
+          titulo={`evidência do tipo ${evidenciaParaDeletar.tipo}`}
         />
       )}
     </div>
