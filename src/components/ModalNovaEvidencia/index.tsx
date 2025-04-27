@@ -5,7 +5,7 @@ import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
 import Logo from "../../../public/assets/Logo.png";
 
 interface NovaEvidencia {
-  tipo: string;
+  tipo: 'imagem' | 'texto';
   titulo: string;
   descricao: string;
   coletadoPor: string;
@@ -31,7 +31,7 @@ export default function ModalNovaEvidencia({
   usuarioId
 }: ModalNovaEvidenciaProps) {
   const [formData, setFormData] = useState<NovaEvidencia>({
-    tipo: "",
+    tipo: 'texto',
     titulo: "",
     descricao: "",
     coletadoPor: "",
@@ -147,14 +147,22 @@ export default function ModalNovaEvidencia({
                   <label className="block text-sm font-medium text-amber-500">
                     Tipo <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="tipo"
                     value={formData.tipo}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
-                    placeholder="Tipo de evidência"
-                  />
+                    className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 appearance-none cursor-pointer"
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23F59E0B'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'right 1rem center',
+                      backgroundSize: '1.5em 1.5em',
+                      paddingRight: '2.5rem'
+                    }}
+                  >
+                    <option value="texto" className="bg-gray-800">texto</option>
+                    <option value="imagem" className="bg-gray-800">imagem</option>
+                  </select>
                 </div>
 
                 <div className="space-y-2">
@@ -217,28 +225,48 @@ export default function ModalNovaEvidencia({
             <div className="flex-1 flex flex-col">
               <div className="flex-grow">
                 <label className="block text-sm font-medium text-amber-500 mb-2">
-                  Arquivo
+                  Arquivo {formData.tipo === 'imagem' && <span className="text-red-500">*</span>}
                 </label>
                 <div className="h-full flex flex-col justify-center">
-                  <div className="mt-1 flex flex-col justify-center px-6 pt-5 pb-6 border-2 border-gray-700 border-dashed rounded-lg hover:border-amber-500 transition-all duration-300 bg-gray-800/30 min-h-[300px]">
+                  <div className={`mt-1 flex flex-col justify-center px-6 pt-5 pb-6 border-2 border-gray-700 border-dashed rounded-lg transition-all duration-300 bg-gray-800/30 min-h-[300px] ${
+                    formData.tipo === 'imagem' 
+                      ? 'hover:border-amber-500' 
+                      : 'opacity-50 cursor-not-allowed'
+                  }`}>
                     <div className="space-y-4 text-center">
-                      <FaCloudUploadAlt className="mx-auto h-16 w-16 text-amber-500" />
+                      <FaCloudUploadAlt className={`mx-auto h-16 w-16 ${
+                        formData.tipo === 'imagem' 
+                          ? 'text-amber-500' 
+                          : 'text-gray-500'
+                      }`} />
                       <div className="flex flex-col space-y-2">
-                        <label className="relative cursor-pointer rounded-md font-medium text-amber-500 hover:text-amber-400 focus-within:outline-none">
-                          <span className="text-lg">Upload um arquivo</span>
+                        <label className={`relative cursor-pointer rounded-md font-medium ${
+                          formData.tipo === 'imagem'
+                            ? 'text-amber-500 hover:text-amber-400'
+                            : 'text-gray-500 cursor-not-allowed'
+                        } focus-within:outline-none`}>
+                          <span className="text-lg">
+                            {formData.tipo === 'imagem' ? 'Upload um arquivo' : 'Upload desabilitado para tipo texto'}
+                          </span>
                           <input
                             type="file"
                             name="arquivo"
                             onChange={handleFileChange}
                             className="sr-only"
+                            disabled={formData.tipo !== 'imagem'}
+                            accept="image/*"
                           />
                         </label>
-                        <p className="text-gray-400">ou arraste e solte</p>
-                        <p className="text-sm text-gray-400">
-                          PNG, JPG, GIF até 10MB
-                        </p>
+                        {formData.tipo === 'imagem' && (
+                          <>
+                            <p className="text-gray-400">ou arraste e solte</p>
+                            <p className="text-sm text-gray-400">
+                              PNG, JPG, GIF até 10MB
+                            </p>
+                          </>
+                        )}
                       </div>
-                      {formData.arquivo && (
+                      {formData.arquivo && formData.tipo === 'imagem' && (
                         <div className="mt-4 p-4 bg-gray-800/50 rounded-lg">
                           <p className="text-amber-500">Arquivo selecionado:</p>
                           <p className="text-gray-300">{formData.arquivo.name}</p>

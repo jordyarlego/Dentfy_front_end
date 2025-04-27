@@ -303,28 +303,28 @@ export default function ModalNovoCasoPerito({
                   </div>
                 </div>
 
-                {error && (
+              {error && (
                   <div className="col-span-2">
                     <p className="text-red-500 text-sm">{error}</p>
-                  </div>
-                )}
+                </div>
+              )}
 
                 <div className="col-span-2 flex justify-end gap-4 mt-6">
-                  <button
-                    type="button"
-                    onClick={onClose}
+                <button
+                  type="button"
+                  onClick={onClose}
                     className="px-6 py-2 text-sm text-amber-100 hover:text-amber-500 transition-colors"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
                     className="px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors flex items-center gap-2"
-                  >
+                >
                     <FaSave />
                     {casoEditando ? "Salvar Alterações" : "Salvar Caso"}
-                  </button>
-                </div>
+                </button>
+              </div>
               </form>
             </div>
           </div>
