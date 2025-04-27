@@ -4,10 +4,9 @@ interface CriarEvidenciaAPI {
   tipo: "imagem" | "texto";
   dataColeta: string;
   coletadoPor: string;
-  conteudoTexto: string;
+  descricao: string;
   caso: string;
   arquivo?: File;
-  imagemURL: string
   responsavel: string; // Adicionando o campo responsavel
 }
 
@@ -17,9 +16,9 @@ interface Evidencia {
   tipo: string;
   dataColeta: string;
   coletadoPor: string;
-  conteudoTexto: string;
+  descricao: string;
   caso: string;
-  imagemURL: string;
+  imagemURL?: string;
 }
 
 export const postEvidencia = async (dados: CriarEvidenciaAPI) => {
@@ -29,7 +28,7 @@ export const postEvidencia = async (dados: CriarEvidenciaAPI) => {
     formData.append('tipo', dados.tipo);
     formData.append('dataColeta', dados.dataColeta);
     formData.append('coletadoPor', dados.coletadoPor);
-    formData.append('conteudoTexto', dados.conteudoTexto);
+    formData.append('descricao', dados.descricao);
     formData.append('caso', dados.caso);
     formData.append('responsavel', dados.responsavel); // Enviando o responsavel
 
