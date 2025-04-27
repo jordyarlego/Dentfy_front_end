@@ -1,5 +1,4 @@
-"use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaTimes, FaCloudUploadAlt, FaSave, FaArrowLeft } from "react-icons/fa";
 import Image from "next/image";
 import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
@@ -8,11 +7,13 @@ import Logo from "../../../public/assets/Logo.png";
 interface NovaEvidencia {
   tipo: string;
   titulo: string;
-  descricao: string;
+  conteudoTexto: string;
   coletadoPor: string;
   dataColeta: string;
   local: string;
   arquivo: File | null;
+  imagemURL: string,
+  responsavel: string; // Adicionado o campo responsavel
 }
 
 interface ModalNovaEvidenciaProps {
@@ -20,22 +21,26 @@ interface ModalNovaEvidenciaProps {
   onClose: () => void;
   onSave: (evidencia: NovaEvidencia) => void;
   casoId: string;
+  usuarioId: string; // Novo campo para capturar o id do usuário logado
 }
 
 export default function ModalNovaEvidencia({
   isOpen,
   onClose,
   onSave,
-  casoId
+  casoId,
+  usuarioId
 }: ModalNovaEvidenciaProps) {
   const [formData, setFormData] = useState<NovaEvidencia>({
     tipo: "",
     titulo: "",
-    descricao: "",
+    conteudoTexto: "",
     coletadoPor: "",
     dataColeta: new Date().toISOString().split('T')[0],
     local: "",
-    arquivo: null
+    arquivo: null,
+    imagemURL: '',
+    responsavel: usuarioId // Usando o id do usuário logado
   });
 
   const [error, setError] = useState<string | null>(null);
@@ -85,7 +90,7 @@ export default function ModalNovaEvidencia({
               <FaArrowLeft className="h-6 w-6" />
             </button>
           </div>
-          
+
           <div className="flex justify-center items-center gap-4">
             <div className="relative group animate-glow">
               <Image
@@ -97,11 +102,11 @@ export default function ModalNovaEvidencia({
               />
               <div className="absolute -inset-2 bg-amber-500/20 rounded-full blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
-            
+
             <h2 className="text-2xl font-bold text-center bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 text-transparent bg-clip-text animate-shimmer">
               Nova Evidência
             </h2>
-            
+
             <div className="relative group animate-glow">
               <Image
                 src={Logo}
@@ -201,7 +206,7 @@ export default function ModalNovaEvidencia({
                   </label>
                   <textarea
                     name="descricao"
-                    value={formData.descricao}
+                    value={formData.conteudoTexto}
                     onChange={handleChange}
                     rows={5}
                     className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 resize-none"
@@ -235,12 +240,23 @@ export default function ModalNovaEvidencia({
                           PNG, JPG, GIF até 10MB
                         </p>
                       </div>
-                      {formData.arquivo && (
+                      {formData.arquivo ? (
                         <div className="mt-4 p-4 bg-gray-800/50 rounded-lg">
                           <p className="text-amber-500">Arquivo selecionado:</p>
                           <p className="text-gray-300">{formData.arquivo.name}</p>
                         </div>
+                      ) : formData.imagemURL && (
+                        <div className="mt-4 flex justify-center">
+                          <Image
+                            src={formData.imagemURL}
+                            alt="Imagem da Evidência"
+                            width={500}
+                            height={500}
+                            className="rounded-lg object-contain max-h-[400px]"
+                          />
+                        </div>
                       )}
+
                     </div>
                   </div>
                 </div>

@@ -4,19 +4,22 @@ interface CriarEvidenciaAPI {
   tipo: "imagem" | "texto";
   dataColeta: string;
   coletadoPor: string;
-  descricao: string;
+  conteudoTexto: string;
   caso: string;
   arquivo?: File;
+  imagemURL: string
+  responsavel: string; // Adicionando o campo responsavel
 }
+
 
 interface Evidencia {
   _id: string;
   tipo: string;
   dataColeta: string;
   coletadoPor: string;
-  descricao: string;
+  conteudoTexto: string;
   caso: string;
-  imagemURL?: string;
+  imagemURL: string;
 }
 
 export const postEvidencia = async (dados: CriarEvidenciaAPI) => {
@@ -26,21 +29,13 @@ export const postEvidencia = async (dados: CriarEvidenciaAPI) => {
     formData.append('tipo', dados.tipo);
     formData.append('dataColeta', dados.dataColeta);
     formData.append('coletadoPor', dados.coletadoPor);
-    formData.append('descricao', dados.descricao);
+    formData.append('conteudoTexto', dados.conteudoTexto);
     formData.append('caso', dados.caso);
+    formData.append('responsavel', dados.responsavel); // Enviando o responsavel
 
     if (dados.arquivo) {
-      formData.append('arquivo', dados.arquivo);
+      formData.append('imagem', dados.arquivo);
     }
-
-    console.log('Dados sendo enviados:', {
-      tipo: dados.tipo,
-      dataColeta: dados.dataColeta,
-      coletadoPor: dados.coletadoPor,
-      descricao: dados.descricao,
-      caso: dados.caso,
-      temArquivo: !!dados.arquivo
-    });
 
     const response = await api.post("/api/evidences", formData, {
       headers: {
@@ -62,7 +57,7 @@ export const postEvidencia = async (dados: CriarEvidenciaAPI) => {
 // Visualizar evidencia
 export const getEvidenciaByCaseId = async (casoId: string) => {
   try {
-    const response = await api.get(`/api/evidences/by-case/${casoId}`);
+    const response = await api.get(`/api/evidences/${casoId}`);
     return response.data;
   } catch (error) {
     console.error("Erro ao buscar evidências:", error);
