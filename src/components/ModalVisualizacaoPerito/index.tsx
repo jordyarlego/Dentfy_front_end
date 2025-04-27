@@ -152,18 +152,9 @@ export default function ModalVisualizacaoPerito({
   };
 
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4 animate-fadeIn">
-      <div className="relative bg-[#0E1A26] border border-amber-500/30 rounded-xl shadow-2xl w-full max-w-6xl animate-slideIn">
-        <div className="absolute inset-0 pointer-events-none opacity-5 mix-blend-overlay">
-          <Image
-            src={CaveiraPeste}
-            alt="Caveira decorativa"
-            className="object-cover"
-            fill
-          />
-        </div>
-
-        <div className="p-6">
+    <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md bg-gray-900/50">
+      <div className="bg-[#0E1A26]/95 w-[95%] max-w-[1000px] max-h-[90vh] rounded-2xl shadow-2xl border border-gray-700 overflow-hidden animate-modalEntry">
+        <div className="relative p-6 border-b border-gray-700 bg-gradient-to-r from-[#0E1A26] via-[#152736] to-[#0E1A26]">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-4">
               <div className="relative w-16 h-8 animate-pulse">
@@ -200,9 +191,11 @@ export default function ModalVisualizacaoPerito({
               </button>
             </div>
           </div>
+        </div>
 
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-4">
+        <div className="p-6 flex flex-col h-full">
+          <div className="mb-6">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <h3 className="text-sm font-medium text-amber-500 mb-2">Título</h3>
                 <p className="text-gray-200">{caso.titulo}</p>
@@ -225,104 +218,85 @@ export default function ModalVisualizacaoPerito({
                 <p className="text-gray-200">{caso.tipo}</p>
               </div>
             </div>
-
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-medium text-amber-500 mb-2">Local</h3>
-                <p className="text-gray-200">{caso.local}</p>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium text-amber-500 mb-2">Responsável</h3>
-                <p className="text-gray-200">{caso.responsavel}</p>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium text-amber-500 mb-2">Status</h3>
-                <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    caso.status === "Finalizado"
-                      ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                      : caso.status === "Em andamento"
-                      ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
-                      : "bg-red-500/20 text-red-400 border border-red-500/30"
-                  }`}
-                >
-                  {caso.status}
-                </span>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium text-amber-500 mb-2">Descrição</h3>
-                <p className="text-gray-200">{caso.descricao}</p>
-              </div>
-            </div>
           </div>
 
-          <div className="mt-8">
+          <div className="flex-1">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium text-amber-100">Evidências</h3>
+              <h3 className="text-xl font-semibold text-amber-500">Evidências</h3>
               <button
                 onClick={() => setModalNovaEvidenciaOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-all duration-300 cursor-pointer hover:scale-105 hover:shadow-lg hover:shadow-amber-500/20"
+                className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-all duration-300 group"
               >
                 <FaPlus className="group-hover:rotate-90 transition-transform" />
                 Nova Evidência
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {evidencias.map((evidencia) => (
-                <div
-                  key={evidencia._id}
-                  className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:bg-gray-800/70 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-amber-500/10"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="text-amber-100 font-medium">{evidencia.nome}</h4>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setEvidenciaSelecionada(evidencia)}
-                        className="text-gray-400 hover:text-amber-400 transition-all duration-300 cursor-pointer hover:scale-110"
-                      >
-                        <FaEye className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeletarEvidencia(evidencia)}
-                        className="text-gray-400 hover:text-red-400 transition-all duration-300 cursor-pointer hover:scale-110"
-                      >
-                        <FaTrash className="h-4 w-4" />
-                      </button>
+            <div className="overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
+              <div className="grid grid-cols-1 gap-4">
+                {evidencias.map((evidencia, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-800/30 p-4 rounded-lg border border-gray-700 hover:border-amber-500/50 transition-all duration-300"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="text-amber-100 font-medium">{evidencia.nome}</h4>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setEvidenciaSelecionada(evidencia)}
+                          className="text-gray-400 hover:text-amber-400 transition-all duration-300 cursor-pointer hover:scale-110"
+                        >
+                          <FaEye className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeletarEvidencia(evidencia)}
+                          className="text-gray-400 hover:text-red-400 transition-all duration-300 cursor-pointer hover:scale-110"
+                        >
+                          <FaTrash className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <p className="text-gray-300 text-sm mb-2">{evidencia.descricao}</p>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">
-                      {evidencia.tipo}
-                    </span>
-                    <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">
-                      {evidencia.coletadoPor}
-                    </span>
-                  </div>
-                  {evidencia.laudo && (
-                    <div className="mt-2">
-                      <h5 className="text-xs font-medium text-amber-500 mb-1">Laudo</h5>
-                      <p className="text-gray-300 text-sm">{evidencia.laudo}</p>
+                    <p className="text-gray-300 text-sm mb-2">{evidencia.descricao}</p>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">
+                        {evidencia.tipo}
+                      </span>
+                      <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">
+                        {evidencia.coletadoPor}
+                      </span>
                     </div>
-                  )}
-                </div>
-              ))}
+                    {evidencia.laudo && (
+                      <div className="mt-2">
+                        <h5 className="text-xs font-medium text-amber-500 mb-1">Laudo</h5>
+                        <p className="text-gray-300 text-sm">{evidencia.laudo}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
+          </div>
+        </div>
+
+        <div className="p-6 border-t border-gray-700 bg-gradient-to-r from-[#0E1A26] via-[#152736] to-[#0E1A26]">
+          <div className="flex justify-end gap-4">
+            <button
+              onClick={onClose}
+              className="flex items-center gap-2 px-6 py-2 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-all duration-300"
+            >
+              <FaTimes />
+              Fechar
+            </button>
           </div>
         </div>
       </div>
 
-      {modalNovaEvidenciaOpen && (
-        <ModalNovaEvidencia
-          isOpen={modalNovaEvidenciaOpen}
-          onClose={() => setModalNovaEvidenciaOpen(false)}
-          onSave={handleSalvarNovaEvidencia}
-        />
-      )}
+      <ModalNovaEvidencia
+        isOpen={modalNovaEvidenciaOpen}
+        onClose={() => setModalNovaEvidenciaOpen(false)}
+        onSave={handleSalvarNovaEvidencia}
+        casoId={caso._id}
+      />
 
       {evidenciaSelecionada && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -445,6 +419,42 @@ export default function ModalVisualizacaoPerito({
           titulo={`evidência do tipo ${evidenciaParaDeletar.tipo}`}
         />
       )}
+
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(31, 41, 55, 0.5);
+          border-radius: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(251, 191, 36, 0.5);
+          border-radius: 4px;
+          transition: all 0.3s;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(251, 191, 36, 0.7);
+        }
+
+        .animate-modalEntry {
+          animation: modalEntry 0.3s ease-out forwards;
+        }
+
+        @keyframes modalEntry {
+          from {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }
