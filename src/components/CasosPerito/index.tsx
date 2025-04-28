@@ -1,12 +1,12 @@
 "use client";
 
 import api from "../../../lib/axios";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import ModalNovoCasoPerito from "../ModalNovoCasoPerito";
 import ModalVisualizacaoPerito from "../ModalVisualizacaoPerito";
 import ModalEditarCaso from "../ModalEditarCaso";
 import FeedbackModal from "../FeedbackModal";
-import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
+import { FaEye, FaEdit, FaTrash, FaCalendarAlt, FaFilter, FaChevronDown } from "react-icons/fa";
 import { atualizarCaso, deletarCaso, CasoData } from "../ModalNovoCasoPerito/API_NovoCaso";
 import ModalConfirmacaoDelete from "../ModalConfirmacaoDelete";
 
@@ -29,6 +29,7 @@ export interface Caso extends CasoData {
 export default function CasosPerito() {
   const [search, setSearch] = useState("");
   const [filtro, setFiltro] = useState("todos");
+  const [filtroStatus, setFiltroStatus] = useState("todos");
   const [modalOpen, setModalOpen] = useState(false);
   const [modalEditarOpen, setModalEditarOpen] = useState(false);
   const [casoSelecionado, setCasoSelecionado] = useState<Caso | null>(null);
@@ -38,6 +39,10 @@ export default function CasosPerito() {
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [modalDeleteOpen, setModalDeleteOpen] = useState(false);
   const [casoParaDeletar, setCasoParaDeletar] = useState<Caso | null>(null);
+  const [dropdownDataAberto, setDropdownDataAberto] = useState(false);
+  const [dropdownStatusAberto, setDropdownStatusAberto] = useState(false);
+  const dropdownDataRef = useRef<HTMLDivElement>(null);
+  const dropdownStatusRef = useRef<HTMLDivElement>(null);
 
   const [casos, setCasos] = useState<Caso[]>([]);
 
@@ -58,6 +63,38 @@ export default function CasosPerito() {
 
     carregarCasos();
   }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownDataRef.current && !dropdownDataRef.current.contains(event.target as Node)) {
+        setDropdownDataAberto(false);
+      }
+      if (dropdownStatusRef.current && !dropdownStatusRef.current.contains(event.target as Node)) {
+        setDropdownStatusAberto(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const getTextoFiltroData = () => {
+    switch (filtro) {
+      case "semana": return "Esta Semana";
+      case "mes": return "Este Mês";
+      case "ano": return "Este Ano";
+      default: return "Todos os Períodos";
+    }
+  };
+
+  const getCorStatus = (status: string) => {
+    switch (status) {
+      case "Em andamento": return "text-yellow-400";
+      case "Finalizado": return "text-green-400";
+      case "Arquivado": return "text-red-400";
+      default: return "text-gray-400";
+    }
+  };
 
   const handleSubmitCaso = async (novoCaso: CasoData) => {
     try {
@@ -133,28 +170,30 @@ export default function CasosPerito() {
     if (!caso || !caso.titulo) return false;
 
     const nomeMatch = caso.titulo.toLowerCase().includes(search.toLowerCase());
+    const statusMatch = filtroStatus === "todos" || caso.status === filtroStatus;
     const data = new Date(caso.dataAbertura);
     const hoje = new Date();
 
     if (filtro === "semana") {
       const diff = Math.abs(hoje.getTime() - data.getTime());
       const dias = diff / (1000 * 3600 * 24);
-      return nomeMatch && dias <= 7;
+      return nomeMatch && statusMatch && dias <= 7;
     }
 
     if (filtro === "mes") {
       return (
         nomeMatch &&
+        statusMatch &&
         data.getMonth() === hoje.getMonth() &&
         data.getFullYear() === hoje.getFullYear()
       );
     }
 
     if (filtro === "ano") {
-      return nomeMatch && data.getFullYear() === hoje.getFullYear();
+      return nomeMatch && statusMatch && data.getFullYear() === hoje.getFullYear();
     }
 
-    return nomeMatch;
+    return nomeMatch && statusMatch;
   });
 
   return (
@@ -212,47 +251,93 @@ export default function CasosPerito() {
           </svg>
         </div>
 
-        <div className="flex overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:gap-3 scrollbar-hide">
-          <button
-            onClick={() => setFiltro("todos")}
-            className={`flex-shrink-0 px-4 py-2 rounded-lg transition-all duration-300 font-medium cursor-pointer ${
-              filtro === "todos"
-                ? "bg-gray-700 text-white shadow hover:bg-gray-600"
-                : "bg-gray-800/80 text-gray-300 hover:bg-gray-700/80"
-            } border border-gray-700 hover:border-gray-600 backdrop-blur-sm mr-2 sm:mr-0`}
-          >
-            Todos
-          </button>
-          <button
-            onClick={() => setFiltro("semana")}
-            className={`flex-shrink-0 px-4 py-2 rounded-lg transition-all duration-300 font-medium cursor-pointer ${
-              filtro === "semana"
-                ? "bg-gray-700 text-white shadow hover:bg-gray-600"
-                : "bg-gray-800/80 text-gray-300 hover:bg-gray-700/80"
-            } border border-gray-700 hover:border-gray-600 backdrop-blur-sm mr-2 sm:mr-0`}
-          >
-            Esta Semana
-          </button>
-          <button
-            onClick={() => setFiltro("mes")}
-            className={`flex-shrink-0 px-4 py-2 rounded-lg transition-all duration-300 font-medium cursor-pointer ${
-              filtro === "mes"
-                ? "bg-gray-700 text-white shadow hover:bg-gray-600"
-                : "bg-gray-800/80 text-gray-300 hover:bg-gray-700/80"
-            } border border-gray-700 hover:border-gray-600 backdrop-blur-sm mr-2 sm:mr-0`}
-          >
-            Este Mês
-          </button>
-          <button
-            onClick={() => setFiltro("ano")}
-            className={`flex-shrink-0 px-4 py-2 rounded-lg transition-all duration-300 font-medium cursor-pointer ${
-              filtro === "ano"
-                ? "bg-gray-700 text-white shadow hover:bg-gray-600"
-                : "bg-gray-800/80 text-gray-300 hover:bg-gray-700/80"
-            } border border-gray-700 hover:border-gray-600 backdrop-blur-sm`}
-          >
-            Este Ano
-          </button>
+        <div className="flex flex-wrap gap-4">
+          <div ref={dropdownDataRef} className="relative">
+            <button
+              onClick={() => setDropdownDataAberto(!dropdownDataAberto)}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-800/80 hover:bg-gray-700/80 border border-gray-700 rounded-lg transition-all duration-300 group"
+            >
+              <FaCalendarAlt className="text-amber-500 group-hover:rotate-12 transition-transform duration-300" />
+              <span className="text-gray-200">{getTextoFiltroData()}</span>
+              <FaChevronDown className={`text-gray-400 transition-transform duration-300 ${dropdownDataAberto ? 'rotate-180' : ''}`} />
+            </button>
+
+            <div className={`absolute z-50 w-48 mt-2 bg-gray-800/95 border border-gray-700 rounded-lg shadow-xl backdrop-blur-sm transition-all duration-300 ${
+              dropdownDataAberto 
+                ? 'opacity-100 translate-y-0' 
+                : 'opacity-0 translate-y-2 pointer-events-none'
+            }`}>
+              {["todos", "semana", "mes", "ano"].map((opcao) => (
+                <button
+                  key={opcao}
+                  onClick={() => {
+                    setFiltro(opcao);
+                    setDropdownDataAberto(false);
+                  }}
+                  className={`w-full px-4 py-3 text-left hover:bg-gray-700/50 first:rounded-t-lg last:rounded-b-lg transition-colors duration-300 group ${
+                    filtro === opcao ? 'bg-gray-700/80 text-amber-500' : 'text-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      filtro === opcao ? 'bg-amber-500 scale-125' : 'bg-gray-500 group-hover:bg-gray-400'
+                    }`} />
+                    {opcao === "todos" && "Todos os Períodos"}
+                    {opcao === "semana" && "Esta Semana"}
+                    {opcao === "mes" && "Este Mês"}
+                    {opcao === "ano" && "Este Ano"}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div ref={dropdownStatusRef} className="relative">
+            <button
+              onClick={() => setDropdownStatusAberto(!dropdownStatusAberto)}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-800/80 hover:bg-gray-700/80 border border-gray-700 rounded-lg transition-all duration-300 group"
+            >
+              <FaFilter className="text-amber-500 group-hover:rotate-12 transition-transform duration-300" />
+              <span className="text-gray-200">
+                {filtroStatus === "todos" ? "Todos os Status" : filtroStatus}
+              </span>
+              <FaChevronDown className={`text-gray-400 transition-transform duration-300 ${dropdownStatusAberto ? 'rotate-180' : ''}`} />
+            </button>
+
+            <div className={`absolute z-50 w-48 mt-2 bg-gray-800/95 border border-gray-700 rounded-lg shadow-xl backdrop-blur-sm transition-all duration-300 ${
+              dropdownStatusAberto 
+                ? 'opacity-100 translate-y-0' 
+                : 'opacity-0 translate-y-2 pointer-events-none'
+            }`}>
+              {["todos", "Em andamento", "Finalizado", "Arquivado"].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => {
+                    setFiltroStatus(status);
+                    setDropdownStatusAberto(false);
+                  }}
+                  className={`w-full px-4 py-3 text-left hover:bg-gray-700/50 first:rounded-t-lg last:rounded-b-lg transition-colors duration-300 group ${
+                    filtroStatus === status ? 'bg-gray-700/80' : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      status === "todos" 
+                        ? (filtroStatus === status ? 'bg-amber-500 scale-125' : 'bg-gray-500')
+                        : `${getCorStatus(status)} ${filtroStatus === status ? 'scale-125' : ''}`
+                    }`} />
+                    <span className={
+                      filtroStatus === status 
+                        ? getCorStatus(status) 
+                        : 'text-gray-300'
+                    }>
+                      {status === "todos" ? "Todos os Status" : status}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
