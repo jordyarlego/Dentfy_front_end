@@ -72,12 +72,12 @@ export default function EvidenciasSalvaSucess({ onClose }: EvidenciasSalvaSucess
           </div>
 
           <h3 className="text-xl font-bold text-amber-100 mb-2 text-center">
-            Laudo Salvo com Sucesso!
+            Evidência salva com sucesso!
           </h3>
 
           {showMessage && (
             <div className="text-center mb-4 animate-fadeIn">
-              <p className="text-amber-400 mb-2">O laudo foi salvo e anexado à evidência.</p>
+              <p className="text-amber-400 mb-2">A evidencia foi salva e anexada ao caso!</p>
               <div className="flex items-center justify-center gap-2 text-amber-500">
                 <FaThumbsUp className="animate-bounce" />
                 <span>Ótimo trabalho!</span>
