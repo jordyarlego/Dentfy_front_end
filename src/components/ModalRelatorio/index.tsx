@@ -5,7 +5,7 @@ import { FaTimes, FaFilePdf, FaSignature, FaSave, FaArrowLeft } from "react-icon
 import Image from "next/image";
 import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
 import Logo from "../../../public/assets/Logo.png";
-import { PostRelatorio, GetRelatorios, parseJwt } from "../../../services/api_relatorio";
+import { PostRelatorio, GetRelatorios, parseJwt, ExportRelatorioPDF, AssinarRelatorio } from "../../../services/api_relatorio";
 
 interface ModalRelatorioProps {
   isOpen: boolean;
@@ -26,21 +26,23 @@ interface RelatorioData {
 }
 
 export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorioProps) {
-  if (!isOpen) return null;
   const casoId = caso._id;
 
   const [relatorioData, setRelatorioData] = useState({ titulo: "", conteudo: "", peritoResponsavel: "" });
-  const [relatorios, setRelatorios] = useState<RelatorioData[]>([]);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [relatorios, setRelatorios] = useState<Relatorio[]>([]);
+  const [relatorioId, setRelatorioId] = useState<string | null>(null); // 👈 novo para guardar o ID
   const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null); // 👈 você estava usando mas não tinha declarado no código que mandou
 
-  // Buscar relatórios existentes quando o modal abre
   useEffect(() => {
     async function loadRelatorios() {
       try {
         const all = await GetRelatorios();
         const filtrados = all.filter((r: RelatorioData) => r.caso === casoId);
         setRelatorios(filtrados);
+        if (filtrados.length > 0) {
+          setRelatorioId(filtrados[0]._id); // 👈 já seta o primeiro encontrado
+        }
       } catch (err) {
         console.error("Erro ao carregar relatórios:", err);
       }
@@ -64,12 +66,10 @@ export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorio
       };
 
       const saved = await PostRelatorio(data);
-      // Atualiza lista de relatórios localmente
       setRelatorios(prev => [saved, ...prev]);
+      setRelatorioId(saved._id); // 👈 salva o ID retornado
       setSuccessMessage("Relatório salvo com sucesso!");
-      // Limpar formulário
       setRelatorioData({ titulo: "", conteudo: "", peritoResponsavel: "" });
-      // Remove mensagem após 3s
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error: any) {
       console.error("Erro ao enviar o relatório:", error.response?.data || error.message);
@@ -78,6 +78,49 @@ export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorio
       setLoading(false);
     }
   };
+
+  const handleGerarPDF = async () => {
+    try {
+      if (!relatorioId) {
+        alert("Salve o relatório antes de gerar o PDF!");
+        return;
+      }
+      const blob = await ExportRelatorioPDF(relatorioId); // 👈 usa o ID salvo
+      const url = window.URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `relatorio_${relatorioId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+      alert("Erro ao gerar PDF do relatório.");
+    }
+  };
+
+ const handleAssinarRelatorio = async () => {
+  try {
+    if (!relatorioId) {
+      alert("Salve o relatório antes de assinar!");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Token não encontrado");
+
+    const user = parseJwt(token);
+    if (!user?.id) throw new Error("Usuário não encontrado no token");
+
+    await AssinarRelatorio(relatorioId, user.id); // 👈 agora passa o user.id também
+    alert("Relatório assinado com sucesso!");
+  } catch (error) {
+    console.error("Erro ao assinar relatório:", error);
+    alert("Erro ao assinar relatório.");
+  }
+};
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md bg-gray-900/50">
@@ -140,7 +183,7 @@ export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorio
           </div>
 
           {/* Lista de Relatórios */}
-          <div className={`${relatorios.length > 0 ? 'space-y-2' : ''} ${relatorios.length > 3 ? 'max-h-64 overflow-y-auto' : ''}`}> 
+          <div className={`${relatorios.length > 0 ? 'space-y-2' : ''} ${relatorios.length > 3 ? 'max-h-64 overflow-y-auto' : ''}`}>
             {relatorios.map(r => (
               <div key={r._id} className="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
                 <h4 className="font-semibold text-white">{r.titulo}</h4>
@@ -152,25 +195,33 @@ export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorio
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex justify-between items-center p-6 border-t border-gray-700 bg-gray-900">
-          <div className="flex gap-4">
-            <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition">
-              <FaFilePdf /> Gerar PDF
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition">
-              <FaSignature /> Assinatura Digital
-            </button>
-          </div>
+         {/* Footer */}
+      <div className="flex justify-between items-center p-6 border-t border-gray-700 bg-gray-900">
+        <div className="flex gap-4">
           <button
-            onClick={handleSaveRelatorio}
-            disabled={loading}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleGerarPDF}
+            disabled={!relatorioId} // 👈 desabilita se não tiver ID
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <FaSave className={loading ? "animate-spin" : undefined} />
-            <span>Salvar Relatório</span>
+            <FaFilePdf /> Gerar PDF
+          </button>
+          <button
+            onClick={handleAssinarRelatorio}
+            disabled={!relatorioId}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <FaSignature /> Assinar
           </button>
         </div>
+        <button
+          onClick={handleSaveRelatorio}
+          disabled={loading}
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <FaSave className={loading ? "animate-spin" : undefined} />
+          <span>Salvar Relatório</span>
+        </button>
+      </div>
       </div>
 
       {/* Global Styles */}

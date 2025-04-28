@@ -10,7 +10,8 @@ interface Evidencia {
   descricao: string;
   coletadoPor: string;
   arquivo: string;
-  dataAdicao: string;
+  imagemURL: string;
+  dataColeta: string;
   laudo?: string;
 }
 
@@ -55,7 +56,7 @@ export default function ModalDetalhesEvidencia({
           {evidencia.tipo === "imagem" && (
             <div className="relative w-full h-64 rounded-lg overflow-hidden bg-gray-800/30">
               <Image
-                src={evidencia.arquivo}
+                src={evidencia.imagemURL || "/default-image.jpg"}  // Se imagemURL não estiver definida, exibe uma imagem padrão
                 alt={evidencia.nome}
                 fill
                 className="object-contain"
@@ -82,7 +83,7 @@ export default function ModalDetalhesEvidencia({
             <div className="bg-gray-800/30 p-4 rounded-lg hover:bg-gray-800/40 transition-colors">
               <h4 className="text-sm font-medium text-amber-500 mb-2">Data de Adição</h4>
               <p className="text-gray-200">
-                {new Date(evidencia.dataAdicao).toLocaleDateString("pt-BR")}
+                {new Date(evidencia.dataColeta).toLocaleDateString("pt-BR")}
               </p>
             </div>
           </div>

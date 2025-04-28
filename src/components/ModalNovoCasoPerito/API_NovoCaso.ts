@@ -203,7 +203,7 @@ export async function deletarEvidencia(casoId: string, evidenciaId: string) {
 export async function buscarEvidenciasPorCaso(casoId: string) {
   try {
     const token = localStorage.getItem("token");
-    const response = await api.get(`/api/evidence/by-case/${casoId}`, {
+    const response = await api.get(`/api/evidence/${casoId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

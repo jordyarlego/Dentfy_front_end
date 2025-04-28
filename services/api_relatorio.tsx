@@ -115,7 +115,7 @@ export async function AssinarRelatorio(id: string) {
   try {
     const token = localStorage.getItem("token");
 
-    const response = await api.post(`/api/relatorio/${id}/assinar`, null, {
+    const response = await api.post(`/api/relatorio/${id}/assinar`, {}, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

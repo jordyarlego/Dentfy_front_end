@@ -1,13 +1,7 @@
 "use client";
+
 import { useState, useEffect, useMemo } from "react";
-import {
-  FaTimes,
-  FaFilePdf,
-  FaSignature,
-  FaSave,
-  FaFile,
-  FaDownload,
-} from "react-icons/fa";
+import { FaTimes, FaFilePdf, FaSignature, FaSave, FaFile, FaDownload } from "react-icons/fa";
 import Image from "next/image";
 import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
 import Logo from "../../../public/assets/Logo.png";
@@ -106,7 +100,7 @@ export default function ModalGerarLaudo({
       alert("Por favor, valide sua assinatura digital primeiro");
       return;
     }
-    onSave(laudo, evidencia._id);
+    onSave(laudo, evidencia._id); // Passando o laudo e o ID da evidência para a função de salvar
     setShowSuccess(true);
   };
 
@@ -120,7 +114,7 @@ export default function ModalGerarLaudo({
       const imgData = canvas.toDataURL("image/png");
 
       doc.addImage(imgData, "PNG", 10, 10, 190, 277);
-      doc.save(`laudo-${evidencia.nome}.pdf`);
+      doc.save(`laudo-${evidencia.nome}.pdf`); // Gerando o PDF com o nome da evidência
     } catch (error) {
       console.error("Erro ao gerar PDF:", error);
       alert("Erro ao gerar PDF");

@@ -4,6 +4,7 @@ import Image from "next/image";
 import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
 import Logo from "../../../public/assets/Logo.png";
 
+
 interface NovaEvidencia {
   tipo: 'imagem' | 'texto';
   titulo: string;

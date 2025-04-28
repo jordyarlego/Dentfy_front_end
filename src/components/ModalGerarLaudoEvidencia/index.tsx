@@ -38,9 +38,11 @@ export default function ModalGerarLaudoEvidencia({
   const [loading, setLoading] = useState(false);
   const [assinaturaValidada, setAssinaturaValidada] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [laudoId, setLaudoId] = useState<string | null>(null); // 👈 ID do laudo
 
   if (!isOpen) return null;
 
+  // Validar assinatura digital
   const handleValidarAssinatura = async () => {
     setLoading(true);
     try {
@@ -56,9 +58,15 @@ export default function ModalGerarLaudoEvidencia({
     }
   };
 
+  // Gerar PDF do laudo
   const handleGerarPDF = async () => {
     setLoading(true);
     try {
+      if (!laudoId) {
+        alert("Salve o laudo antes de gerar o PDF!");
+        return;
+      }
+
       const conteudo = document.getElementById('laudo-content');
       if (!conteudo) return;
 
@@ -78,6 +86,7 @@ export default function ModalGerarLaudoEvidencia({
     }
   };
 
+  // Salvar laudo
   const handleSalvarLaudo = async () => {
     if (!assinaturaValidada) {
       setSuccessMessage("Por favor, valide a assinatura digital primeiro.");
@@ -91,39 +100,29 @@ export default function ModalGerarLaudoEvidencia({
 
     setLoading(true);
     try {
-      const dataAtual = new Date().toLocaleDateString('pt-BR');
-      const horaAtual = new Date().toLocaleTimeString('pt-BR');
-      
-      const laudoFormatado = `
-        LAUDO TÉCNICO
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Token não encontrado");
 
-        Título: ${titulo}
-        Data de Emissão: ${dataAtual} às ${horaAtual}
+      const user = parseJwt(token);
+      if (!user?.id) throw new Error("Usuário não encontrado no token");
 
-        INFORMAÇÕES DA EVIDÊNCIA
-        Nome: ${evidencia.nome}
-        Tipo: ${evidencia.tipo}
-        Coletado por: ${evidencia.coletadoPor}
-        Data de Coleta: ${new Date(evidencia.dataAdicao).toLocaleDateString('pt-BR')}
-        Descrição Original: ${evidencia.descricao}
+      const data = {
+        titulo,
+        descricao,
+        evidenciaId: evidencia._id, // 👈 referência à evidência associada
+        peritoResponsavel: user.id,
+      };
 
-        LAUDO DETALHADO
-        ${descricao}
-
-        VALIDAÇÃO
-        Este documento foi assinado digitalmente em ${dataAtual} às ${horaAtual}.
-      `.trim();
-
-      await putEvidencia(evidencia._id, { laudo: laudoFormatado });
+      const savedLaudo = await PostLaudo(data); // 👈 função para salvar o laudo
+      setLaudoId(savedLaudo._id); // 👈 salva o ID do laudo retornado
       setSuccessMessage("Laudo salvo com sucesso!");
-      onLaudoSaved();
-      setTimeout(() => {
-        setSuccessMessage(null);
-        onClose();
-      }, 2000);
-    } catch (error) {
-      console.error("Erro ao salvar laudo:", error);
-      setSuccessMessage("Erro ao salvar laudo. Tente novamente.");
+      setTimeout(() => setSuccessMessage(null), 3000);
+
+      // Chama a função para passar o laudo salvo para o componente pai, se necessário
+      if (onLaudoSaved) onLaudoSaved(savedLaudo);
+    } catch (error: any) {
+      console.error("Erro ao salvar o laudo:", error.response?.data || error.message);
+      alert(`Erro ao salvar o laudo: ${error.response?.data?.message || error.message}`);
     } finally {
       setLoading(false);
     }
