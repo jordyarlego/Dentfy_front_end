@@ -11,6 +11,7 @@ import { CasoData, Evidencia, adicionarEvidencia, atualizarEvidencia, deletarEvi
 import { postEvidencia, getEvidenciaByCaseId, deleteEvidencia as deleteEvidenciaAPI } from '../../../services/api_nova_evidencia';
 import ModalRelatorio from "../ModalRelatorio";
 import ModalConfirmacaoDelete from "../ModalConfirmacaoDelete";
+import ModalGerarLaudoEvidencia from "../ModalGerarLaudoEvidencia";
 
 interface CasoCompleto extends CasoData {
   _id: string;
@@ -303,12 +304,24 @@ export default function ModalVisualizacaoPerito({
           <div className="bg-[#0E1A26] border border-amber-500/30 rounded-xl shadow-2xl w-full max-w-4xl p-6">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-amber-100">Detalhes da Evidência</h3>
-              <button
-                onClick={() => setEvidenciaSelecionada(null)}
-                className="text-amber-100 hover:text-amber-500 transition-all duration-300"
-              >
-                <FaTimes className="h-6 w-6" />
-              </button>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => {
+                    setEvidenciaParaLaudo(evidenciaSelecionada);
+                    setEvidenciaSelecionada(null);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all duration-300 hover:scale-105"
+                >
+                  <FaFileAlt className="text-sm" />
+                  Gerar Laudo
+                </button>
+                <button
+                  onClick={() => setEvidenciaSelecionada(null)}
+                  className="text-amber-100 hover:text-amber-500 transition-all duration-300"
+                >
+                  <FaTimes className="h-6 w-6" />
+                </button>
+              </div>
             </div>
 
             <div className="space-y-6">
@@ -372,11 +385,11 @@ export default function ModalVisualizacaoPerito({
       )}
 
       {evidenciaParaLaudo && (
-        <ModalGerarLaudo
+        <ModalGerarLaudoEvidencia
           isOpen={!!evidenciaParaLaudo}
           onClose={() => setEvidenciaParaLaudo(null)}
-          onSave={(laudo) => handleSalvarLaudo(laudo, evidenciaParaLaudo._id)}
           evidencia={evidenciaParaLaudo}
+          onLaudoSaved={carregarEvidencias}
         />
       )}
 
