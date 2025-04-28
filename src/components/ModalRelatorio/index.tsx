@@ -33,10 +33,10 @@ export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorio
   const casoId = caso._id;
 
   const [relatorioData, setRelatorioData] = useState({ titulo: "", conteudo: "", peritoResponsavel: "" });
-  const [relatorios, setRelatorios] = useState<Relatorio[]>([]);
-  const [relatorioId, setRelatorioId] = useState<string | null>(null); // 👈 novo para guardar o ID
+  const [relatorios, setRelatorios] = useState<RelatorioData[]>([]);
+  const [relatorioId, setRelatorioId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null); // 👈 você estava usando mas não tinha declarado no código que mandou
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showRelatorioSuccess, setShowRelatorioSuccess] = useState(false);
   const [showAssinaturaSuccess, setShowAssinaturaSuccess] = useState(false);
   const [assinaturaValidada, setAssinaturaValidada] = useState(false);
@@ -48,7 +48,7 @@ export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorio
         const filtrados = all.filter((r: RelatorioData) => r.caso === casoId);
         setRelatorios(filtrados);
         if (filtrados.length > 0) {
-          setRelatorioId(filtrados[0]._id); // 👈 já seta o primeiro encontrado
+          setRelatorioId(filtrados[0]._id);
         }
       } catch (err) {
         console.error("Erro ao carregar relatórios:", err);
@@ -74,7 +74,7 @@ export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorio
 
       const saved = await PostRelatorio(data);
       setRelatorios(prev => [saved, ...prev]);
-      setRelatorioId(saved._id); // 👈 salva o ID retornado
+      setRelatorioId(saved._id);
       setSuccessMessage("Relatório salvo com sucesso!");
       setRelatorioData({ titulo: "", conteudo: "", peritoResponsavel: "" });
       setTimeout(() => setSuccessMessage(null), 3000);
@@ -89,45 +89,48 @@ export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorio
 
   const handleGerarPDF = async () => {
     try {
-      if (!laudoSalvo || !assinaturaValidada) return;
-      
-      const conteudo = document.getElementById('laudo-content');
-      if (!conteudo) return;
-
-      const canvas = await html2canvas(conteudo);
-      const pdf = new jsPDF();
-      
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, 190, 277);
-      pdf.save(`laudo_${evidencia.nome}.pdf`);
+      if (!relatorioId) {
+        alert("Salve o relatório antes de gerar o PDF!");
+        return;
+      }
+      const blob = await ExportRelatorioPDF(relatorioId);
+      const url = window.URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `relatorio_${relatorioId}.pdf`); // CORRIGIDO COM CRASE
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
       console.error("Erro ao gerar PDF:", error);
+      alert("Erro ao gerar PDF do relatório.");
     }
   };
 
-  const handleValidarAssinatura = async () => {
+  const handleAssinarRelatorio = async () => {
     try {
       if (!relatorioId) {
         alert("Salve o relatório antes de assinar!");
         return;
       }
-
+  
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Token não encontrado");
-
+  
       const user = parseJwt(token);
       if (!user?.id) throw new Error("Usuário não encontrado no token");
-
+  
       await AssinarRelatorio(relatorioId, user.id);
-      setAssinaturaValidada(true);
-      setShowAssinaturaSuccess(true);
-      
-      const audio = new Audio('/assets/success.mp3');
-      audio.volume = 0.3;
-      await audio.play();
+  
+      setShowAssinaturaSuccess(true); // 👈 Adicione essa linha para abrir o modal
+      setAssinaturaValidada(true);     // 👈 Também marque como assinado para liberar botão de PDF
     } catch (error) {
       console.error("Erro ao assinar relatório:", error);
+      alert("Erro ao assinar relatório.");
     }
   };
+  ;
+  
 
   if (!isOpen) return null;
 
@@ -213,7 +216,7 @@ export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorio
             </button>
 
             <button
-              onClick={handleValidarAssinatura}
+              onClick={handleAssinarRelatorio}
               disabled={!relatorioId}
               className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed group hover:scale-105"
             >

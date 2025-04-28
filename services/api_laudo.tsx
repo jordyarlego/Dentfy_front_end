@@ -2,7 +2,7 @@ import api from "../lib/axios";
 
 interface LaudoData {
   titulo: string;
-  descricao: string;
+  texto: string;
   evidencia: {
     _id: string;
     tipo: string;
@@ -22,7 +22,7 @@ interface LaudoData {
 interface Laudo {
   _id: string;
   titulo: string;
-  descricao: string;
+  texto: string;
   evidencia: {
     _id: string;
     tipo: string;
@@ -41,11 +41,26 @@ interface Laudo {
   dataAtualizacao: string;
 }
 
+
+export function parseJwt(token: string): any {
+  try {
+    return JSON.parse(atob(token.split(".")[1]));
+  } catch (e) {
+    console.error("Erro ao decodificar token JWT", e);
+    return null;
+  }
+}
+
 // Criar um novo laudo
-export const postLaudo = async (evidenciaId: string) => {
+export const postLaudo = async (data: {
+  titulo: string;
+  texto: string;
+  evidence: string;
+  peritoResponsavel: string;
+}) => {
   try {
     const token = localStorage.getItem("token");
-    const response = await api.post("/api/laudos", { evidencia: evidenciaId }, {
+    const response = await api.post("/api/laudos", data, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -56,6 +71,7 @@ export const postLaudo = async (evidenciaId: string) => {
     throw error;
   }
 };
+
 
 // Listar todos os laudos do perito
 export const getLaudos = async () => {
@@ -74,7 +90,7 @@ export const getLaudos = async () => {
 };
 
 // Atualizar um laudo existente
-export const putLaudo = async (id: string, data: { titulo: string; descricao: string }) => {
+export const putLaudo = async (id: string, data: { titulo: string; texto: string }) => {
   try {
     const token = localStorage.getItem("token");
     const response = await api.put(`/api/laudos/${id}`, data, {

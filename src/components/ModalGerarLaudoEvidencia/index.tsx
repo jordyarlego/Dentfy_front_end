@@ -1,14 +1,12 @@
 "use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaTimes, FaFilePdf, FaSignature, FaSave, FaArrowLeft } from "react-icons/fa";
 import Image from "next/image";
 import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
 import Logo from "../../../public/assets/Logo.png";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
-import { putEvidencia } from "../../../services/api_nova_evidencia";
-import { assinarLaudo } from "../../../services/api_laudo";
+import { postLaudo, parseJwt, getLaudoPDF, getLaudosByEvidencia, assinarLaudo } from "../../../services/api_laudo";
 import AssinaturaSuccess from '../AssinaturaSuccess';
 import RelatorioSuccess from '../RelatorioSuccess';
 
@@ -34,94 +32,106 @@ export default function ModalGerarLaudoEvidencia({
   isOpen,
   onClose,
   evidencia,
-  onLaudoSaved
+  onLaudoSaved,
 }: ModalGerarLaudoEvidenciaProps) {
-  const [titulo, setTitulo] = useState("");
-  const [descricao, setDescricao] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [assinaturaValidada, setAssinaturaValidada] = useState(false);
-  const [laudoSalvo, setLaudoSalvo] = useState(false);
+  const [laudoData, setLaudoData] = useState({ titulo: "", texto: "", peritoResponsavel: "" });
   const [laudoId, setLaudoId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [showLaudoSuccess, setShowLaudoSuccess] = useState(false);
   const [showAssinaturaSuccess, setShowAssinaturaSuccess] = useState(false);
-  const [showRelatorioSuccess, setShowRelatorioSuccess] = useState(false);
+  const [assinaturaValidada, setAssinaturaValidada] = useState(false);
+  const [titulo, setTitulo] = useState<string>("");  // Definindo o tipo como string
+const [texto, setTexto] = useState<string>("");  // Definindo o tipo como string
 
-  // Salvar laudo
+
+  
+  useEffect(() => {
+    if (!isOpen) {
+      setTitulo("");
+      setTexto("");
+      setLaudoId(null);
+      setAssinaturaValidada(false);
+    }
+  }, [isOpen]);
+  
+  
   const handleSalvarLaudo = async () => {
-    if (!titulo || !descricao) return;
-
-    setLoading(true);
     try {
+      setLoading(true);
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Token não encontrado");
-
+  
       const user = parseJwt(token);
-      if (!user?.id) throw new Error("Usuário não encontrado no token");
-
+      if (!user?.id) throw new Error("Usuário não encontrado");
+  
       const data = {
-        titulo,
-        descricao,
-        evidenciaId: evidencia._id,
-        peritoResponsavel: user.id,
+        titulo: titulo,
+        texto: texto,
+        evidence: evidencia._id,        // <<< nome correto do campo esperado pelo backend
+        peritoResponsavel: user.id,      // <<< id do usuário logado
       };
-
-      const savedLaudo = await PostLaudo(data);
-      setLaudoId(savedLaudo._id);
-      setLaudoSalvo(true);
       
-      // Toca o som e mostra o feedback
-      const audio = new Audio('/assets/papagaio.mp3');
-      audio.volume = 0.3;
-      await audio.play();
       
-      // Importante: Mostra o feedback de sucesso
-      setShowRelatorioSuccess(true);
-    } catch (error) {
-      console.error("Erro ao salvar o laudo:", error);
+  
+      const saved = await postLaudo(data);
+      setLaudoId(saved._id);
+      setShowLaudoSuccess(true);
+  
+      // Limpa os campos depois de salvar
+      setTitulo("");
+      setTexto("");
+    } catch (error: any) {
+      console.error("Erro ao salvar o laudo:", error.response?.data || error.message);
+      alert(`Erro ao salvar o laudo: ${error.response?.data?.message || error.message}`);
     } finally {
       setLoading(false);
     }
   };
-
-  // Validar assinatura digital
-  const handleValidarAssinatura = async () => {
-    if (!laudoSalvo) return;
-
-    setLoading(true);
+  
+  const handleAssinarLaudo = async () => {
     try {
-      await assinarLaudo(laudoId!);
-      setAssinaturaValidada(true);
-      
-      // Importante: Mostra o feedback de sucesso
+      if (!laudoId) {
+        alert("Salve o laudo antes de assinar!");
+        return;
+      }
+  
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Token não encontrado");
+  
+      const user = parseJwt(token);
+      if (!user?.id) throw new Error("Usuário não encontrado");
+  
+      await assinarLaudo(laudoId, user.id);
+  
       setShowAssinaturaSuccess(true);
+      setAssinaturaValidada(true);
     } catch (error) {
-      console.error("Erro ao assinar laudo:", error);
-    } finally {
-      setLoading(false);
+      console.error("Erro ao assinar o laudo:", error);
+      alert("Erro ao assinar o laudo.");
     }
   };
+  
 
-  // Gerar PDF do laudo
   const handleGerarPDF = async () => {
-    if (!laudoSalvo || !assinaturaValidada) {
-      return;
-    }
-
-    setLoading(true);
     try {
-      const conteudo = document.getElementById('laudo-content');
-      if (!conteudo) return;
-
-      const canvas = await html2canvas(conteudo);
-      const pdf = new jsPDF();
-      
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, 190, 277);
-      pdf.save(`laudo_${evidencia.nome}.pdf`);
+      if (!laudoId) {
+        alert("Salve o laudo antes de gerar o PDF!");
+        return;
+      }
+      const blob = await getLaudoPDF(laudoId);
+      const url = window.URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `laudo_${laudoId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
-      console.error("Erro ao gerar PDF:", error);
-    } finally {
-      setLoading(false);
+      console.error("Erro ao gerar PDF do laudo:", error);
+      alert("Erro ao gerar PDF do laudo.");
     }
   };
+  
 
   if (!isOpen) return null;
 
@@ -198,8 +208,8 @@ export default function ModalGerarLaudoEvidencia({
                     Descrição do Laudo <span className="text-red-500">*</span>
                   </label>
                   <textarea
-                    value={descricao}
-                    onChange={(e) => setDescricao(e.target.value)}
+                    value={texto}
+                    onChange={(e) => setTexto(e.target.value)}
                     className="w-full h-[300px] px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 resize-none"
                     placeholder="Digite a descrição detalhada do laudo..."
                   />
@@ -214,7 +224,7 @@ export default function ModalGerarLaudoEvidencia({
               {/* Botão Salvar - sempre habilitado se os campos estiverem preenchidos */}
               <button
                 onClick={handleSalvarLaudo}
-                disabled={loading || !titulo || !descricao}
+                disabled={loading || !titulo || !texto}
                 className="flex items-center gap-2 px-4 py-2 bg-amber-600/30 hover:bg-amber-600/50 border border-amber-700/50 rounded-lg text-sm transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <FaSave className="text-amber-400" />
@@ -225,8 +235,8 @@ export default function ModalGerarLaudoEvidencia({
 
               {/* Botão Assinar - habilitado apenas após salvar */}
               <button
-                onClick={handleValidarAssinatura}
-                disabled={loading || !laudoSalvo || assinaturaValidada}
+                onClick={handleAssinarLaudo}
+                disabled={loading || !laudoId || assinaturaValidada}
                 className="flex items-center gap-2 px-4 py-2 bg-purple-600/30 hover:bg-purple-600/50 border border-purple-700/50 rounded-lg text-sm transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <FaSignature className="text-purple-400" />
@@ -238,7 +248,7 @@ export default function ModalGerarLaudoEvidencia({
               {/* Botão Gerar PDF - habilitado apenas após assinar */}
               <button
                 onClick={handleGerarPDF}
-                disabled={loading || !laudoSalvo || !assinaturaValidada}
+                disabled={loading || !laudoId|| !assinaturaValidada}
                 className="flex items-center gap-2 px-4 py-2 bg-red-600/30 hover:bg-red-600/50 border border-red-700/50 rounded-lg text-sm transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <FaFilePdf className="text-red-400" />
@@ -258,12 +268,6 @@ export default function ModalGerarLaudoEvidencia({
         />
       )}
       
-      {showRelatorioSuccess && (
-        <RelatorioSuccess 
-          onClose={() => setShowRelatorioSuccess(false)} 
-        />
-      )}
-
       <style jsx global>{`
         @keyframes modalEntry {
           from { opacity: 0; transform: scale(0.95) translateY(10px); }
@@ -289,3 +293,4 @@ export default function ModalGerarLaudoEvidencia({
     </>
   );
 }
+
