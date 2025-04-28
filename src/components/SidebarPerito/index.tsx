@@ -12,10 +12,16 @@ import {
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
+interface Usuario {
+  nome: string;
+  cargo: 'admin' | 'perito' | 'assistente';
+}
+
 export default function SidebarPerito() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [usuario, setUsuario] = useState<Usuario | null>(null);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -28,10 +34,33 @@ export default function SidebarPerito() {
     }
   }, [pathname, router]);
 
+  // Função para tocar o som de logout
+  const playLogoutSound = () => {
+    const audio = new Audio('/assets/GoodBye_devil.mp3');
+    audio.volume = 0.3; // Ajuste o volume conforme necessário (30%)
+    
+    // Toca o som e depois faz o logout
+    audio.play()
+      .then(() => {
+        // Espera o som terminar antes de fazer o logout
+        audio.addEventListener('ended', () => {
+          localStorage.removeItem('token');
+          localStorage.removeItem('@dentfy:usuario');
+          router.push('/Login');
+        });
+      })
+      .catch(error => {
+        console.log("Erro ao reproduzir som:", error);
+        // Se houver erro no som, faz o logout mesmo assim
+        localStorage.removeItem('token');
+        localStorage.removeItem('@dentfy:usuario');
+        router.push('/Login');
+      });
+  };
+
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('@dentfy:usuario');
-    router.push('/Login');
+    playLogoutSound();
+    setShowLogoutModal(false);
   };
 
   if (!isAuthenticated && pathname !== '/Login') {
@@ -141,7 +170,7 @@ export default function SidebarPerito() {
 
       {showLogoutModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-[#0E1A26] p-6 rounded-xl border border-amber-500/30 max-w-md w-full mx-4 shadow-xl">
+          <div className="bg-[#0E1A26] p-6 rounded-xl border border-amber-500/30 max-w-md w-full mx-4 shadow-xl animate-modalEntry">
             <h3 className="text-lg font-semibold text-amber-100 mb-4">Confirmar saída</h3>
             <p className="text-amber-100/80 mb-6">Tem certeza que deseja sair do sistema?</p>
             <div className="flex justify-end space-x-3">
@@ -153,9 +182,12 @@ export default function SidebarPerito() {
               </button>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 rounded-lg bg-amber-600 text-[#12212B] hover:bg-amber-700 transition-all duration-300 cursor-pointer hover:scale-105 font-medium"
+                className="px-4 py-2 rounded-lg bg-amber-600 text-[#12212B] hover:bg-amber-700 transition-all duration-300 cursor-pointer hover:scale-105 font-medium group"
               >
-                Confirmar
+                <span className="flex items-center gap-2">
+                  <ArrowLeftOnRectangleIcon className="h-5 w-5 group-hover:rotate-180 transition-transform duration-500" />
+                  Confirmar
+                </span>
               </button>
             </div>
           </div>

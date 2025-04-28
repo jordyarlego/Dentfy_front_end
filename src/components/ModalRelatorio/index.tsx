@@ -6,6 +6,10 @@ import Image from "next/image";
 import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
 import Logo from "../../../public/assets/Logo.png";
 import { PostRelatorio, GetRelatorios, parseJwt, ExportRelatorioPDF, AssinarRelatorio } from "../../../services/api_relatorio";
+import RelatorioSuccess from '../RelatorioSuccess';
+import AssinaturaSuccess from '../AssinaturaSuccess';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 interface ModalRelatorioProps {
   isOpen: boolean;
@@ -33,6 +37,9 @@ export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorio
   const [relatorioId, setRelatorioId] = useState<string | null>(null); // 👈 novo para guardar o ID
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null); // 👈 você estava usando mas não tinha declarado no código que mandou
+  const [showRelatorioSuccess, setShowRelatorioSuccess] = useState(false);
+  const [showAssinaturaSuccess, setShowAssinaturaSuccess] = useState(false);
+  const [assinaturaValidada, setAssinaturaValidada] = useState(false);
 
   useEffect(() => {
     async function loadRelatorios() {
@@ -71,6 +78,7 @@ export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorio
       setSuccessMessage("Relatório salvo com sucesso!");
       setRelatorioData({ titulo: "", conteudo: "", peritoResponsavel: "" });
       setTimeout(() => setSuccessMessage(null), 3000);
+      setShowRelatorioSuccess(true);
     } catch (error: any) {
       console.error("Erro ao enviar o relatório:", error.response?.data || error.message);
       alert(`Erro ao enviar o relatório: ${error.response?.data?.message || error.message}`);
@@ -81,160 +89,187 @@ export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorio
 
   const handleGerarPDF = async () => {
     try {
-      if (!relatorioId) {
-        alert("Salve o relatório antes de gerar o PDF!");
-        return;
-      }
-      const blob = await ExportRelatorioPDF(relatorioId); // 👈 usa o ID salvo
-      const url = window.URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `relatorio_${relatorioId}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      if (!laudoSalvo || !assinaturaValidada) return;
+      
+      const conteudo = document.getElementById('laudo-content');
+      if (!conteudo) return;
+
+      const canvas = await html2canvas(conteudo);
+      const pdf = new jsPDF();
+      
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, 190, 277);
+      pdf.save(`laudo_${evidencia.nome}.pdf`);
     } catch (error) {
       console.error("Erro ao gerar PDF:", error);
-      alert("Erro ao gerar PDF do relatório.");
     }
   };
 
- const handleAssinarRelatorio = async () => {
-  try {
-    if (!relatorioId) {
-      alert("Salve o relatório antes de assinar!");
-      return;
+  const handleValidarAssinatura = async () => {
+    try {
+      if (!relatorioId) {
+        alert("Salve o relatório antes de assinar!");
+        return;
+      }
+
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Token não encontrado");
+
+      const user = parseJwt(token);
+      if (!user?.id) throw new Error("Usuário não encontrado no token");
+
+      await AssinarRelatorio(relatorioId, user.id);
+      setAssinaturaValidada(true);
+      setShowAssinaturaSuccess(true);
+      
+      const audio = new Audio('/assets/success.mp3');
+      audio.volume = 0.3;
+      await audio.play();
+    } catch (error) {
+      console.error("Erro ao assinar relatório:", error);
     }
-
-    const token = localStorage.getItem("token");
-    if (!token) throw new Error("Token não encontrado");
-
-    const user = parseJwt(token);
-    if (!user?.id) throw new Error("Usuário não encontrado no token");
-
-    await AssinarRelatorio(relatorioId, user.id); // 👈 agora passa o user.id também
-    alert("Relatório assinado com sucesso!");
-  } catch (error) {
-    console.error("Erro ao assinar relatório:", error);
-    alert("Erro ao assinar relatório.");
-  }
-};
+  };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md bg-gray-900/50">
-      <div className="bg-[#0E1A26]/95 w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-700 overflow-hidden animate-modalEntry" style={{ boxShadow: "0 0 40px rgba(251, 191, 36, 0.1)" }}>
-
+    <div className="fixed inset-0 flex items-center justify-center z-[100]">
+      <div className="absolute inset-0 backdrop-blur-md bg-black/30" onClick={onClose} />
+      <div className="relative bg-[#0E1A26]/95 w-[80%] max-w-4xl h-[500px] rounded-2xl shadow-2xl border border-gray-700 overflow-hidden animate-modalEntry">
         {/* Header */}
-        <div className="relative p-6 border-b border-gray-700 bg-gradient-to-r from-[#0E1A26] via-[#152736] to-[#0E1A26]">
-          <button onClick={onClose} className="absolute left-4 top-4 text-gray-400 hover:text-amber-500 transition-all duration-300 hover:scale-110">
+        <div className="relative p-4 border-b border-gray-700 bg-gradient-to-r from-[#0E1A26] via-[#152736] to-[#0E1A26] flex justify-between items-center">
+          <button onClick={onClose} className="text-gray-400 hover:text-amber-500 transition-all duration-300 hover:scale-110">
             <FaArrowLeft className="h-6 w-6" />
           </button>
-          <div className="flex justify-center items-center gap-4">
+          
+          <div className="flex items-center gap-4">
             <div className="relative group animate-glow">
               <Image src={CaveiraPeste} alt="Logo Caveira" width={40} height={40} className="animate-float transition-transform duration-300 group-hover:scale-110" />
-              <div className="absolute -inset-2 bg-amber-500/20 rounded-full blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
-            <h2 className="text-2xl font-bold text-center bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 text-transparent bg-clip-text animate-shimmer">Relatório do Caso</h2>
-            <div className="relative group animate-glow">
-              <Image src={Logo} alt="Logo Dentfy" width={40} height={40} className="opacity-75 transition-all duration-300 group-hover:opacity-100 group-hover:scale-110" />
-              <div className="absolute -inset-2 bg-amber-500/20 rounded-full blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <h2 className="text-2xl font-bold text-center bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 text-transparent bg-clip-text animate-shimmer">
+              Relatório do Caso
+            </h2>
+          </div>
+
+          <div className="w-[42px]"></div>
+        </div>
+
+        {/* Conteúdo em layout horizontal */}
+        <div className="flex h-[calc(100%-120px)]">
+          {/* Lado Esquerdo - 1/3 */}
+          <div className="w-1/3 p-4 border-r border-gray-700 overflow-y-auto">
+            <div className="bg-gray-800/30 p-3 rounded-lg border border-gray-700 mb-4">
+              <h3 className="text-lg font-medium text-amber-500">Caso:</h3>
+              <p className="text-white">{caso.titulo}</p>
             </div>
-            <button onClick={onClose} className="absolute right-4 top-4 text-gray-400 hover:text-amber-500 transition-all duration-300 hover:scale-110 hover:rotate-90 transform">
-              <FaTimes className="h-6 w-6" />
+
+            <div className="space-y-2">
+              <h3 className="text-lg font-medium text-amber-500">Relatórios Anteriores</h3>
+              {relatorios.map(r => (
+                <div key={r._id} className="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
+                  <h4 className="font-semibold text-white">{r.titulo}</h4>
+                  <p className="text-sm text-gray-300 line-clamp-2">{r.conteudo}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Lado Direito - 2/3 */}
+          <div className="w-2/3 p-4 overflow-y-auto">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-gray-300 mb-2">Título do Relatório</label>
+                <input
+                  type="text"
+                  value={relatorioData.titulo}
+                  onChange={e => setRelatorioData({ ...relatorioData, titulo: e.target.value })}
+                  className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-600 focus:ring-2 focus:ring-amber-500"
+                  placeholder="Digite o título..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-300 mb-2">Conteúdo</label>
+                <textarea
+                  value={relatorioData.conteudo}
+                  onChange={e => setRelatorioData({ ...relatorioData, conteudo: e.target.value })}
+                  className="w-full h-[200px] px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-600 focus:ring-2 focus:ring-amber-500 resize-none"
+                  placeholder="Digite o conteúdo..."
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer com botões agrupados */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700 bg-gray-900">
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={handleSaveRelatorio}
+              disabled={!relatorioData.titulo || !relatorioData.conteudo}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition disabled:opacity-50 disabled:cursor-not-allowed group hover:scale-105"
+            >
+              <FaSave className={loading ? "animate-spin" : "group-hover:scale-110 transition-transform"} />
+              <span>Salvar</span>
+            </button>
+
+            <button
+              onClick={handleValidarAssinatura}
+              disabled={!relatorioId}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed group hover:scale-105"
+            >
+              <FaSignature className="group-hover:scale-110 transition-transform" />
+              <span>Assinar</span>
+            </button>
+
+            <button
+              onClick={handleGerarPDF}
+              disabled={!relatorioId || !assinaturaValidada}
+              className={`flex items-center gap-2 px-6 py-3 bg-gradient-to-r 
+                ${assinaturaValidada 
+                  ? 'from-red-500 to-red-600 hover:from-red-600 hover:to-red-700' 
+                  : 'from-gray-500 to-gray-600'} 
+                text-white rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed group hover:scale-105`}
+            >
+              <FaFilePdf className="group-hover:scale-110 transition-transform" />
+              <span>Gerar PDF</span>
             </button>
           </div>
         </div>
-
-        {/* Body */}
-        <div className="p-6 space-y-4">
-
-          {/* Feedback */}
-          {successMessage && (
-            <div className="bg-green-600 text-white text-center py-2 rounded">{successMessage}</div>
-          )}
-
-          {/* Caso Info */}
-          <div className="bg-gray-800/30 p-4 rounded-xl border border-gray-700 backdrop-blur-sm">
-            <h3 className="text-lg font-medium text-amber-500 mb-1">Título do Caso:</h3>
-            <p className="text-white font-semibold">{caso.titulo}</p>
-            <p className="text-sm text-gray-400 mt-1">ID: {casoId}</p>
-          </div>
-
-          {/* Formulário */}
-          <div className="space-y-4">
-            <label className="block text-gray-300">Título do Relatório</label>
-            <input
-              type="text"
-              placeholder="Digite o título..."
-              value={relatorioData.titulo}
-              onChange={e => setRelatorioData({ ...relatorioData, titulo: e.target.value })}
-              className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder-gray-400 transition"
-            />
-
-            <label className="block text-gray-300">Conteúdo do Relatório</label>
-            <textarea
-              placeholder="Digite o conteúdo..."
-              value={relatorioData.conteudo}
-              onChange={e => setRelatorioData({ ...relatorioData, conteudo: e.target.value })}
-              className="w-full h-32 px-4 py-3 bg-gray-800 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder-gray-400 transition resize-none"
-            />
-          </div>
-
-          {/* Lista de Relatórios */}
-          <div className={`${relatorios.length > 0 ? 'space-y-2' : ''} ${relatorios.length > 3 ? 'max-h-64 overflow-y-auto' : ''}`}>
-            {relatorios.map(r => (
-              <div key={r._id} className="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
-                <h4 className="font-semibold text-white">{r.titulo}</h4>
-                <p className="text-sm text-gray-300 line-clamp-2">{r.conteudo}</p>
-                <span className="text-xs text-gray-500">{new Date(r.criadoEm || '').toLocaleString()}</span>
-              </div>
-            ))}
-            {!relatorios.length && <p className="text-gray-400 text-sm">Nenhum relatório ainda.</p>}
-          </div>
-        </div>
-
-         {/* Footer */}
-      <div className="flex justify-between items-center p-6 border-t border-gray-700 bg-gray-900">
-        <div className="flex gap-4">
-          <button
-            onClick={handleGerarPDF}
-            disabled={!relatorioId} // 👈 desabilita se não tiver ID
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <FaFilePdf /> Gerar PDF
-          </button>
-          <button
-            onClick={handleAssinarRelatorio}
-            disabled={!relatorioId}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <FaSignature /> Assinar
-          </button>
-        </div>
-        <button
-          onClick={handleSaveRelatorio}
-          disabled={loading}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <FaSave className={loading ? "animate-spin" : undefined} />
-          <span>Salvar Relatório</span>
-        </button>
-      </div>
       </div>
 
-      {/* Global Styles */}
+      {/* Feedbacks com z-index maior que o modal */}
+      <div className="fixed inset-0 pointer-events-none z-[200]">
+        {showRelatorioSuccess && (
+          <div className="pointer-events-auto">
+            <RelatorioSuccess 
+              isOpen={showRelatorioSuccess} 
+              onClose={() => setShowRelatorioSuccess(false)} 
+            />
+          </div>
+        )}
+
+        {showAssinaturaSuccess && (
+          <div className="pointer-events-auto">
+            <AssinaturaSuccess 
+              isOpen={showAssinaturaSuccess} 
+              onClose={() => setShowAssinaturaSuccess(false)} 
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Estilos globais */}
       <style jsx global>{`
-        @keyframes modalEntry { from { opacity: 0; transform: scale(0.95) translateY(10px);} to { opacity: 1; transform: scale(1) translateY(0);} }
-        @keyframes float { 0%,100% { transform: translateY(0);} 50% { transform: translateY(-5px);} }
-        @keyframes shimmer { 0% { background-position: -200% center;} 100% { background-position: 200% center;} }
-        @keyframes glow { 0%,100% { filter: brightness(1) drop-shadow(0 0 8px rgba(251, 191, 36, 0.3));} 50% { filter: brightness(1.2) drop-shadow(0 0 12px rgba(251, 191, 36, 0.5));} }
-        .animate-modalEntry { animation: modalEntry 0.3s ease-out forwards; }
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
         .animate-float { animation: float 3s ease-in-out infinite; }
-        .animate-shimmer { animation: shimmer 3s linear infinite; background-size: 200% auto; }
-        .animate-glow { animation: glow 2s ease-in-out infinite; }
-        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .animate-fadeIn { animation: fadeIn 0.5s ease-out forwards; }
       `}</style>
     </div>
   );

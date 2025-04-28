@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from 'react';
 import { FaExclamationTriangle, FaTimes, FaTrash } from "react-icons/fa";
 
 interface ModalConfirmacaoDeleteProps {
@@ -15,6 +16,16 @@ export default function ModalConfirmacaoDelete({
   onConfirm,
   titulo
 }: ModalConfirmacaoDeleteProps) {
+  useEffect(() => {
+    if (isOpen) {
+      const audio = new Audio('/assets/Apagar.mp3');
+      audio.volume = 0.3;
+      audio.play().catch(error => {
+        console.log("Erro ao reproduzir som:", error);
+      });
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (

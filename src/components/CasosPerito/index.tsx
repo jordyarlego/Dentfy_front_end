@@ -9,6 +9,7 @@ import FeedbackModal from "../FeedbackModal";
 import { FaEye, FaEdit, FaTrash, FaCalendarAlt, FaFilter, FaChevronDown } from "react-icons/fa";
 import { atualizarCaso, deletarCaso, CasoData } from "../ModalNovoCasoPerito/API_NovoCaso";
 import ModalConfirmacaoDelete from "../ModalConfirmacaoDelete";
+import { useSound } from "@/hooks/useSound";
 
 export interface Evidencia {
   _id: string;
@@ -27,6 +28,7 @@ export interface Caso extends CasoData {
 }
 
 export default function CasosPerito() {
+  const { playHover, playSuccess } = useSound();
   const [search, setSearch] = useState("");
   const [filtro, setFiltro] = useState("todos");
   const [filtroStatus, setFiltroStatus] = useState("todos");
@@ -103,32 +105,29 @@ export default function CasosPerito() {
         setCasos(casos.map(caso => 
           caso._id === casoSelecionado!._id ? { ...casoAtualizado, evidencias: caso.evidencias } : caso
         ));
-        setFeedbackType("edit");
-        setFeedbackMessage("O caso foi atualizado com sucesso!");
       } else {
-        const novoItem: Caso = {
-          _id: Math.random().toString(36).substr(2, 9),
-          titulo: novoCaso.titulo || "",
-          descricao: novoCaso.descricao || "",
-          responsavel: novoCaso.responsavel || "",
-          status: novoCaso.status || "Em andamento",
-          tipo: novoCaso.tipo || "Vitima",
-          dataAbertura: novoCaso.dataAbertura || new Date().toISOString().split('T')[0],
-          sexo: novoCaso.sexo || "Masculino",
-          local: novoCaso.local || "",
-          evidencias: [],
-        };
-        setCasos([...casos, novoItem]);
-        setFeedbackType("success");
-        setFeedbackMessage("Novo caso criado com sucesso!");
+        const response = await api.post("/api/cases", novoCaso, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        
+        setCasos([...casos, response.data]);
       }
+      
       setModalOpen(false);
-      setModalEditarOpen(false);
       setEditandoCaso(undefined);
       setCasoSelecionado(null);
+      
+      setFeedbackType("success");
+      setFeedbackMessage("Caso salvo com sucesso!");
       setShowFeedback(true);
+      
     } catch (error) {
       console.error("Erro ao salvar caso:", error);
+      setFeedbackType("error");
+      setFeedbackMessage("Erro ao salvar o caso. Tente novamente.");
+      setShowFeedback(true);
     }
   };
 
@@ -196,6 +195,22 @@ export default function CasosPerito() {
     return nomeMatch && statusMatch;
   });
 
+  const playPancadaSound = () => {
+    const audio = new Audio('/assets/Pancada_chaves.mp3');
+    audio.volume = 0.3;
+    audio.play().catch(error => {
+      console.log("Erro ao reproduzir som:", error);
+    });
+  };
+
+  const playApagarSound = () => {
+    const audio = new Audio('/assets/Apagar.mp3');
+    audio.volume = 0.3;
+    audio.play().catch(error => {
+      console.log("Erro ao reproduzir som:", error);
+    });
+  };
+
   return (
     <div className="p-4 sm:p-6 bg-transparent min-h-screen">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
@@ -204,7 +219,10 @@ export default function CasosPerito() {
         </h1>
 
         <button
-          onClick={() => setModalOpen(true)}
+          onClick={() => {
+            playPancadaSound();
+            setModalOpen(true);
+          }}
           className="relative bg-gray-800/90 text-gray-100 px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-gray-700 transition-all duration-300 font-medium shadow-md border border-gray-700 hover:border-gray-600 group cursor-pointer w-full sm:w-auto"
         >
           <span className="relative z-10 flex items-center justify-center sm:justify-start gap-2">
@@ -254,7 +272,9 @@ export default function CasosPerito() {
         <div className="flex flex-wrap gap-4">
           <div ref={dropdownDataRef} className="relative">
             <button
-              onClick={() => setDropdownDataAberto(!dropdownDataAberto)}
+              onClick={() => {
+                setDropdownDataAberto(!dropdownDataAberto);
+              }}
               className="flex items-center gap-2 px-4 py-2 bg-gray-800/80 hover:bg-gray-700/80 border border-gray-700 rounded-lg transition-all duration-300 group"
             >
               <FaCalendarAlt className="text-amber-500 group-hover:rotate-12 transition-transform duration-300" />
@@ -406,7 +426,9 @@ export default function CasosPerito() {
                   <td className="px-4 sm:px-6 py-4">
                     <div className="flex items-center justify-center gap-3">
                       <button
-                        onClick={() => setCasoSelecionado(caso)}
+                        onClick={() => {
+                          setCasoSelecionado(caso);
+                        }}
                         className="group relative inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-amber-500 hover:text-amber-400 transition-all duration-300"
                       >
                         <span className="absolute inset-0 bg-amber-500/10 rounded-lg transform scale-0 group-hover:scale-100 transition-transform duration-300" />
@@ -414,7 +436,9 @@ export default function CasosPerito() {
                         <span className="relative z-10">Visualizar</span>
                       </button>
                       <button
-                        onClick={() => handleEditarCaso(caso)}
+                        onClick={() => {
+                          handleEditarCaso(caso);
+                        }}
                         className="group relative inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-500 hover:text-blue-400 transition-all duration-300"
                       >
                         <span className="absolute inset-0 bg-blue-500/10 rounded-lg transform scale-0 group-hover:scale-100 transition-transform duration-300" />
@@ -422,7 +446,9 @@ export default function CasosPerito() {
                         <span className="relative z-10">Editar</span>
                       </button>
                       <button
-                        onClick={() => handleDeletarCaso(caso)}
+                        onClick={() => {
+                          handleDeletarCaso(caso);
+                        }}
                         className="group relative inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-red-500 hover:text-red-400 transition-all duration-300"
                       >
                         <span className="absolute inset-0 bg-red-500/10 rounded-lg transform scale-0 group-hover:scale-100 transition-transform duration-300" />

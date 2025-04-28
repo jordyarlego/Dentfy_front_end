@@ -8,6 +8,9 @@ import Logo from "../../../public/assets/Logo.png";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { putEvidencia } from "../../../services/api_nova_evidencia";
+import { assinarLaudo } from "../../../services/api_laudo";
+import AssinaturaSuccess from '../AssinaturaSuccess';
+import RelatorioSuccess from '../RelatorioSuccess';
 
 interface Evidencia {
   _id: string;
@@ -37,66 +40,14 @@ export default function ModalGerarLaudoEvidencia({
   const [descricao, setDescricao] = useState("");
   const [loading, setLoading] = useState(false);
   const [assinaturaValidada, setAssinaturaValidada] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [laudoId, setLaudoId] = useState<string | null>(null); // 👈 ID do laudo
-
-  if (!isOpen) return null;
-
-  // Validar assinatura digital
-  const handleValidarAssinatura = async () => {
-    setLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setAssinaturaValidada(true);
-      setSuccessMessage("Assinatura digital validada com sucesso!");
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (error) {
-      console.error("Erro ao validar assinatura:", error);
-      setSuccessMessage("Erro ao validar assinatura. Tente novamente.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Gerar PDF do laudo
-  const handleGerarPDF = async () => {
-    setLoading(true);
-    try {
-      if (!laudoId) {
-        alert("Salve o laudo antes de gerar o PDF!");
-        return;
-      }
-
-      const conteudo = document.getElementById('laudo-content');
-      if (!conteudo) return;
-
-      const canvas = await html2canvas(conteudo);
-      const pdf = new jsPDF();
-      
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, 190, 277);
-      pdf.save(`laudo_${evidencia.nome}.pdf`);
-      
-      setSuccessMessage("PDF gerado com sucesso!");
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (error) {
-      console.error("Erro ao gerar PDF:", error);
-      setSuccessMessage("Erro ao gerar PDF. Tente novamente.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [laudoSalvo, setLaudoSalvo] = useState(false);
+  const [laudoId, setLaudoId] = useState<string | null>(null);
+  const [showAssinaturaSuccess, setShowAssinaturaSuccess] = useState(false);
+  const [showRelatorioSuccess, setShowRelatorioSuccess] = useState(false);
 
   // Salvar laudo
   const handleSalvarLaudo = async () => {
-    if (!assinaturaValidada) {
-      setSuccessMessage("Por favor, valide a assinatura digital primeiro.");
-      return;
-    }
-
-    if (!titulo || !descricao) {
-      setSuccessMessage("Preencha todos os campos obrigatórios.");
-      return;
-    }
+    if (!titulo || !descricao) return;
 
     setLoading(true);
     try {
@@ -109,167 +60,209 @@ export default function ModalGerarLaudoEvidencia({
       const data = {
         titulo,
         descricao,
-        evidenciaId: evidencia._id, // 👈 referência à evidência associada
+        evidenciaId: evidencia._id,
         peritoResponsavel: user.id,
       };
 
-      const savedLaudo = await PostLaudo(data); // 👈 função para salvar o laudo
-      setLaudoId(savedLaudo._id); // 👈 salva o ID do laudo retornado
-      setSuccessMessage("Laudo salvo com sucesso!");
-      setTimeout(() => setSuccessMessage(null), 3000);
-
-      // Chama a função para passar o laudo salvo para o componente pai, se necessário
-      if (onLaudoSaved) onLaudoSaved(savedLaudo);
-    } catch (error: any) {
-      console.error("Erro ao salvar o laudo:", error.response?.data || error.message);
-      alert(`Erro ao salvar o laudo: ${error.response?.data?.message || error.message}`);
+      const savedLaudo = await PostLaudo(data);
+      setLaudoId(savedLaudo._id);
+      setLaudoSalvo(true);
+      
+      // Toca o som e mostra o feedback
+      const audio = new Audio('/assets/papagaio.mp3');
+      audio.volume = 0.3;
+      await audio.play();
+      
+      // Importante: Mostra o feedback de sucesso
+      setShowRelatorioSuccess(true);
+    } catch (error) {
+      console.error("Erro ao salvar o laudo:", error);
     } finally {
       setLoading(false);
     }
   };
 
+  // Validar assinatura digital
+  const handleValidarAssinatura = async () => {
+    if (!laudoSalvo) return;
+
+    setLoading(true);
+    try {
+      await assinarLaudo(laudoId!);
+      setAssinaturaValidada(true);
+      
+      // Importante: Mostra o feedback de sucesso
+      setShowAssinaturaSuccess(true);
+    } catch (error) {
+      console.error("Erro ao assinar laudo:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Gerar PDF do laudo
+  const handleGerarPDF = async () => {
+    if (!laudoSalvo || !assinaturaValidada) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const conteudo = document.getElementById('laudo-content');
+      if (!conteudo) return;
+
+      const canvas = await html2canvas(conteudo);
+      const pdf = new jsPDF();
+      
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, 190, 277);
+      pdf.save(`laudo_${evidencia.nome}.pdf`);
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md bg-gray-900/50">
-      <div className="bg-[#0E1A26]/95 w-full max-w-[90%] max-h-[85vh] rounded-2xl shadow-2xl border border-gray-700 overflow-hidden animate-modalEntry">
-        {/* Header */}
-        <div className="relative p-4 border-b border-gray-700 bg-gradient-to-r from-[#0E1A26] via-[#152736] to-[#0E1A26]">
-          <button
-            onClick={onClose}
-            className="absolute left-4 top-4 text-gray-400 hover:text-amber-500 transition-all duration-300 hover:scale-110"
-          >
-            <FaArrowLeft className="h-6 w-6" />
-          </button>
-          <div className="flex justify-center items-center gap-4">
-            <div className="relative group animate-glow">
-              <Image
-                src={CaveiraPeste}
-                alt="Logo Caveira"
-                width={40}
-                height={40}
-                className="animate-float transition-transform duration-300 group-hover:scale-110"
-              />
-              <div className="absolute -inset-2 bg-amber-500/20 rounded-full blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </div>
-            <h2 className="text-2xl font-bold text-center bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 text-transparent bg-clip-text animate-shimmer">
-              Gerar Laudo da Evidência
-            </h2>
-            <div className="relative group animate-glow">
-              <Image
-                src={Logo}
-                alt="Logo Dentfy"
-                width={40}
-                height={40}
-                className="opacity-75 transition-all duration-300 group-hover:opacity-100 group-hover:scale-110"
-              />
-              <div className="absolute -inset-2 bg-amber-500/20 rounded-full blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Content - Agora em layout horizontal */}
-        <div className="flex overflow-hidden h-[calc(85vh-180px)]">
-          {/* Lado Esquerdo - Informações da Evidência */}
-          <div className="w-1/3 p-4 border-r border-gray-700 overflow-y-auto">
-            {successMessage && (
-              <div className="bg-green-600/20 border border-green-500/30 text-green-400 p-3 rounded-lg text-center mb-4">
-                {successMessage}
-              </div>
-            )}
-
-            <div className="bg-gray-800/30 p-4 rounded-xl border border-gray-700">
-              <h3 className="text-lg font-medium text-amber-500 mb-3">Informações da Evidência</h3>
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm text-amber-400">Nome</p>
-                  <p className="text-gray-200">{evidencia.nome}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-amber-400">Tipo</p>
-                  <p className="text-gray-200">{evidencia.tipo}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-amber-400">Coletado por</p>
-                  <p className="text-gray-200">{evidencia.coletadoPor}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-amber-400">Data de Coleta</p>
-                  <p className="text-gray-200">
-                    {new Date(evidencia.dataAdicao).toLocaleDateString('pt-BR')}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-amber-400">Descrição Original</p>
-                  <p className="text-gray-200">{evidencia.descricao}</p>
-                </div>
-              </div>
+    <>
+      <div className="fixed inset-0 flex items-center justify-center z-[100] backdrop-blur-md bg-gray-900/50">
+        <div className="bg-[#0E1A26]/95 w-full max-w-[90%] h-[600px] rounded-2xl shadow-2xl border border-gray-700 overflow-hidden animate-modalEntry">
+          {/* Header */}
+          <div className="relative p-4 border-b border-gray-700 bg-gradient-to-r from-[#0E1A26] via-[#152736] to-[#0E1A26]">
+            <button
+              onClick={onClose}
+              className="absolute left-4 top-4 text-gray-400 hover:text-amber-500 transition-all duration-300 hover:scale-110 cursor-pointer group"
+            >
+              <FaArrowLeft className="h-6 w-6 group-hover:translate-x-[-4px] transition-transform" />
+            </button>
+            <div className="flex justify-center items-center gap-4">
+              <h2 className="text-2xl font-bold text-center bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 text-transparent bg-clip-text animate-shimmer">
+                Gerar Laudo da Evidência
+              </h2>
             </div>
           </div>
 
-          {/* Lado Direito - Formulário do Laudo */}
-          <div className="flex-1 p-4 overflow-y-auto" id="laudo-content">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-amber-500 mb-2">
-                  Título do Laudo <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={titulo}
-                  onChange={(e) => setTitulo(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
-                  placeholder="Digite o título do laudo..."
-                />
+          {/* Conteúdo em layout horizontal */}
+          <div className="flex h-[calc(600px-140px)]">
+            {/* Lado Esquerdo - Informações da Evidência */}
+            <div className="w-1/3 p-4 border-r border-gray-700 overflow-y-auto">
+              <div className="bg-gray-800/30 p-4 rounded-xl border border-gray-700">
+                <h3 className="text-lg font-medium text-amber-500 mb-3">Informações da Evidência</h3>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm text-amber-400">Nome</p>
+                    <p className="text-gray-200">{evidencia.nome}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-amber-400">Tipo</p>
+                    <p className="text-gray-200">{evidencia.tipo}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-amber-400">Coletado por</p>
+                    <p className="text-gray-200">{evidencia.coletadoPor}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-amber-400">Data de Coleta</p>
+                    <p className="text-gray-200">
+                      {new Date(evidencia.dataAdicao).toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-amber-400">Descrição Original</p>
+                    <p className="text-gray-200">{evidencia.descricao}</p>
+                  </div>
+                </div>
               </div>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-amber-500 mb-2">
-                  Descrição do Laudo <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  value={descricao}
-                  onChange={(e) => setDescricao(e.target.value)}
-                  className="w-full h-[calc(100vh-500px)] min-h-[200px] px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 resize-none"
-                  placeholder="Digite a descrição detalhada do laudo..."
-                />
+            {/* Lado Direito - Formulário do Laudo */}
+            <div className="flex-1 p-4 overflow-y-auto">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-amber-500 mb-2">
+                    Título do Laudo <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={titulo}
+                    onChange={(e) => setTitulo(e.target.value)}
+                    className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                    placeholder="Digite o título do laudo..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-amber-500 mb-2">
+                    Descrição do Laudo <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={descricao}
+                    onChange={(e) => setDescricao(e.target.value)}
+                    className="w-full h-[300px] px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 resize-none"
+                    placeholder="Digite a descrição detalhada do laudo..."
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-gray-700 bg-gradient-to-r from-[#0E1A26] via-[#152736] to-[#0E1A26]">
-          <div className="flex justify-end gap-4">
-            <button
-              onClick={handleValidarAssinatura}
-              disabled={loading || assinaturaValidada}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600/30 hover:bg-purple-600/50 border border-purple-700/50 rounded-lg text-sm transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <FaSignature className="text-purple-400" />
-              <span className="text-purple-200">
-                {assinaturaValidada ? "Assinatura Validada" : "Validar Assinatura"}
-              </span>
-            </button>
+          {/* Footer com botões */}
+          <div className="p-4 border-t border-gray-700 bg-gradient-to-r from-[#0E1A26] via-[#152736] to-[#0E1A26]">
+            <div className="flex justify-end gap-4">
+              {/* Botão Salvar - sempre habilitado se os campos estiverem preenchidos */}
+              <button
+                onClick={handleSalvarLaudo}
+                disabled={loading || !titulo || !descricao}
+                className="flex items-center gap-2 px-4 py-2 bg-amber-600/30 hover:bg-amber-600/50 border border-amber-700/50 rounded-lg text-sm transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FaSave className="text-amber-400" />
+                <span className="text-amber-200">
+                  {loading ? "Salvando..." : "Salvar Laudo"}
+                </span>
+              </button>
 
-            <button
-              onClick={handleGerarPDF}
-              disabled={loading || !assinaturaValidada}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600/30 hover:bg-red-600/50 border border-red-700/50 rounded-lg text-sm transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <FaFilePdf className="text-red-400" />
-              <span className="text-red-200">Gerar PDF</span>
-            </button>
+              {/* Botão Assinar - habilitado apenas após salvar */}
+              <button
+                onClick={handleValidarAssinatura}
+                disabled={loading || !laudoSalvo || assinaturaValidada}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600/30 hover:bg-purple-600/50 border border-purple-700/50 rounded-lg text-sm transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FaSignature className="text-purple-400" />
+                <span className="text-purple-200">
+                  {assinaturaValidada ? "Laudo Assinado" : "Assinar Laudo"}
+                </span>
+              </button>
 
-            <button
-              onClick={handleSalvarLaudo}
-              disabled={loading || !assinaturaValidada}
-              className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <FaSave />
-              <span>Salvar Laudo</span>
-            </button>
+              {/* Botão Gerar PDF - habilitado apenas após assinar */}
+              <button
+                onClick={handleGerarPDF}
+                disabled={loading || !laudoSalvo || !assinaturaValidada}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600/30 hover:bg-red-600/50 border border-red-700/50 rounded-lg text-sm transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FaFilePdf className="text-red-400" />
+                <span className="text-red-200">
+                  {loading ? "Gerando PDF..." : "Gerar PDF"}
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Feedbacks de sucesso com z-index maior */}
+      {showAssinaturaSuccess && (
+        <AssinaturaSuccess 
+          onClose={() => setShowAssinaturaSuccess(false)} 
+        />
+      )}
+      
+      {showRelatorioSuccess && (
+        <RelatorioSuccess 
+          onClose={() => setShowRelatorioSuccess(false)} 
+        />
+      )}
 
       <style jsx global>{`
         @keyframes modalEntry {
@@ -293,6 +286,6 @@ export default function ModalGerarLaudoEvidencia({
         .animate-shimmer { animation: shimmer 3s linear infinite; background-size: 200% auto; }
         .animate-glow { animation: glow 2s ease-in-out infinite; }
       `}</style>
-    </div>
+    </>
   );
-} 
+}

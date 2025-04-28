@@ -12,6 +12,7 @@ import {
 import Image from "next/image";
 import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
 import Logo from "../../../public/assets/Logo.png";
+import CasoSalvoSucesso from "../CasoSalvoSucesso";
 
 type ModalNovoCasoPeritoProps = {
   isOpen: boolean;
@@ -37,6 +38,7 @@ export default function ModalNovoCasoPerito({
     local: "",
   });
   const [error, setError] = useState<string | null>(null);
+  const [showSuccessFeedback, setShowSuccessFeedback] = useState(false);
 
   useEffect(() => {
     if (casoEditando) {
@@ -98,20 +100,13 @@ export default function ModalNovoCasoPerito({
 
     try {
       const casoCriado = await criarCaso(formData);
-      onSubmit(casoCriado);
-      onClose();
-
-      // Reseta o formulário
-      setFormData({
-        titulo: "",
-        descricao: "",
-        responsavel: "",
-        status: "Em andamento",
-        tipo: "Vitima",
-        dataAbertura: new Date().toISOString().split('T')[0],
-        sexo: "Masculino",
-        local: "",
-      });
+      await onSubmit(casoCriado);
+      setShowSuccessFeedback(true);
+      
+      // Fecha o modal após o feedback
+      setTimeout(() => {
+        onClose();
+      }, 3000);
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error("Erro ao criar caso:", err.message);
@@ -329,6 +324,11 @@ export default function ModalNovoCasoPerito({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Feedback de sucesso */}
+      {showSuccessFeedback && (
+        <CasoSalvoSucesso onClose={() => setShowSuccessFeedback(false)} />
       )}
     </>
   );
