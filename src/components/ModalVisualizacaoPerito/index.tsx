@@ -12,6 +12,7 @@ import { postEvidencia, getEvidenciaByCaseId, deleteEvidencia as deleteEvidencia
 import ModalRelatorio from "../ModalRelatorio";
 import ModalConfirmacaoDelete from "../ModalConfirmacaoDelete";
 import ModalGerarLaudoEvidencia from "../ModalGerarLaudoEvidencia";
+import ModalDetalhesEvidencia from "../ModalDetalhesEvidencia";
 
 interface CasoCompleto extends CasoData {
   _id: string;
@@ -150,6 +151,11 @@ export default function ModalVisualizacaoPerito({
         console.error("Erro ao deletar evidência:", error);
       }
     }
+  };
+
+  const handleGerarLaudo = (evidencia: Evidencia) => {
+    setEvidenciaParaLaudo(evidencia);
+    setEvidenciaSelecionada(null);
   };
 
   return (
@@ -299,84 +305,12 @@ export default function ModalVisualizacaoPerito({
         casoId={caso._id}
       />
 
-      {evidenciaSelecionada && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-[#0E1A26] border border-amber-500/30 rounded-xl shadow-2xl w-full max-w-4xl p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-amber-100">Detalhes da Evidência</h3>
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={() => {
-                    setEvidenciaParaLaudo(evidenciaSelecionada);
-                    setEvidenciaSelecionada(null);
-                  }}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all duration-300 hover:scale-105"
-                >
-                  <FaFileAlt className="text-sm" />
-                  Gerar Laudo
-                </button>
-                <button
-                  onClick={() => setEvidenciaSelecionada(null)}
-                  className="text-amber-100 hover:text-amber-500 transition-all duration-300"
-                >
-                  <FaTimes className="h-6 w-6" />
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              {evidenciaSelecionada.tipo === "imagem" && (
-                <div className="relative w-full h-64 rounded-lg overflow-hidden">
-                  <Image
-                    src={evidenciaSelecionada.arquivo}
-                    alt={evidenciaSelecionada.nome}
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-sm font-medium text-amber-500 mb-2">Nome</h4>
-                  <p className="text-gray-200">{evidenciaSelecionada.nome}</p>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-medium text-amber-500 mb-2">Tipo</h4>
-                  <p className="text-gray-200">{evidenciaSelecionada.tipo}</p>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-medium text-amber-500 mb-2">Coletado Por</h4>
-                  <p className="text-gray-200">{evidenciaSelecionada.coletadoPor}</p>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-medium text-amber-500 mb-2">Data de Adição</h4>
-                  <p className="text-gray-200">
-                    {new Date(evidenciaSelecionada.dataAdicao).toLocaleDateString("pt-BR")}
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-medium text-amber-500 mb-2">Descrição</h4>
-                <p className="text-gray-200">{evidenciaSelecionada.descricao}</p>
-              </div>
-
-              {evidenciaSelecionada.tipo === "texto" && (
-                <div>
-                  <h4 className="text-sm font-medium text-amber-500 mb-2">Conteúdo</h4>
-                  <div className="bg-gray-800/50 p-4 rounded-lg">
-                    <p className="text-gray-200 whitespace-pre-wrap">{evidenciaSelecionada.arquivo}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <ModalDetalhesEvidencia
+        isOpen={!!evidenciaSelecionada}
+        onClose={() => setEvidenciaSelecionada(null)}
+        evidencia={evidenciaSelecionada}
+        onGerarLaudo={handleGerarLaudo}
+      />
 
       {mostrarSucesso && (
         <EvidenciasSalvaSucess
