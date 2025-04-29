@@ -3,7 +3,7 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['seus-domínios-de-imagem.com'],
+    domains: ['res.cloudinary.com'],
     unoptimized: process.env.NODE_ENV === 'development',
   },
   webpack: (config, { isServer }) => {
