@@ -205,6 +205,9 @@ export default function CasosPerito() {
   });
 
   const playPancadaSound = () => {
+    const isMuted = localStorage.getItem('soundMuted') === 'true';
+    if (isMuted) return;
+    
     const audio = new Audio('/assets/Pancada_chaves.mp3');
     audio.volume = 0.3;
     audio.play().catch(error => {

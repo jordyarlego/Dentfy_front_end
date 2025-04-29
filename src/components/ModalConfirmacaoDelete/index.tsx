@@ -18,6 +18,9 @@ export default function ModalConfirmacaoDelete({
 }: ModalConfirmacaoDeleteProps) {
   useEffect(() => {
     if (isOpen) {
+      const isMuted = localStorage.getItem('soundMuted') === 'true';
+      if (isMuted) return;
+
       const audio = new Audio('/assets/Apagar.mp3');
       audio.volume = 0.3;
       audio.play().catch(error => {

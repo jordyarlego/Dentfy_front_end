@@ -10,6 +10,9 @@ interface CasoSalvoSucessoProps {
 export default function CasoSalvoSucesso({ onClose }: CasoSalvoSucessoProps) {
   useEffect(() => {
     const playSound = async () => {
+      const isMuted = localStorage.getItem('soundMuted') === 'true';
+      if (isMuted) return;
+
       try {
         const audio = new Audio('/assets/papagaio.mp3');
         audio.volume = 0.3;

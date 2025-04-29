@@ -30,6 +30,12 @@ export default function SidebarPerito() {
   }, [pathname, router]);
 
   const playLogoutSound = () => {
+    const isMuted = localStorage.getItem('soundMuted') === 'true';
+    if (isMuted) {
+      handleLogoutComplete();
+      return;
+    }
+
     const audio = new Audio('/assets/GoodBye_devil.mp3');
     audio.volume = 0.3;
     
