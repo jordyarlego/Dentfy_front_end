@@ -26,9 +26,10 @@ export default function ModalGerarLaudoEvidencia({
   onClose,
   evidencia,
 }: ModalGerarLaudoEvidenciaProps) {
+  const [laudoData, setLaudoData] = useState({ titulo: "", texto: "", peritoResponsavel: "" });
   const [laudoId, setLaudoId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [, setShowLaudoSuccess] = useState(false);
+  const [showLaudoSuccess, setShowLaudoSuccess] = useState(false);
   const [showAssinaturaSuccess, setShowAssinaturaSuccess] = useState(false);
   const [assinaturaValidada, setAssinaturaValidada] = useState(false);
   const [titulo, setTitulo] = useState<string>("");  // Definindo o tipo como string
@@ -71,14 +72,11 @@ const [texto, setTexto] = useState<string>("");  // Definindo o tipo como string
       // Limpa os campos depois de salvar
       setTitulo("");
       setTexto("");
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error("Erro ao salvar o laudo:", error.message);
-        alert(`Erro ao salvar o laudo: ${error.message}`);
-      } else {
-        console.error("Erro desconhecido:", error);
-        alert("Erro desconhecido ao salvar o laudo.");
-      }
+    } catch (error: any) {
+      console.error("Erro ao salvar o laudo:", error.response?.data || error.message);
+      alert(`Erro ao salvar o laudo: ${error.response?.data?.message || error.message}`);
+    } finally {
+      setLoading(false);
     }
   };
   
