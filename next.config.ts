@@ -1,10 +1,11 @@
 // next.config.ts
-import type { NextConfig } from 'next'
+import withPWA from "next-pwa";
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['res.cloudinary.com'],
-    unoptimized: process.env.NODE_ENV === 'development',
+    domains: ["res.cloudinary.com"],
+    unoptimized: process.env.NODE_ENV === "development",
   },
   webpack: (config, { isServer }) => {
     // Configuração para arquivos de vídeo
@@ -12,27 +13,32 @@ const nextConfig: NextConfig = {
       test: /\.(mov|mp4|webm)$/,
       use: [
         {
-          loader: 'file-loader',
+          loader: "file-loader",
           options: {
-            publicPath: '/_next/static/videos/',
-            outputPath: `${isServer ? '../' : ''}static/videos/`,
-            name: '[name].[hash].[ext]',
+            publicPath: "/_next/static/videos/",
+            outputPath: `${isServer ? "../" : ""}static/videos/`,
+            name: "[name].[hash].[ext]",
           },
         },
       ],
-    })
+    });
 
-    return config
+    return config;
   },
   eslint: {
     ignoreDuringBuilds: true,
   },
   typescript: {
-    ignoreBuildErrors: true,  // <-- Adicionei aqui!
+    ignoreBuildErrors: true, // <-- Adicionei aqui!
   },
   // Outras configurações globais podem ser adicionadas aqui
   reactStrictMode: true,
   swcMinify: true,
-}
+};
 
-export default nextConfig
+export default withPWA({
+  dest: "public",
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === "development",
+})(nextConfig);
