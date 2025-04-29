@@ -5,10 +5,21 @@ import { postLaudo, parseJwt, getLaudoPDF, assinarLaudo } from "../../../service
 import AssinaturaSuccess from '../AssinaturaSuccess';
 import { Evidencia, Laudo, ModalGerarLaudoEvidenciaProps } from '../../types/evidencia';
 
+
 interface LaudoFormData {
   titulo: string;
   texto: string;
   peritoResponsavel: string;
+}
+interface Evidencia {
+  _id: string;
+  nome: string;
+  tipo: string;
+  descricao: string;
+  coletadoPor: string;
+  arquivo: string;
+  dataColeta: string;
+  laudo?: string;
 }
 
 export default function ModalGerarLaudoEvidencia({
@@ -148,10 +159,7 @@ const [texto, setTexto] = useState<string>("");  // Definindo o tipo como string
               <div className="bg-gray-800/30 p-4 rounded-xl border border-gray-700">
                 <h3 className="text-lg font-medium text-amber-500 mb-3">Informações da Evidência</h3>
                 <div className="space-y-3">
-                  <div>
-                    <p className="text-sm text-amber-400">Nome</p>
-                    <p className="text-gray-200">{evidencia.nome}</p>
-                  </div>
+                  
                   <div>
                     <p className="text-sm text-amber-400">Tipo</p>
                     <p className="text-gray-200">{evidencia.tipo}</p>
@@ -163,7 +171,7 @@ const [texto, setTexto] = useState<string>("");  // Definindo o tipo como string
                   <div>
                     <p className="text-sm text-amber-400">Data de Coleta</p>
                     <p className="text-gray-200">
-                      {new Date(evidencia.dataAdicao).toLocaleDateString('pt-BR')}
+                      {new Date(evidencia.dataColeta).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
                   <div>
@@ -282,3 +290,4 @@ const [texto, setTexto] = useState<string>("");  // Definindo o tipo como string
   );
 }
 
+ 

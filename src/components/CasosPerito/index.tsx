@@ -114,7 +114,7 @@ export default function CasosPerito() {
         setCasos(casos.map(caso => 
           caso._id === casoSelecionado!._id ? { ...casoAtualizado, evidencias: caso.evidencias } : caso
         ));
-      } else {
+    } else {
         const response = await api.post("/api/cases", novoCaso, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -319,7 +319,7 @@ export default function CasosPerito() {
 
         <div className="flex flex-wrap gap-4">
           <div ref={dropdownDataRef} className="relative">
-            <button
+          <button
               onClick={() => {
                 setDropdownDataAberto(!dropdownDataAberto);
               }}
@@ -328,7 +328,7 @@ export default function CasosPerito() {
               <FaCalendarAlt className="text-amber-500 group-hover:rotate-12 transition-transform duration-300" />
               <span className="text-gray-200">{getTextoFiltroData()}</span>
               <FaChevronDown className={`text-gray-400 transition-transform duration-300 ${dropdownDataAberto ? 'rotate-180' : ''}`} />
-            </button>
+          </button>
 
             <div className={`absolute z-50 w-48 mt-2 bg-gray-800/95 border border-gray-700 rounded-lg shadow-xl backdrop-blur-sm transition-all duration-300 ${
               dropdownDataAberto 
@@ -336,7 +336,7 @@ export default function CasosPerito() {
                 : 'opacity-0 translate-y-2 pointer-events-none'
             }`}>
               {["todos", "semana", "mes", "ano"].map((opcao) => (
-                <button
+          <button
                   key={opcao}
                   onClick={() => {
                     setFiltro(opcao);
@@ -355,13 +355,13 @@ export default function CasosPerito() {
                     {opcao === "mes" && "Este Mês"}
                     {opcao === "ano" && "Este Ano"}
                   </div>
-                </button>
+          </button>
               ))}
             </div>
           </div>
 
           <div ref={dropdownStatusRef} className="relative">
-            <button
+          <button
               onClick={() => setDropdownStatusAberto(!dropdownStatusAberto)}
               className="flex items-center gap-2 px-4 py-2 bg-gray-800/80 hover:bg-gray-700/80 border border-gray-700 rounded-lg transition-all duration-300 group"
             >
@@ -370,7 +370,7 @@ export default function CasosPerito() {
                 {filtroStatus === "todos" ? "Todos os Status" : filtroStatus}
               </span>
               <FaChevronDown className={`text-gray-400 transition-transform duration-300 ${dropdownStatusAberto ? 'rotate-180' : ''}`} />
-            </button>
+          </button>
 
             <div className={`absolute z-50 w-48 mt-2 bg-gray-800/95 border border-gray-700 rounded-lg shadow-xl backdrop-blur-sm transition-all duration-300 ${
               dropdownStatusAberto 
@@ -378,7 +378,7 @@ export default function CasosPerito() {
                 : 'opacity-0 translate-y-2 pointer-events-none'
             }`}>
               {["todos", "Em andamento", "Finalizado", "Arquivado"].map((status) => (
-                <button
+          <button
                   key={status}
                   onClick={() => {
                     setFiltroStatus(status);
@@ -402,7 +402,7 @@ export default function CasosPerito() {
                       {status === "todos" ? "Todos os Status" : status}
                     </span>
                   </div>
-                </button>
+          </button>
               ))}
             </div>
           </div>
@@ -515,66 +515,66 @@ export default function CasosPerito() {
 
       {/* Versão Mobile - Cards */}
       <div className="sm:hidden space-y-4">
-        {casosFiltrados.length === 0 ? (
+          {casosFiltrados.length === 0 ? (
           <div className="text-center px-6 py-10 text-gray-500 bg-gray-800/80 rounded-lg border border-gray-700">
-            <div className="flex flex-col items-center justify-center space-y-2">
-              <svg
-                className="h-12 w-12 text-gray-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+              <div className="flex flex-col items-center justify-center space-y-2">
+                <svg
+                  className="h-12 w-12 text-gray-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   strokeWidth={2}
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
+                  />
+                </svg>
               <p>Nenhum caso encontrado</p>
+              </div>
             </div>
-          </div>
-        ) : (
-          casosFiltrados.map((caso) => (
-            <div
-              key={caso._id}
+          ) : (
+            casosFiltrados.map((caso) => (
+              <div
+                key={caso._id}
               className="bg-gray-800/80 rounded-lg border border-gray-700 p-4 space-y-3 backdrop-blur-sm"
-            >
+              >
               <div className="flex justify-between items-start">
                 <h3 className="text-gray-200 font-medium">{caso.titulo}</h3>
-                <span
+                  <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                     caso.status === "Finalizado"
                       ? "bg-green-500/20 text-green-400 border border-green-500/30"
                       : caso.status === "Em andamento"
                       ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
                       : "bg-red-500/20 text-red-400 border border-red-500/30"
-                  }`}
-                >
-                  {caso.status}
-                </span>
-              </div>
+                    }`}
+                  >
+                    {caso.status}
+                  </span>
+                </div>
 
               <div className="text-gray-400 text-sm">
                 {new Date(caso.dataAbertura).toLocaleDateString("pt-BR")}
               </div>
 
               <div className="flex flex-wrap gap-2 pt-2">
-                <button
-                  onClick={() => setCasoSelecionado(caso)}
+                    <button
+                      onClick={() => setCasoSelecionado(caso)}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 text-amber-500 rounded-lg text-sm font-medium hover:bg-amber-500/20 transition-colors"
                 >
                   <FaEye className="h-4 w-4" />
                   Visualizar
-                </button>
+                    </button>
 
-                <button
+                    <button
                   onClick={() => handleEditarCaso(caso)}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 text-blue-500 rounded-lg text-sm font-medium hover:bg-blue-500/20 transition-colors"
-                >
+                      >
                   <FaEdit className="h-4 w-4" />
                   Editar
-                </button>
+                    </button>
 
                 <button
                   onClick={() => handleDeletarCaso(caso)}
@@ -582,16 +582,16 @@ export default function CasosPerito() {
                 >
                   <FaTrash className="h-4 w-4" />
                   Excluir
-                </button>
+                    </button>
+                </div>
               </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
       </div>
 
       {modalOpen && (
-        <ModalNovoCasoPerito
-          isOpen={modalOpen}
+      <ModalNovoCasoPerito
+        isOpen={modalOpen}
           onClose={() => {
             setModalOpen(false);
             setEditandoCaso(undefined);
@@ -610,9 +610,9 @@ export default function CasosPerito() {
             setEditandoCaso(undefined);
             setCasoSelecionado(null);
           }}
-          onSubmit={handleSubmitCaso}
+        onSubmit={handleSubmitCaso}
           caso={editandoCaso}
-        />
+      />
       )}
 
       {casoSelecionado && !modalOpen && !modalEditarOpen && (

@@ -105,7 +105,7 @@ export default function ModalNovoCasoPerito({
       
       // Fecha o modal após o feedback
       setTimeout(() => {
-        onClose();
+      onClose();
       }, 3000);
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -122,7 +122,7 @@ export default function ModalNovoCasoPerito({
     <>
       {isOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4 animate-fadeIn">
-          <div className="relative bg-[#0E1A26] border border-amber-500/30 rounded-xl shadow-2xl w-full max-w-6xl animate-slideIn">
+          <div className="relative bg-[#0E1A26] border border-amber-500/30 rounded-xl shadow-2xl w-full max-w-6xl h-[90vh] lg:h-auto overflow-y-auto animate-slideIn">
             <div className="absolute inset-0 pointer-events-none opacity-5 mix-blend-overlay">
               <Image
                 src={CaveiraPeste}
@@ -132,10 +132,10 @@ export default function ModalNovoCasoPerito({
               />
             </div>
 
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <div className="flex items-center gap-4">
-                  <div className="relative w-16 h-8 animate-pulse">
+            <div className="sticky top-0 z-10 bg-[#0E1A26] p-4 border-b border-amber-500/30">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <div className="relative w-12 h-6 sm:w-16 sm:h-8 animate-pulse">
                     <Image
                       src={Logo}
                       alt="Logo"
@@ -143,7 +143,7 @@ export default function ModalNovoCasoPerito({
                       fill
                     />
                   </div>
-                  <h2 className="text-xl font-bold text-amber-100 border-l-4 border-amber-600 pl-3">
+                  <h2 className="text-lg sm:text-xl font-bold text-amber-100 border-l-4 border-amber-600 pl-3">
                     {casoEditando ? "Editar Caso" : "Novo Caso"}
                   </h2>
                 </div>
@@ -151,11 +151,15 @@ export default function ModalNovoCasoPerito({
                   onClick={onClose}
                   className="text-amber-100 hover:text-amber-500 transition-colors group"
                 >
-                  <FaTimes className="h-6 w-6 group-hover:rotate-90 transition-transform" />
+                  <FaTimes className="h-5 w-5 sm:h-6 sm:w-6 group-hover:rotate-90 transition-transform" />
                 </button>
               </div>
+              </div>
 
-              <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
+            <div className="p-4 sm:p-6">
+              <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+                {/* Seção 1: Informações Básicas */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-2 text-amber-500">
@@ -190,11 +194,11 @@ export default function ModalNovoCasoPerito({
                     <label className="block text-sm font-medium mb-2 text-amber-500">
                       Sexo
                     </label>
-                    <div className="flex gap-3">
+                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                       <button
                         type="button"
                         onClick={() => setFormData({ ...formData, sexo: "Feminino" })}
-                        className={`flex-1 flex items-center justify-center p-3 rounded-lg border-2 text-sm transition-all ${
+                          className={`flex-1 flex items-center justify-center p-2 sm:p-3 rounded-lg border-2 text-sm transition-all ${
                           formData.sexo === "Feminino"
                             ? "border-pink-500 bg-pink-500/20 text-pink-400"
                             : "border-gray-700 bg-gray-700/50 text-gray-300 hover:border-pink-500 hover:text-pink-400"
@@ -206,7 +210,7 @@ export default function ModalNovoCasoPerito({
                       <button
                         type="button"
                         onClick={() => setFormData({ ...formData, sexo: "Masculino" })}
-                        className={`flex-1 flex items-center justify-center p-3 rounded-lg border-2 text-sm transition-all ${
+                          className={`flex-1 flex items-center justify-center p-2 sm:p-3 rounded-lg border-2 text-sm transition-all ${
                           formData.sexo === "Masculino"
                             ? "border-blue-500 bg-blue-500/20 text-blue-400"
                             : "border-gray-700 bg-gray-700/50 text-gray-300 hover:border-blue-500 hover:text-blue-400"
@@ -262,7 +266,11 @@ export default function ModalNovoCasoPerito({
                       required
                     />
                   </div>
+                </div>
+                </div>
 
+                {/* Seção 2: Status e Tipo */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-2 text-amber-500">
                       Tipo do Caso
@@ -298,23 +306,22 @@ export default function ModalNovoCasoPerito({
                   </div>
                 </div>
 
-              {error && (
-                  <div className="col-span-2">
-                    <p className="text-red-500 text-sm">{error}</p>
-                </div>
+                {error && (
+                  <div className="text-red-500 text-sm">{error}</div>
               )}
 
-                <div className="col-span-2 flex justify-end gap-4 mt-6">
+                {/* Botões de Ação */}
+                <div className="flex flex-col sm:flex-row justify-end gap-3 mt-4 sticky bottom-0 bg-[#0E1A26] p-4 border-t border-amber-500/30">
                 <button
                   type="button"
                   onClick={onClose}
-                    className="px-6 py-2 text-sm text-amber-100 hover:text-amber-500 transition-colors"
+                    className="w-full sm:w-auto px-6 py-2 text-sm text-amber-100 hover:text-amber-500 transition-colors order-2 sm:order-1"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                    className="px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors flex items-center gap-2"
+                    className="w-full sm:w-auto px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors flex items-center justify-center gap-2 order-1 sm:order-2"
                 >
                     <FaSave />
                     {casoEditando ? "Salvar Alterações" : "Salvar Caso"}

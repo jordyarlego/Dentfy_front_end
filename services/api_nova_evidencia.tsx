@@ -15,9 +15,9 @@ export interface Evidencia {
   _id: string;
   tipo: string;
   dataColeta: string;
-  coletadoPor: string;
+  coletadoPor: string; 
   descricao: string;
-  caso: string;
+  caso: string; 
   imagemURL?: string;
 }
 

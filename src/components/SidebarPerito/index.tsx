@@ -111,26 +111,26 @@ export default function SidebarPerito() {
 
       {/* Versão Desktop - Sidebar */}
       <div className={`hidden lg:block relative bg-[#0E1A26] border-r border-cyan-900/30 h-full transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'}`}>
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
+      <button
+        onClick={() => setIsCollapsed(!isCollapsed)}
           className="absolute -right-3 top-20 bg-[#0E1A26] border border-cyan-900/30 rounded-full p-1 text-amber-100 hover:text-white transition-all duration-300 cursor-pointer hover:scale-110"
-        >
-          {isCollapsed ? (
-            <ChevronRightIcon className="h-4 w-4" />
-          ) : (
-            <ChevronLeftIcon className="h-4 w-4" />
-          )}
-        </button>
+      >
+        {isCollapsed ? (
+          <ChevronRightIcon className="h-4 w-4" />
+        ) : (
+          <ChevronLeftIcon className="h-4 w-4" />
+        )}
+      </button>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-2">
-          <Link 
-            href="/dashboard" 
+      <div className="flex-1 overflow-y-auto p-4 space-y-2">
+        <Link 
+          href="/dashboard" 
             className={`flex items-center space-x-3 p-3 rounded-lg text-amber-100 hover:bg-[#12212B] hover:text-white transition-all duration-300 group cursor-pointer ${
               isActive('/dashboard') 
                 ? 'bg-[#12212B] text-white scale-105' 
                 : 'hover:scale-105'
-            }`}
-          >
+          }`}
+        >
             <ChartBarIcon className={`h-5 w-5 transition-all duration-300 ${
               isActive('/dashboard') 
                 ? 'text-amber-500 scale-110' 
@@ -145,16 +145,16 @@ export default function SidebarPerito() {
                 Dashboard
               </span>
             )}
-          </Link>
+        </Link>
 
-          <Link 
-            href="/CasosPerito" 
+        <Link 
+          href="/CasosPerito" 
             className={`flex items-center space-x-3 p-3 rounded-lg text-amber-100 hover:bg-[#12212B] hover:text-white transition-all duration-300 group cursor-pointer ${
               isActive('/CasosPerito') 
                 ? 'bg-[#12212B] text-white scale-105' 
                 : 'hover:scale-105'
-            }`}
-          >
+          }`}
+        >
             <FolderIcon className={`h-5 w-5 transition-all duration-300 ${
               isActive('/CasosPerito') 
                 ? 'text-amber-500 scale-110' 
@@ -169,16 +169,16 @@ export default function SidebarPerito() {
                 Casos
               </span>
             )}
-          </Link>
+        </Link>
 
-          <Link 
-            href="/Usuarios" 
+        <Link 
+          href="/Usuarios" 
             className={`flex items-center space-x-3 p-3 rounded-lg text-amber-100 hover:bg-[#12212B] hover:text-white transition-all duration-300 group cursor-pointer ${
               isActive('/Usuarios') 
                 ? 'bg-[#12212B] text-white scale-105' 
                 : 'hover:scale-105'
-            }`}
-          >
+          }`}
+        >
             <UserGroupIcon className={`h-5 w-5 transition-all duration-300 ${
               isActive('/Usuarios') 
                 ? 'text-amber-500 scale-110' 
@@ -193,17 +193,17 @@ export default function SidebarPerito() {
                 Usuários
               </span>
             )}
-          </Link>
-        </div>
+        </Link>
+      </div>
 
-        <div className="p-4 border-t border-cyan-900/30">
-          <button
-            onClick={() => setShowLogoutModal(true)}
+      <div className="p-4 border-t border-cyan-900/30">
+        <button 
+          onClick={() => setShowLogoutModal(true)}
             className="flex items-center space-x-3 p-3 rounded-lg text-amber-100 hover:bg-[#12212B] hover:text-white transition-all duration-300 group cursor-pointer w-full hover:scale-105"
-          >
+        >
             <ArrowLeftOnRectangleIcon className="h-5 w-5 group-hover:scale-110 transition-transform" />
-            {!isCollapsed && <span className="font-medium">Sair</span>}
-          </button>
+          {!isCollapsed && <span className="font-medium">Sair</span>}
+        </button>
         </div>
       </div>
 
@@ -226,7 +226,7 @@ export default function SidebarPerito() {
               >
                 <span className="flex items-center gap-2">
                   <ArrowLeftOnRectangleIcon className="h-5 w-5 group-hover:rotate-180 transition-transform duration-500" />
-                  Confirmar
+                Confirmar
                 </span>
               </button>
             </div>

@@ -56,10 +56,14 @@ export default function ModalDetalhesEvidencia({
           {evidencia.tipo === "imagem" && (
             <div className="relative w-full h-64 rounded-lg overflow-hidden bg-gray-800/30">
               <Image
-                src={evidencia.imagemURL || "/default-image.jpg"}  // Se imagemURL não estiver definida, exibe uma imagem padrão
+                src={evidencia.imagemURL || "/assets/placeholder-image.png"}
                 alt={evidencia.nome}
                 fill
                 className="object-contain"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "/assets/placeholder-image.png";
+                }}
               />
             </div>
           )}
