@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import { FaCheckCircle } from 'react-icons/fa';
-import Image from 'next/image';
 
 interface CasoSalvoSucessoProps {
   onClose: () => void;
@@ -39,20 +38,8 @@ export default function CasoSalvoSucesso({ onClose }: CasoSalvoSucessoProps) {
         
         {/* Container principal */}
         <div className="relative z-10">
-          {/* ET GIF */}
-          <div className="absolute -top-20 left-1/2 transform -translate-x-1/2 w-32 h-32">
-            <div className="relative w-full h-full">
-              <Image
-                src="/assets/et.gif"
-                alt="ET Celebration"
-                fill
-                className="object-contain animate-float"
-              />
-            </div>
-          </div>
-
           {/* Conteúdo */}
-          <div className="mt-12 text-center">
+          <div className="text-center">
             <div className="flex justify-center mb-4">
               <div className="relative">
                 <FaCheckCircle className="text-6xl text-amber-500 animate-successPulse" />
@@ -111,11 +98,6 @@ export default function CasoSalvoSucesso({ onClose }: CasoSalvoSucessoProps) {
           }
         }
 
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
-        }
-
         @keyframes shimmer {
           0% { background-position: -200% center; }
           100% { background-position: 200% center; }
@@ -151,10 +133,6 @@ export default function CasoSalvoSucesso({ onClose }: CasoSalvoSucessoProps) {
 
         .animate-successRing {
           animation: successRing 2s ease-out infinite;
-        }
-
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
         }
 
         .animate-shimmer {
