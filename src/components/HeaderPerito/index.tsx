@@ -38,8 +38,8 @@ export default function HeaderPerito() {
   return (
     <header className="bg-[#0E1A26] border-b border-cyan-900/30 h-16">
       <div className="h-full flex items-center justify-between px-4">
-        <div className="flex items-center space-x-4">
-          <div className="relative w-10 h-10 animate-pulse">
+        <div className="flex items-center space-x-2 md:space-x-4">
+          <div className="relative w-8 h-8 md:w-10 md:h-10 animate-pulse">
             <Image
               src={Logo}
               alt="Logo"
@@ -48,21 +48,23 @@ export default function HeaderPerito() {
             />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-amber-100 animate-fadeIn">
+            <h1 className="text-lg md:text-xl font-bold text-amber-100 animate-fadeIn">
               Dentify <span className="text-amber-500">Perito</span>
             </h1>
-            <p className="text-sm text-amber-100/70 animate-fadeIn">Identificação Criminal</p>
+            <p className="text-xs md:text-sm text-amber-100/70 animate-fadeIn hidden sm:block">
+              Identificação Criminal
+            </p>
           </div>
         </div>
 
         {usuario && (
-          <div className="flex items-center space-x-4 animate-fadeIn">
-            <div className="text-right">
+          <div className="flex items-center space-x-2 md:space-x-4 animate-fadeIn">
+            <div className="text-right hidden sm:block">
               <p className="text-amber-100 font-medium">{usuario.nome}</p>
               <p className="text-sm text-amber-100/70">{usuario.cargo}</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-amber-600 flex items-center justify-center animate-pulse">
-              <span className="text-[#0E1A26] font-bold">
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-amber-600 flex items-center justify-center animate-pulse">
+              <span className="text-[#0E1A26] font-bold text-sm md:text-base">
                 {getIniciais(usuario.nome)}
               </span>
             </div>

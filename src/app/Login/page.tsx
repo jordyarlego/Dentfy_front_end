@@ -84,7 +84,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-[#12212B]">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-[#12212B] p-4">
       <div className="w-full lg:w-[35%] flex items-center justify-center p-4 lg:p-8">
         <div className="bg-[#12212B] p-6 lg:p-8 rounded-2xl shadow-md w-full max-w-md">
           <div className="flex flex-col items-center mb-6 lg:mb-8">
@@ -135,7 +135,11 @@ export default function Login() {
           </form>
         </div>
       </div>
-      <HeroLogin />
+      
+      {/* Hero section - hidden on mobile */}
+      <div className="hidden lg:block lg:w-[65%] bg-[#1A3446] relative overflow-hidden">
+        <HeroLogin />
+      </div>
     </div>
   );
 }

@@ -15,7 +15,7 @@ export default function SoundControl() {
   return (
     <button
       onClick={toggleMute}
-      className="fixed bottom-4 right-4 z-50 p-3 bg-gray-800/80 rounded-full hover:bg-gray-700/80 transition-all duration-300 text-amber-500 hover:text-amber-400"
+      className="fixed lg:bottom-4 lg:right-4 bottom-20 right-4 z-[150] p-3 bg-gray-800/80 rounded-full hover:bg-gray-700/80 transition-all duration-300 text-amber-500 hover:text-amber-400"
       title={isMuted ? "Ativar sons" : "Desativar sons"}
     >
       {isMuted ? <FaVolumeMute size={20} /> : <FaVolumeUp size={20} />}

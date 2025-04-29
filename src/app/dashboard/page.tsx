@@ -22,13 +22,13 @@ export default function Dashboard() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <HeaderPerito />
         
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <main className="flex-1 overflow-y-auto p-4 pb-20 lg:pb-4 sm:p-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-100 mb-6 animate-fadeIn">
             Dashboard do Perito
           </h1>
 
           {/* Cards de Estatísticas */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
             <div className="bg-gray-800/80 p-4 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn hover:scale-105 transition-transform duration-300">
               <div className="flex items-center justify-between">
                 <div>
@@ -71,7 +71,7 @@ export default function Dashboard() {
           </div>
           
           {/* Gráficos */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             <DashboardPeritoDistribuicao
               casosEmAndamento={casosEmAndamento}
               casosFinalizados={casosFinalizados}

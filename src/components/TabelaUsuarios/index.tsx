@@ -200,7 +200,7 @@ export default function TabelaUsuarios() {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-gray-700 bg-gray-800/80 backdrop-blur-sm">
+      <div className="hidden sm:block overflow-x-auto rounded-lg border border-gray-700 bg-gray-800/80 backdrop-blur-sm">
         <table className="min-w-full">
           <thead className="bg-gray-800/90">
             <tr>
@@ -278,6 +278,72 @@ export default function TabelaUsuarios() {
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="sm:hidden space-y-4">
+        {filteredUsuarios.length > 0 ? (
+          filteredUsuarios.map((usuario) => (
+            <div
+              key={usuario._id}
+              className="bg-gray-800/80 rounded-lg border border-gray-700 p-4 space-y-3 backdrop-blur-sm"
+            >
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <h3 className="text-white font-medium flex items-center gap-2">
+                    <FaUser className="text-amber-500" />
+                    {usuario.name}
+                  </h3>
+                  <p className="text-gray-300 text-sm flex items-center gap-2">
+                    <FaEnvelope className="text-gray-400" />
+                    {usuario.email}
+                  </p>
+                </div>
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                    usuario.role === "perito"
+                      ? "bg-blue-700/50 text-blue-300"
+                      : "bg-purple-700/50 text-purple-300"
+                  }`}
+                >
+                  {usuario.role}
+                </span>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2 border-t border-gray-700">
+                <button
+                  onClick={() => handleVisualizarUsuario(usuario)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 text-amber-500 rounded-lg text-sm font-medium hover:bg-amber-500/20 transition-colors"
+                >
+                  <FaEye className="h-4 w-4" />
+                  Visualizar
+                </button>
+
+                <button
+                  onClick={() => handleEditarUsuario(usuario)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 text-blue-500 rounded-lg text-sm font-medium hover:bg-blue-500/20 transition-colors"
+                >
+                  <FaEdit className="h-4 w-4" />
+                  Editar
+                </button>
+
+                <button
+                  onClick={() => handleExcluirUsuario(usuario._id)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 text-red-500 rounded-lg text-sm font-medium hover:bg-red-500/20 transition-colors"
+                >
+                  <FaTrash className="h-4 w-4" />
+                  Excluir
+                </button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="text-center px-6 py-10 text-gray-400 bg-gray-800/80 rounded-lg border border-gray-700">
+            <div className="flex flex-col items-center justify-center space-y-2">
+              <FaUser className="h-12 w-12 text-gray-600" />
+              <p>Nenhum usuário encontrado com os critérios de busca.</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal de Registro */}

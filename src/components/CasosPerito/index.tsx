@@ -409,8 +409,9 @@ export default function CasosPerito() {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-gray-700 shadow bg-gray-800/80 backdrop-blur-sm">
-        <table className="hidden sm:table min-w-full bg-transparent text-sm">
+      {/* Versão Desktop - Tabela */}
+      <div className="hidden sm:block overflow-x-auto rounded-lg border border-gray-700 shadow bg-gray-800/80 backdrop-blur-sm">
+        <table className="min-w-full bg-transparent text-sm">
           <thead className="bg-gray-750/80 text-gray-300 text-left backdrop-blur-sm">
             <tr>
               <th className="px-4 sm:px-6 py-3 font-medium">Nome do Caso</th>
@@ -510,6 +511,82 @@ export default function CasosPerito() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Versão Mobile - Cards */}
+      <div className="sm:hidden space-y-4">
+        {casosFiltrados.length === 0 ? (
+          <div className="text-center px-6 py-10 text-gray-500 bg-gray-800/80 rounded-lg border border-gray-700">
+            <div className="flex flex-col items-center justify-center space-y-2">
+              <svg
+                className="h-12 w-12 text-gray-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              <p>Nenhum caso encontrado</p>
+            </div>
+          </div>
+        ) : (
+          casosFiltrados.map((caso) => (
+            <div
+              key={caso._id}
+              className="bg-gray-800/80 rounded-lg border border-gray-700 p-4 space-y-3 backdrop-blur-sm"
+            >
+              <div className="flex justify-between items-start">
+                <h3 className="text-gray-200 font-medium">{caso.titulo}</h3>
+                <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    caso.status === "Finalizado"
+                      ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                      : caso.status === "Em andamento"
+                      ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                      : "bg-red-500/20 text-red-400 border border-red-500/30"
+                  }`}
+                >
+                  {caso.status}
+                </span>
+              </div>
+
+              <div className="text-gray-400 text-sm">
+                {new Date(caso.dataAbertura).toLocaleDateString("pt-BR")}
+              </div>
+
+              <div className="flex flex-wrap gap-2 pt-2">
+                <button
+                  onClick={() => setCasoSelecionado(caso)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 text-amber-500 rounded-lg text-sm font-medium hover:bg-amber-500/20 transition-colors"
+                >
+                  <FaEye className="h-4 w-4" />
+                  Visualizar
+                </button>
+
+                <button
+                  onClick={() => handleEditarCaso(caso)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 text-blue-500 rounded-lg text-sm font-medium hover:bg-blue-500/20 transition-colors"
+                >
+                  <FaEdit className="h-4 w-4" />
+                  Editar
+                </button>
+
+                <button
+                  onClick={() => handleDeletarCaso(caso)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 text-red-500 rounded-lg text-sm font-medium hover:bg-red-500/20 transition-colors"
+                >
+                  <FaTrash className="h-4 w-4" />
+                  Excluir
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {modalOpen && (

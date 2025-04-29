@@ -124,8 +124,8 @@ const [texto, setTexto] = useState<string>("");  // Definindo o tipo como string
 
   return (
     <>
-      <div className="fixed inset-0 flex items-center justify-center z-[100] backdrop-blur-md bg-gray-900/50">
-        <div className="bg-[#0E1A26]/95 w-full max-w-[90%] h-[600px] rounded-2xl shadow-2xl border border-gray-700 overflow-hidden animate-modalEntry">
+      <div className="fixed inset-0 flex items-center justify-center z-[100] backdrop-blur-md bg-gray-900/50 p-4">
+        <div className="bg-[#0E1A26]/95 w-full max-w-[95%] lg:max-w-[90%] h-[90vh] lg:h-[600px] rounded-2xl shadow-2xl border border-gray-700 overflow-hidden animate-modalEntry">
           {/* Header */}
           <div className="relative p-4 border-b border-gray-700 bg-gradient-to-r from-[#0E1A26] via-[#152736] to-[#0E1A26]">
             <button
@@ -141,10 +141,10 @@ const [texto, setTexto] = useState<string>("");  // Definindo o tipo como string
             </div>
           </div>
 
-          {/* Conteúdo em layout horizontal */}
-          <div className="flex h-[calc(600px-140px)]">
+          {/* Conteúdo responsivo */}
+          <div className="flex flex-col lg:flex-row h-[calc(90vh-140px)] lg:h-[calc(600px-140px)]">
             {/* Lado Esquerdo - Informações da Evidência */}
-            <div className="w-1/3 p-4 border-r border-gray-700 overflow-y-auto">
+            <div className="w-full lg:w-1/3 p-4 border-b lg:border-b-0 lg:border-r border-gray-700 overflow-y-auto">
               <div className="bg-gray-800/30 p-4 rounded-xl border border-gray-700">
                 <h3 className="text-lg font-medium text-amber-500 mb-3">Informações da Evidência</h3>
                 <div className="space-y-3">
@@ -175,7 +175,7 @@ const [texto, setTexto] = useState<string>("");  // Definindo o tipo como string
             </div>
 
             {/* Lado Direito - Formulário do Laudo */}
-            <div className="flex-1 p-4 overflow-y-auto">
+            <div className="w-full lg:w-2/3 p-4 overflow-y-auto">
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-amber-500 mb-2">

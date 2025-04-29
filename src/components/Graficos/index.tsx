@@ -136,12 +136,16 @@ export default function Graficos({ dadosPizza, dadosColuna }: GraficosProps) {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
-      <div className="bg-gray-800/80 p-4 rounded-lg border border-gray-700 backdrop-blur-sm">
-        <Pie data={dadosPizzaConfig} options={opcoesPizza} />
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 p-2 md:p-4">
+      <div className="bg-gray-800/80 p-3 md:p-4 rounded-lg border border-gray-700 backdrop-blur-sm">
+        <div className="aspect-square w-full max-w-[400px] mx-auto">
+          <Pie data={dadosPizzaConfig} options={opcoesPizza} />
+        </div>
       </div>
-      <div className="bg-gray-800/80 p-4 rounded-lg border border-gray-700 backdrop-blur-sm">
-        <Bar data={dadosColunaConfig} options={opcoesColuna} />
+      <div className="bg-gray-800/80 p-3 md:p-4 rounded-lg border border-gray-700 backdrop-blur-sm">
+        <div className="aspect-[4/3] w-full max-w-[500px] mx-auto">
+          <Bar data={dadosColunaConfig} options={opcoesColuna} />
+        </div>
       </div>
     </div>
   );
