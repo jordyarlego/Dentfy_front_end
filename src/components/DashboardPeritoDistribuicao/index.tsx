@@ -1,6 +1,7 @@
 'use client';
 
 import { Doughnut } from 'react-chartjs-2';
+import { TooltipItem } from 'chart.js';
 import {
   Chart as ChartJS,
   ArcElement,
@@ -112,9 +113,9 @@ export default function DashboardPeritoDistribuicao({
         displayColors: true,
         usePointStyle: true,
         callbacks: {
-          label: function(context: any) {
+          label: function(context: TooltipItem<'doughnut'>) {
             const label = context.label || '';
-            const value = context.raw || 0;
+            const value = context.raw as number || 0;
             const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
             const percentage = ((value / total) * 100).toFixed(1);
             return `${label}: ${value} (${percentage}%)`;

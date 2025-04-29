@@ -11,6 +11,7 @@ export interface CasoData {
   dataFechamento?: string;
   sexo: "Masculino" | "Feminino" | "Outro";
   local: string;
+  arquivo?: File;
 }
 
 export interface Evidencia {
@@ -21,6 +22,7 @@ export interface Evidencia {
   caso: string;
   imagemURL?: string;
   conteudoTexto?: string;
+  arquivo?: File;
 }
 
 // Criar novo caso

@@ -11,7 +11,7 @@ interface CriarEvidenciaAPI {
 }
 
 
-interface Evidencia {
+export interface Evidencia {
   _id: string;
   tipo: string;
   dataColeta: string;
@@ -20,6 +20,8 @@ interface Evidencia {
   caso: string;
   imagemURL?: string;
 }
+
+export {};
 
 export const postEvidencia = async (dados: CriarEvidenciaAPI) => {
   try {

@@ -9,7 +9,9 @@ import FeedbackModal from "../FeedbackModal";
 import { FaEye, FaEdit, FaTrash, FaCalendarAlt, FaFilter, FaChevronDown } from "react-icons/fa";
 import { atualizarCaso, deletarCaso, CasoData } from "../ModalNovoCasoPerito/API_NovoCaso";
 import ModalConfirmacaoDelete from "../ModalConfirmacaoDelete";
-import { useSound } from "@/hooks/useSound";
+
+
+
 
 export interface Evidencia {
   _id: string;
@@ -20,6 +22,7 @@ export interface Evidencia {
   arquivo: string;
   dataAdicao: string;
   laudo?: string;
+  caso: string;
 }
 
 export interface Caso extends CasoData {
@@ -28,7 +31,6 @@ export interface Caso extends CasoData {
 }
 
 export default function CasosPerito() {
-  const { playHover, playSuccess } = useSound();
   const [search, setSearch] = useState("");
   const [filtro, setFiltro] = useState("todos");
   const [filtroStatus, setFiltroStatus] = useState("todos");
@@ -37,7 +39,7 @@ export default function CasosPerito() {
   const [casoSelecionado, setCasoSelecionado] = useState<Caso | null>(null);
   const [editandoCaso, setEditandoCaso] = useState<CasoData | undefined>(undefined);
   const [showFeedback, setShowFeedback] = useState(false);
-  const [feedbackType, setFeedbackType] = useState<"success" | "edit" | "delete">("success");
+  const [feedbackType, setFeedbackType] = useState<"success" | "edit" | "delete" | "error">("success");
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [modalDeleteOpen, setModalDeleteOpen] = useState(false);
   const [casoParaDeletar, setCasoParaDeletar] = useState<Caso | null>(null);
@@ -203,13 +205,6 @@ export default function CasosPerito() {
     });
   };
 
-  const playApagarSound = () => {
-    const audio = new Audio('/assets/Apagar.mp3');
-    audio.volume = 0.3;
-    audio.play().catch(error => {
-      console.log("Erro ao reproduzir som:", error);
-    });
-  };
 
   return (
     <div className="p-4 sm:p-6 bg-transparent min-h-screen">

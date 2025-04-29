@@ -12,16 +12,10 @@ import {
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
-interface Usuario {
-  nome: string;
-  cargo: 'admin' | 'perito' | 'assistente';
-}
-
 export default function SidebarPerito() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [usuario, setUsuario] = useState<Usuario | null>(null);
   const router = useRouter();
   const pathname = usePathname();
 

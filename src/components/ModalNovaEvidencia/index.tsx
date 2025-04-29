@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState} from "react";
 import { FaTimes, FaCloudUploadAlt, FaSave, FaArrowLeft } from "react-icons/fa";
 import Image from "next/image";
 import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
@@ -28,7 +28,6 @@ export default function ModalNovaEvidencia({
   isOpen,
   onClose,
   onSave,
-  casoId,
   usuarioId
 }: ModalNovaEvidenciaProps) {
   const [formData, setFormData] = useState<NovaEvidencia>({

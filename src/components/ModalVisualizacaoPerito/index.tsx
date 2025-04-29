@@ -1,13 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FaTimes, FaPlus, FaFileAlt, FaImage, FaVideo, FaTrash, FaFileDownload, FaEye } from "react-icons/fa";
+import { FaTimes, FaPlus, FaFileAlt, FaTrash, FaEye } from "react-icons/fa";
 import Image from "next/image";
-import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
 import Logo from "../../../public/assets/Logo.png";
 import ModalNovaEvidencia from "../ModalNovaEvidencia";
 import EvidenciasSalvaSucess from "../EvidenciasSalvaSucess";
 import ModalGerarLaudo from "../ModalGerarLaudo";
-import { CasoData, Evidencia, adicionarEvidencia, atualizarEvidencia, deletarEvidencia, atualizarCaso, deletarCaso } from "../ModalNovoCasoPerito/API_NovoCaso";
+import { CasoData, Evidencia, deletarCaso } from "../ModalNovoCasoPerito/API_NovoCaso";
 import { postEvidencia, getEvidenciaByCaseId, deleteEvidencia as deleteEvidenciaAPI } from '../../../services/api_nova_evidencia';
 import ModalRelatorio from "../ModalRelatorio";
 import ModalConfirmacaoDelete from "../ModalConfirmacaoDelete";
@@ -19,11 +18,21 @@ interface CasoCompleto extends CasoData {
   evidencias?: Evidencia[];
 }
 
+type CriarEvidenciaAPI = {
+  tipo: string;
+  dataColeta: string;
+  coletadoPor: string;
+  descricao: string;
+  caso: string;
+  arquivo: File | null;
+}
+
 interface NovaEvidencia {
   tipo: string;
   descricao: string;
   coletadoPor: string;
   arquivo: File | null;
+  titulo: string;
 }
 
 interface ModalVisualizacaoPeritoProps {
@@ -51,21 +60,13 @@ export default function ModalVisualizacaoPerito({
   const [evidenciaParaDeletar, setEvidenciaParaDeletar] = useState<Evidencia | null>(null);
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = 'auto';
-      };
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
     if (isOpen && caso._id) {
       carregarEvidencias();
     }
-  }, [isOpen, caso._id]);
-
+  }, [isOpen, caso._id]); // Agora depende tanto de 'isOpen' quanto de 'caso._id'
+  
   const carregarEvidencias = async () => {
+    if (!caso._id) return; // Verifique se 'caso._id' é válido antes de tentar carregar as evidências
     try {
       const data = await getEvidenciaByCaseId(caso._id);
       setEvidencias(data);
@@ -73,10 +74,10 @@ export default function ModalVisualizacaoPerito({
       console.error("Erro ao carregar evidências:", error);
     }
   };
-
+  
   if (!isOpen) return null;
 
-  const handleSalvarNovaEvidencia = async (novaEvidencia: any) => {
+  const handleSalvarNovaEvidencia = async (novaEvidencia: NovaEvidencia) => {
     try {
       const dadosEvidencia: CriarEvidenciaAPI = {
         tipo: novaEvidencia.tipo,
@@ -104,17 +105,6 @@ export default function ModalVisualizacaoPerito({
     }
   };
 
-  const handleSalvarLaudo = async (laudo: string, evidenciaId: string) => {
-    try {
-      const evidenciaAtualizada = await atualizarEvidencia(caso._id, evidenciaId, { laudo });
-      setEvidencias(evidencias.map(ev => 
-        ev._id === evidenciaId ? evidenciaAtualizada : ev
-      ));
-      setEvidenciaParaLaudo(null);
-    } catch (error) {
-      console.error("Erro ao salvar laudo:", error);
-    }
-  };
 
   const handleDeletarEvidencia = (evidencia: Evidencia) => {
     setEvidenciaParaDeletar(evidencia);
@@ -134,10 +124,6 @@ export default function ModalVisualizacaoPerito({
       console.error("Erro ao deletar caso:", error);
       // Aqui você pode adicionar uma notificação de erro se desejar
     }
-  };
-
-  const handleGerarRelatorio = () => {
-    setModalGerarRelatorioOpen(true);
   };
 
   const confirmarDelecaoEvidencia = async () => {
@@ -247,7 +233,7 @@ export default function ModalVisualizacaoPerito({
                     className="bg-gray-800/30 p-4 rounded-lg border border-gray-700 hover:border-amber-500/50 transition-all duration-300"
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="text-amber-100 font-medium">{evidencia.nome}</h4>
+                      <h4 className="text-amber-100 font-medium">{evidencia.titulo}</h4>
                       <div className="flex gap-2">
                         <button
                           onClick={() => setEvidenciaSelecionada(evidencia)}

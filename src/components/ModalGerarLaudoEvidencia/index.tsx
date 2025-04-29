@@ -1,14 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FaTimes, FaFilePdf, FaSignature, FaSave, FaArrowLeft } from "react-icons/fa";
-import Image from "next/image";
-import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
-import Logo from "../../../public/assets/Logo.png";
-import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
-import { postLaudo, parseJwt, getLaudoPDF, getLaudosByEvidencia, assinarLaudo } from "../../../services/api_laudo";
+import { FaFilePdf, FaSignature, FaSave, FaArrowLeft } from "react-icons/fa";
+import { postLaudo, parseJwt, getLaudoPDF, assinarLaudo } from "../../../services/api_laudo";
 import AssinaturaSuccess from '../AssinaturaSuccess';
-import RelatorioSuccess from '../RelatorioSuccess';
 
 interface Evidencia {
   _id: string;
@@ -25,19 +19,16 @@ interface ModalGerarLaudoEvidenciaProps {
   isOpen: boolean;
   onClose: () => void;
   evidencia: Evidencia;
-  onLaudoSaved: () => void;
 }
 
 export default function ModalGerarLaudoEvidencia({
   isOpen,
   onClose,
   evidencia,
-  onLaudoSaved,
 }: ModalGerarLaudoEvidenciaProps) {
-  const [laudoData, setLaudoData] = useState({ titulo: "", texto: "", peritoResponsavel: "" });
   const [laudoId, setLaudoId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showLaudoSuccess, setShowLaudoSuccess] = useState(false);
+  const [, setShowLaudoSuccess] = useState(false);
   const [showAssinaturaSuccess, setShowAssinaturaSuccess] = useState(false);
   const [assinaturaValidada, setAssinaturaValidada] = useState(false);
   const [titulo, setTitulo] = useState<string>("");  // Definindo o tipo como string
@@ -80,11 +71,14 @@ const [texto, setTexto] = useState<string>("");  // Definindo o tipo como string
       // Limpa os campos depois de salvar
       setTitulo("");
       setTexto("");
-    } catch (error: any) {
-      console.error("Erro ao salvar o laudo:", error.response?.data || error.message);
-      alert(`Erro ao salvar o laudo: ${error.response?.data?.message || error.message}`);
-    } finally {
-      setLoading(false);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Erro ao salvar o laudo:", error.message);
+        alert(`Erro ao salvar o laudo: ${error.message}`);
+      } else {
+        console.error("Erro desconhecido:", error);
+        alert("Erro desconhecido ao salvar o laudo.");
+      }
     }
   };
   
@@ -101,7 +95,7 @@ const [texto, setTexto] = useState<string>("");  // Definindo o tipo como string
       const user = parseJwt(token);
       if (!user?.id) throw new Error("Usuário não encontrado");
   
-      await assinarLaudo(laudoId, user.id);
+      await assinarLaudo(laudoId);
   
       setShowAssinaturaSuccess(true);
       setAssinaturaValidada(true);
@@ -264,6 +258,7 @@ const [texto, setTexto] = useState<string>("");  // Definindo o tipo como string
       {/* Feedbacks de sucesso com z-index maior */}
       {showAssinaturaSuccess && (
         <AssinaturaSuccess 
+          isOpen={showAssinaturaSuccess}
           onClose={() => setShowAssinaturaSuccess(false)} 
         />
       )}

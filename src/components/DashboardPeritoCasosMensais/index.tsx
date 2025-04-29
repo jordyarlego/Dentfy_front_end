@@ -1,6 +1,8 @@
 'use client';
 
 import { Bar } from 'react-chartjs-2';
+import { ScriptableContext } from 'chart.js';
+
 
 import {
   Chart as ChartJS,
@@ -61,7 +63,7 @@ export default function DashboardPeritoCasosMensais({ casos }: DashboardPeritoCa
     animation: {
       duration: 2000,
       easing: 'easeInOutQuart',
-      delay: (context: any) => context.dataIndex * 100,
+      delay: (context: ScriptableContext<'bar'>) => context.dataIndex * 100,
     },
     plugins: {
       legend: { 

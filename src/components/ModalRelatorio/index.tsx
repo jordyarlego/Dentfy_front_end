@@ -1,15 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FaTimes, FaFilePdf, FaSignature, FaSave, FaArrowLeft } from "react-icons/fa";
+import { FaFilePdf, FaSignature, FaSave, FaArrowLeft } from "react-icons/fa";
 import Image from "next/image";
 import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
-import Logo from "../../../public/assets/Logo.png";
 import { PostRelatorio, GetRelatorios, parseJwt, ExportRelatorioPDF, AssinarRelatorio } from "../../../services/api_relatorio";
 import RelatorioSuccess from '../RelatorioSuccess';
 import AssinaturaSuccess from '../AssinaturaSuccess';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 
 interface ModalRelatorioProps {
   isOpen: boolean;
@@ -36,7 +33,7 @@ export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorio
   const [relatorios, setRelatorios] = useState<RelatorioData[]>([]);
   const [relatorioId, setRelatorioId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [, setSuccessMessage] = useState<string | null>(null);
   const [showRelatorioSuccess, setShowRelatorioSuccess] = useState(false);
   const [showAssinaturaSuccess, setShowAssinaturaSuccess] = useState(false);
   const [assinaturaValidada, setAssinaturaValidada] = useState(false);
@@ -79,11 +76,12 @@ export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorio
       setRelatorioData({ titulo: "", conteudo: "", peritoResponsavel: "" });
       setTimeout(() => setSuccessMessage(null), 3000);
       setShowRelatorioSuccess(true);
-    } catch (error: any) {
-      console.error("Erro ao enviar o relatório:", error.response?.data || error.message);
-      alert(`Erro ao enviar o relatório: ${error.response?.data?.message || error.message}`);
-    } finally {
-      setLoading(false);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error('Erro ao salvar relatório:', error.message);
+      } else {
+        console.error('Erro desconhecido ao salvar relatório');
+      }
     }
   };
 
@@ -120,7 +118,7 @@ export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorio
       const user = parseJwt(token);
       if (!user?.id) throw new Error("Usuário não encontrado no token");
   
-      await AssinarRelatorio(relatorioId, user.id);
+      await AssinarRelatorio(relatorioId);
   
       setShowAssinaturaSuccess(true); // 👈 Adicione essa linha para abrir o modal
       setAssinaturaValidada(true);     // 👈 Também marque como assinado para liberar botão de PDF
