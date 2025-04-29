@@ -262,6 +262,18 @@ export default function CasosPerito() {
     }
   };
 
+  // Função para estilo do status
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case "Finalizado":
+        return "bg-gradient-to-r from-green-500/10 to-green-500/20 text-green-400 border border-green-500/30 shadow-[0_0_10px_rgba(34,197,94,0.1)]";
+      case "Em andamento":
+        return "bg-gradient-to-r from-amber-500/10 to-amber-500/20 text-amber-400 border border-amber-500/30 shadow-[0_0_10px_rgba(245,158,11,0.1)]";
+      default:
+        return "bg-gradient-to-r from-red-500/10 to-red-500/20 text-red-400 border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.1)]";
+    }
+  };
+
   return (
     <div className="p-4 sm:p-6 bg-transparent min-h-screen">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
@@ -460,15 +472,15 @@ export default function CasosPerito() {
                     {caso.titulo}
                   </td>
                   <td className="px-4 sm:px-6 py-4">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        caso.status === "Finalizado"
-                          ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                          : caso.status === "Em andamento"
-                          ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
-                          : "bg-red-500/20 text-red-400 border border-red-500/30"
-                      }`}
-                    >
+                    <span className={`
+                      inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
+                      transition-all duration-300 hover:scale-105 cursor-default
+                      ${getStatusStyle(caso.status)}
+                    `}>
+                      <span className={`w-1.5 h-1.5 rounded-full mr-2 ${
+                        caso.status === "Finalizado" ? "bg-green-400" :
+                        caso.status === "Em andamento" ? "bg-amber-400" : "bg-red-400"
+                      } animate-pulse`}/>
                       {caso.status}
                     </span>
                   </td>
@@ -478,34 +490,45 @@ export default function CasosPerito() {
                   <td className="px-4 sm:px-6 py-4">
                     <div className="flex items-center justify-center gap-3">
                       <button
-                        onClick={() => {
-                          setCasoSelecionado(caso);
-                        }}
-                        className="group relative inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-amber-500 hover:text-amber-400 transition-all duration-300"
+                        onClick={() => setCasoSelecionado(caso)}
+                        className="group relative inline-flex items-center gap-2 px-4 py-2 bg-[#1A2B3B] rounded-lg overflow-hidden transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-amber-500/20"
                       >
-                        <span className="absolute inset-0 bg-amber-500/10 rounded-lg transform scale-0 group-hover:scale-100 transition-transform duration-300" />
-                        <FaEye className="relative z-10 group-hover:scale-110 transition-transform duration-300" />
-                        <span className="relative z-10">Visualizar</span>
+                        <span className="absolute inset-0 bg-gradient-to-r from-amber-600/0 via-amber-600/40 to-amber-600/0 opacity-0 group-hover:opacity-100 group-hover:animate-shimmer" />
+                        <span className="absolute inset-0 rounded-lg bg-gradient-to-r from-amber-500/50 to-amber-600/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ padding: '1px' }}>
+                          <span className="absolute inset-0 rounded-lg bg-[#1A2B3B]" />
+                        </span>
+                        <FaEye className="relative z-10 text-amber-500 group-hover:text-amber-400 transform group-hover:scale-110 transition-all duration-300" />
+                        <span className="relative z-10 text-amber-500 group-hover:text-amber-400 font-medium transition-colors duration-300">
+                          Visualizar
+                        </span>
                       </button>
+
                       <button
-                        onClick={() => {
-                          handleEditarCaso(caso);
-                        }}
-                        className="group relative inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-500 hover:text-blue-400 transition-all duration-300"
+                        onClick={() => handleEditarCaso(caso)}
+                        className="group relative inline-flex items-center gap-2 px-4 py-2 bg-[#1A2B3B] rounded-lg overflow-hidden transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-blue-500/20"
                       >
-                        <span className="absolute inset-0 bg-blue-500/10 rounded-lg transform scale-0 group-hover:scale-100 transition-transform duration-300" />
-                        <FaEdit className="relative z-10 group-hover:scale-110 transition-transform duration-300" />
-                        <span className="relative z-10">Editar</span>
+                        <span className="absolute inset-0 bg-gradient-to-r from-blue-600/0 via-blue-600/40 to-blue-600/0 opacity-0 group-hover:opacity-100 group-hover:animate-shimmer" />
+                        <span className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-500/50 to-blue-600/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ padding: '1px' }}>
+                          <span className="absolute inset-0 rounded-lg bg-[#1A2B3B]" />
+                        </span>
+                        <FaEdit className="relative z-10 text-blue-500 group-hover:text-blue-400 transform group-hover:scale-110 transition-all duration-300" />
+                        <span className="relative z-10 text-blue-500 group-hover:text-blue-400 font-medium transition-colors duration-300">
+                          Editar
+                        </span>
                       </button>
+
                       <button
-                        onClick={() => {
-                          handleDeletarCaso(caso);
-                        }}
-                        className="group relative inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-red-500 hover:text-red-400 transition-all duration-300"
+                        onClick={() => handleDeletarCaso(caso)}
+                        className="group relative inline-flex items-center gap-2 px-4 py-2 bg-[#1A2B3B] rounded-lg overflow-hidden transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-red-500/20"
                       >
-                        <span className="absolute inset-0 bg-red-500/10 rounded-lg transform scale-0 group-hover:scale-100 transition-transform duration-300" />
-                        <FaTrash className="relative z-10 group-hover:scale-110 transition-transform duration-300" />
-                        <span className="relative z-10">Excluir</span>
+                        <span className="absolute inset-0 bg-gradient-to-r from-red-600/0 via-red-600/40 to-red-600/0 opacity-0 group-hover:opacity-100 group-hover:animate-shimmer" />
+                        <span className="absolute inset-0 rounded-lg bg-gradient-to-r from-red-500/50 to-red-600/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ padding: '1px' }}>
+                          <span className="absolute inset-0 rounded-lg bg-[#1A2B3B]" />
+                        </span>
+                        <FaTrash className="relative z-10 text-red-500 group-hover:text-red-400 transform group-hover:scale-110 transition-all duration-300" />
+                        <span className="relative z-10 text-red-500 group-hover:text-red-400 font-medium transition-colors duration-300">
+                          Excluir
+                        </span>
                       </button>
                     </div>
                   </td>
