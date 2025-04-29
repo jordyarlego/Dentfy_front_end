@@ -286,11 +286,27 @@ export default function CasosPerito() {
             playPancadaSound();
             setModalOpen(true);
           }}
-          className="relative bg-gray-800/90 text-gray-100 px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-gray-700 transition-all duration-300 font-medium shadow-md border border-gray-700 hover:border-gray-600 group cursor-pointer w-full sm:w-auto"
+          className="group relative inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-[#1A3446] to-[#1A3446] rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/20 cursor-pointer overflow-hidden"
         >
-          <span className="relative z-10 flex items-center justify-center sm:justify-start gap-2">
+          {/* Efeito de borda gradiente */}
+          <span className="absolute inset-0 rounded-lg bg-gradient-to-r from-amber-500/50 via-amber-600/50 to-amber-500/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ padding: '1px' }}>
+            <span className="absolute inset-0 rounded-lg bg-[#1A3446]" />
+          </span>
+
+          {/* Efeito de brilho */}
+          <span className="absolute inset-0 bg-gradient-to-r from-amber-600/0 via-amber-600/20 to-amber-600/0 opacity-0 group-hover:opacity-100 group-hover:animate-shimmer" />
+
+          {/* Efeito de partículas no hover */}
+          <span className="absolute inset-0 opacity-0 group-hover:opacity-100">
+            <span className="absolute top-1/2 left-1/2 w-1 h-1 bg-amber-500/40 rounded-full transform -translate-x-1/2 -translate-y-1/2 group-hover:animate-particle1" />
+            <span className="absolute top-1/2 left-1/2 w-1 h-1 bg-amber-500/40 rounded-full transform -translate-x-1/2 -translate-y-1/2 group-hover:animate-particle2" />
+            <span className="absolute top-1/2 left-1/2 w-1 h-1 bg-amber-500/40 rounded-full transform -translate-x-1/2 -translate-y-1/2 group-hover:animate-particle3" />
+          </span>
+
+          {/* Ícone */}
+          <span className="relative flex items-center justify-center w-6 h-6 rounded-full bg-amber-500/20 group-hover:bg-amber-500/30 transition-colors duration-300">
             <svg
-              className="w-5 h-5 text-gray-300 group-hover:text-white transition-colors"
+              className="w-4 h-4 text-amber-500 group-hover:text-amber-400 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-180"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -302,9 +318,12 @@ export default function CasosPerito() {
                 d="M12 6v6m0 0v6m0-6h6m-6 0H6"
               />
             </svg>
-            <span className="truncate">Novo Caso</span>
           </span>
-          <span className="absolute inset-0 bg-gray-600 opacity-0 group-hover:opacity-10 rounded-lg transition-opacity duration-300"></span>
+
+          {/* Texto */}
+          <span className="relative font-medium text-amber-500 group-hover:text-amber-400 transition-colors duration-300">
+            Novo Caso
+          </span>
         </button>
       </div>
 
