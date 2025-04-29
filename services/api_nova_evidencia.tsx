@@ -1,4 +1,5 @@
 import api from "../lib/axios";
+import { AxiosError } from "axios";
 
 interface CriarEvidenciaAPI {
   tipo: "imagem" | "texto";
@@ -7,9 +8,8 @@ interface CriarEvidenciaAPI {
   descricao: string;
   caso: string;
   arquivo?: File;
-  responsavel: string; // Adicionando o campo responsavel
+  responsavel: string;
 }
-
 
 export interface Evidencia {
   _id: string;
@@ -32,33 +32,35 @@ export const postEvidencia = async (dados: CriarEvidenciaAPI) => {
     formData.append('coletadoPor', dados.coletadoPor);
     formData.append('descricao', dados.descricao);
     formData.append('caso', dados.caso);
-    formData.append('responsavel', dados.responsavel); // Enviando o responsavel
+    formData.append('responsavel', dados.responsavel);
 
     if (dados.arquivo) {
       formData.append('imagem', dados.arquivo);
     }
 
-    const response = await api.post("/api/evidences", formData, {
+    const response = await api.post<Evidencia>("/api/evidences", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
 
     return response.data;
-  } catch (error: any) {
-    console.error("Erro detalhado:", {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status
-    });
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      console.error("Erro detalhado:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+    }
     throw error;
   }
 };
 
 // Visualizar evidencia
-export const getEvidenciaByCaseId = async (casoId: string) => {
+export const getEvidenciaByCaseId = async (casoId: string): Promise<Evidencia[]> => {
   try {
-    const response = await api.get(`/api/evidences/${casoId}`);
+    const response = await api.get<Evidencia[]>(`/api/evidences/${casoId}`);
     return response.data;
   } catch (error) {
     console.error("Erro ao buscar evidências:", error);
@@ -67,9 +69,9 @@ export const getEvidenciaByCaseId = async (casoId: string) => {
 };
 
 // Atualizar evidencias
-export const putEvidencia = async (id: string, data: Partial<Evidencia>) => {
+export const putEvidencia = async (id: string, data: Partial<Evidencia>): Promise<Evidencia> => {
   try {
-    const response = await api.patch(`/api/evidences/${id}`, data);
+    const response = await api.patch<Evidencia>(`/api/evidences/${id}`, data);
     return response.data;
   } catch (error) {
     console.error("Erro ao atualizar evidência:", error);
@@ -78,10 +80,9 @@ export const putEvidencia = async (id: string, data: Partial<Evidencia>) => {
 };
 
 // Deletar evidencias
-export const deleteEvidencia = async (id: string) => {
+export const deleteEvidencia = async (id: string): Promise<void> => {
   try {
-    const response = await api.delete(`/api/evidences/${id}`);
-    return response.data;
+    await api.delete(`/api/evidences/${id}`);
   } catch (error) {
     console.error("Erro ao deletar evidência:", error);
     throw error;

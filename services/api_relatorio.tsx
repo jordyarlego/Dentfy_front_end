@@ -7,7 +7,16 @@ interface RelatorioData {
   peritoResponsavel: string;
 }
 
-export function parseJwt(token: string): any {
+interface JwtPayload {
+  id: string;
+  nome: string;
+  role: string;
+  exp: number;
+  iat?: number;
+  [key: string]: unknown; // para campos adicionais que possam existir
+}
+
+export function parseJwt(token: string): JwtPayload | null {
   try {
     return JSON.parse(atob(token.split(".")[1]));
   } catch (e) {
@@ -16,12 +25,12 @@ export function parseJwt(token: string): any {
   }
 }
 
-export async function PostRelatorio(data: RelatorioData) {
+export async function PostRelatorio(data: RelatorioData): Promise<RelatorioData> {
   console.log("relatorio Enviado");
   try {
     const token = localStorage.getItem("token");
 
-    const response = await api.post("/api/relatorio", data, {
+    const response = await api.post<RelatorioData>("/api/relatorio", data, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -35,11 +44,11 @@ export async function PostRelatorio(data: RelatorioData) {
 }
 
 // Função para listar todos os relatórios
-export async function GetRelatorios() {
+export async function GetRelatorios(): Promise<RelatorioData[]> {
   try {
     const token = localStorage.getItem("token");
 
-    const response = await api.get("/api/relatorio", {
+    const response = await api.get<RelatorioData[]>("/api/relatorio", {
       headers: {
         Authorization: `Bearer ${token}`,
       },

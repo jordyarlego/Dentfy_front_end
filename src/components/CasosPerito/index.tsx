@@ -7,7 +7,14 @@ import ModalVisualizacaoPerito from "../ModalVisualizacaoPerito";
 import ModalEditarCaso from "../ModalEditarCaso";
 import FeedbackModal from "../FeedbackModal";
 import { FaEye, FaEdit, FaTrash, FaCalendarAlt, FaFilter, FaChevronDown } from "react-icons/fa";
-import { atualizarCaso, deletarCaso, CasoData } from "../ModalNovoCasoPerito/API_NovoCaso";
+import {
+  atualizarCaso,
+  deletarCaso,
+  CasoData,
+  adicionarEvidencia,
+  buscarEvidenciasPorCaso,
+  deletarEvidencia
+} from "../ModalNovoCasoPerito/API_NovoCaso";
 import ModalConfirmacaoDelete from "../ModalConfirmacaoDelete";
 
 
@@ -205,6 +212,52 @@ export default function CasosPerito() {
     });
   };
 
+  const handleSalvarNovaEvidencia = async (novaEvidencia: any) => {
+    try {
+      const dadosEvidencia = {
+        tipo: novaEvidencia.tipo,
+        dataColeta: new Date().toISOString(),
+        coletadoPor: novaEvidencia.coletadoPor,
+        descricao: novaEvidencia.descricao || 'Sem descrição',
+        caso: casoSelecionado!._id,
+        arquivo: novaEvidencia.arquivo
+      };
+
+      await adicionarEvidencia(casoSelecionado!._id, dadosEvidencia);
+      await carregarEvidencias();
+      setModalNovaEvidenciaOpen(false);
+      setMostrarSucesso(true);
+      
+      if (onEvidenciaAdicionada) {
+        onEvidenciaAdicionada();
+      }
+    } catch (error) {
+      console.error("Erro ao salvar evidência:", error);
+      alert("Erro ao salvar evidência. Por favor, tente novamente.");
+    }
+  };
+
+  const carregarEvidencias = async () => {
+    try {
+      const data = await buscarEvidenciasPorCaso(casoSelecionado!._id);
+      setCasos(casos.map(caso => ({ ...caso, evidencias: data })));
+    } catch (error) {
+      console.error("Erro ao carregar evidências:", error);
+    }
+  };
+
+  const confirmarDelecaoEvidencia = async () => {
+    if (evidenciaParaDeletar) {
+      try {
+        await deletarEvidencia(casoSelecionado!._id, evidenciaParaDeletar._id);
+        await carregarEvidencias();
+        setModalDeleteOpen(false);
+        setEvidenciaParaDeletar(null);
+      } catch (error) {
+        console.error("Erro ao deletar evidência:", error);
+      }
+    }
+  };
 
   return (
     <div className="p-4 sm:p-6 bg-transparent min-h-screen">

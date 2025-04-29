@@ -1,6 +1,6 @@
 import api from "../lib/axios";
 
-interface LaudoData {
+export interface LaudoData {
   titulo: string;
   texto: string;
   evidencia: {
@@ -19,30 +19,20 @@ interface LaudoData {
   dataAssinatura?: string;
 }
 
-interface Laudo {
+export interface Laudo extends LaudoData {
   _id: string;
-  titulo: string;
-  texto: string;
-  evidencia: {
-    _id: string;
-    tipo: string;
-    nome: string;
-    dataColeta: string;
-    coletadoPor: string;
-  };
-  peritoResponsavel: {
-    _id: string;
-    nome: string;
-    registro: string;
-  };
-  assinado: boolean;
-  dataAssinatura?: string;
   dataCriacao: string;
   dataAtualizacao: string;
 }
 
+interface JwtPayload {
+  id: string;
+  nome: string;
+  role: string;
+  exp: number;
+}
 
-export function parseJwt(token: string): any {
+export function parseJwt(token: string): JwtPayload | null {
   try {
     return JSON.parse(atob(token.split(".")[1]));
   } catch (e) {
@@ -57,10 +47,10 @@ export const postLaudo = async (data: {
   texto: string;
   evidence: string;
   peritoResponsavel: string;
-}) => {
+}): Promise<Laudo> => {
   try {
     const token = localStorage.getItem("token");
-    const response = await api.post("/api/laudos", data, {
+    const response = await api.post<Laudo>("/api/laudos", data, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -72,12 +62,11 @@ export const postLaudo = async (data: {
   }
 };
 
-
 // Listar todos os laudos do perito
-export const getLaudos = async () => {
+export const getLaudos = async (): Promise<Laudo[]> => {
   try {
     const token = localStorage.getItem("token");
-    const response = await api.get("/api/laudos", {
+    const response = await api.get<Laudo[]>("/api/laudos", {
       headers: {
         Authorization: `Bearer ${token}`,
       },

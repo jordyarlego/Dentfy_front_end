@@ -3,30 +3,25 @@ import { useState, useEffect } from "react";
 import { FaFilePdf, FaSignature, FaSave, FaArrowLeft } from "react-icons/fa";
 import { postLaudo, parseJwt, getLaudoPDF, assinarLaudo } from "../../../services/api_laudo";
 import AssinaturaSuccess from '../AssinaturaSuccess';
+import { Evidencia, Laudo, ModalGerarLaudoEvidenciaProps } from '../../types/evidencia';
 
-interface Evidencia {
-  _id: string;
-  nome: string;
-  tipo: string;
-  descricao: string;
-  coletadoPor: string;
-  arquivo: string;
-  dataAdicao: string;
-  laudo?: string;
-}
-
-interface ModalGerarLaudoEvidenciaProps {
-  isOpen: boolean;
-  onClose: () => void;
-  evidencia: Evidencia;
+interface LaudoFormData {
+  titulo: string;
+  texto: string;
+  peritoResponsavel: string;
 }
 
 export default function ModalGerarLaudoEvidencia({
   isOpen,
   onClose,
   evidencia,
+  onLaudoSaved
 }: ModalGerarLaudoEvidenciaProps) {
-  const [laudoData, setLaudoData] = useState({ titulo: "", texto: "", peritoResponsavel: "" });
+  const [laudoData, setLaudoData] = useState<LaudoFormData>({
+    titulo: "",
+    texto: "",
+    peritoResponsavel: ""
+  });
   const [laudoId, setLaudoId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showLaudoSuccess, setShowLaudoSuccess] = useState(false);
