@@ -145,87 +145,85 @@ export default function ModalVisualizacaoPerito({
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md bg-gray-900/50">
-      <div className="bg-[#0E1A26]/95 w-[95%] max-w-[1000px] max-h-[90vh] rounded-2xl shadow-2xl border border-gray-700 overflow-hidden animate-modalEntry">
-        <div className="relative p-6 border-b border-gray-700 bg-gradient-to-r from-[#0E1A26] via-[#152736] to-[#0E1A26]">
-          <div className="flex justify-between items-center mb-6">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-[#0E1A26] border border-amber-500/30 rounded-xl shadow-2xl w-full max-w-6xl flex flex-col max-h-[90vh]">
+        {/* Cabeçalho */}
+        <div className="p-6 border-b border-gray-700">
+          <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
-              <div className="relative w-16 h-8 animate-pulse">
-                <Image
-                  src={Logo}
-                  alt="Logo"
-                  className="object-contain"
-                  fill
-                />
-              </div>
-              <h2 className="text-xl font-bold text-amber-100 border-l-4 border-amber-600 pl-3">
-                Detalhes do Caso
-              </h2>
+              <Image
+                src={Logo}
+                alt="Logo"
+                width={40}
+                height={40}
+                className="rounded-lg"
+              />
+              <h2 className="text-2xl font-bold text-amber-500">{caso.titulo}</h2>
             </div>
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setModalRelatorioOpen(true)}
-                className="text-amber-100 hover:text-amber-500 transition-all duration-300 group flex items-center gap-2 cursor-pointer hover:scale-105"
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all duration-300 group"
               >
-                <FaFileAlt className="h-6 w-6 group-hover:scale-110 transition-transform" />
+                <FaFileAlt className="text-sm group-hover:rotate-12 transition-transform" />
                 Gerar Relatório
               </button>
               <button
-                onClick={handleDeletarCaso}
-                className="text-amber-100 hover:text-amber-500 transition-all duration-300 group cursor-pointer hover:scale-105"
-              >
-                <FaTrash className="h-6 w-6 group-hover:scale-110 transition-transform" />
-              </button>
-              <button
                 onClick={onClose}
-                className="text-amber-100 hover:text-amber-500 transition-all duration-300 group cursor-pointer hover:scale-105"
+                className="text-amber-100 hover:text-amber-500 transition-all duration-300 hover:rotate-90"
               >
-                <FaTimes className="h-6 w-6 group-hover:rotate-90 transition-transform" />
+                <FaTimes className="h-6 w-6" />
               </button>
             </div>
           </div>
         </div>
 
-        <div className="p-6 flex flex-col h-full">
-          <div className="mb-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h3 className="text-sm font-medium text-amber-500 mb-2">Título</h3>
-                <p className="text-gray-200">{caso.titulo}</p>
+        {/* Conteúdo Principal em Duas Colunas */}
+        <div className="flex flex-1 min-h-0">
+          {/* Coluna Esquerda - Detalhes do Caso */}
+          <div className="w-1/2 p-6 overflow-y-auto custom-scrollbar">
+            <div className="space-y-4">
+              <div className="bg-gray-800/30 p-4 rounded-lg hover:bg-gray-800/40 transition-colors">
+                <h3 className="text-lg font-semibold text-amber-500 mb-2">
+                  Detalhes do Caso
+                </h3>
+                <div className="space-y-2">
+                  <p className="text-gray-300">
+                    <span className="font-medium text-amber-400">Descrição:</span>{" "}
+                    <span className="break-words whitespace-pre-wrap">{caso.descricao}</span>
+                  </p>
+                  <p className="text-gray-300">
+                    <span className="font-medium text-amber-400">Status:</span>{" "}
+                    <span className="bg-amber-500/20 px-2 py-1 rounded text-amber-400">{caso.status}</span>
+                  </p>
+                  <p className="text-gray-300">
+                    <span className="font-medium text-amber-400">Data de Criação:</span>{" "}
+                    {new Date(caso.dataColeta).toLocaleDateString("pt-BR")}
+                  </p>
+                </div>
               </div>
 
-              <div>
-                <h3 className="text-sm font-medium text-amber-500 mb-2">Data de Abertura</h3>
-                <p className="text-gray-200">
-                  {new Date(caso.dataAbertura).toLocaleDateString("pt-BR")}
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium text-amber-500 mb-2">Sexo</h3>
-                <p className="text-gray-200">{caso.sexo}</p>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium text-amber-500 mb-2">Tipo do Caso</h3>
-                <p className="text-gray-200">{caso.tipo}</p>
-              </div>
+              {/* Outras informações do caso podem ser adicionadas aqui */}
             </div>
           </div>
 
-          <div className="flex-1">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold text-amber-500">Evidências</h3>
-              <button
-                onClick={() => setModalNovaEvidenciaOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-all duration-300 group"
-              >
-                <FaPlus className="group-hover:rotate-90 transition-transform" />
-                Nova Evidência
-              </button>
+          {/* Coluna Direita - Lista de Evidências */}
+          <div className="w-1/2 border-l border-gray-700 flex flex-col min-h-0">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-semibold text-amber-500">Evidências</h3>
+                <button
+                  onClick={() => setModalNovaEvidenciaOpen(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-all duration-300 group"
+                >
+                  <FaPlus className="group-hover:rotate-90 transition-transform" />
+                  Nova Evidência
+                </button>
+              </div>
             </div>
 
-            <div className="overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
+            {/* Lista de Evidências com Scroll */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar px-6 pb-6">
               <div className="grid grid-cols-1 gap-4">
                 {evidencias.map((evidencia, index) => (
                   <div
@@ -233,37 +231,44 @@ export default function ModalVisualizacaoPerito({
                     className="bg-gray-800/30 p-4 rounded-lg border border-gray-700 hover:border-amber-500/50 transition-all duration-300"
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="text-amber-100 font-medium">{evidencia.titulo}</h4>
-                      <div className="flex gap-2">
+                      <h4 className="text-amber-100 font-medium line-clamp-1">
+                        {evidencia.tipo}
+                      </h4>
+                      <div className="flex gap-2 shrink-0">
                         <button
                           onClick={() => setEvidenciaSelecionada(evidencia)}
                           className="text-gray-400 hover:text-amber-400 transition-all duration-300 cursor-pointer hover:scale-110"
+                          title="Visualizar"
                         >
                           <FaEye className="h-4 w-4" />
                         </button>
                         <button
+                          onClick={() => handleGerarLaudo(evidencia)}
+                          className="text-gray-400 hover:text-amber-400 transition-all duration-300 cursor-pointer hover:scale-110"
+                          title="Gerar Laudo"
+                        >
+                          <FaFileAlt className="h-4 w-4" />
+                        </button>
+                        <button
                           onClick={() => handleDeletarEvidencia(evidencia)}
                           className="text-gray-400 hover:text-red-400 transition-all duration-300 cursor-pointer hover:scale-110"
+                          title="Excluir"
                         >
                           <FaTrash className="h-4 w-4" />
                         </button>
                       </div>
                     </div>
-                    <p className="text-gray-300 text-sm mb-2">{evidencia.descricao}</p>
+                    <p className="text-gray-300 text-sm mb-2 line-clamp-2">
+                      {evidencia.descricao}
+                    </p>
                     <div className="flex flex-wrap gap-2">
-                      <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">
-                        {evidencia.tipo}
-                      </span>
                       <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">
                         {evidencia.coletadoPor}
                       </span>
+                      <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">
+                        {new Date(evidencia.dataColeta).toLocaleDateString("pt-BR")}
+                      </span>
                     </div>
-                    {evidencia.laudo && (
-                      <div className="mt-2">
-                        <h5 className="text-xs font-medium text-amber-500 mb-1">Laudo</h5>
-                        <p className="text-gray-300 text-sm">{evidencia.laudo}</p>
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
@@ -271,19 +276,21 @@ export default function ModalVisualizacaoPerito({
           </div>
         </div>
 
+        {/* Rodapé */}
         <div className="p-6 border-t border-gray-700 bg-gradient-to-r from-[#0E1A26] via-[#152736] to-[#0E1A26]">
-          <div className="flex justify-end gap-4">
+          <div className="flex justify-end">
             <button
-              onClick={onClose}
-              className="flex items-center gap-2 px-6 py-2 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-all duration-300"
+              onClick={handleDeletarCaso}
+              className="flex items-center gap-2 px-6 py-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition-all duration-300 group"
             >
-              <FaTimes />
-              Fechar
+              <FaTrash className="h-5 w-5 group-hover:rotate-12 transition-transform" />
+              Excluir Caso
             </button>
           </div>
         </div>
       </div>
 
+      {/* Manter todos os modais existentes */}
       <ModalNovaEvidencia
         isOpen={modalNovaEvidenciaOpen}
         onClose={() => setModalNovaEvidenciaOpen(false)}
@@ -310,17 +317,6 @@ export default function ModalVisualizacaoPerito({
           onClose={() => setEvidenciaParaLaudo(null)}
           evidencia={evidenciaParaLaudo}
           onLaudoSaved={carregarEvidencias}
-        />
-      )}
-
-      {modalGerarRelatorioOpen && (
-        <ModalGerarLaudo
-          isOpen={modalGerarRelatorioOpen}
-          onClose={() => setModalGerarRelatorioOpen(false)}
-          onSave={() => {
-            setModalGerarRelatorioOpen(false);
-          }}
-          evidencia={evidencias[0] || undefined}
         />
       )}
 
@@ -373,19 +369,18 @@ export default function ModalVisualizacaoPerito({
           background: rgba(251, 191, 36, 0.7);
         }
 
-        .animate-modalEntry {
-          animation: modalEntry 0.3s ease-out forwards;
+        .line-clamp-1 {
+          display: -webkit-box;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
         }
 
-        @keyframes modalEntry {
-          from {
-            opacity: 0;
-            transform: scale(0.95) translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
         }
       `}</style>
     </div>
