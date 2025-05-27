@@ -18,22 +18,30 @@ interface DashboardPeritoDistribuicaoProps {
   casosEmAndamento: number;
   casosFinalizados: number;
   casosArquivados: number;
+  isLoading?: boolean;
 }
 
 export default function DashboardPeritoDistribuicao({
   casosEmAndamento,
   casosFinalizados,
   casosArquivados,
+  isLoading = false,
 }: DashboardPeritoDistribuicaoProps) {
   
-  // agora NÃO usa mais useResumoDashboard aqui!
+  console.log('DashboardPeritoDistribuicao - Props recebidas:', {
+    casosEmAndamento,
+    casosFinalizados,
+    casosArquivados,
+    isLoading
+  });
 
   const dadosCarregando =
     casosEmAndamento === 0 &&
     casosFinalizados === 0 &&
     casosArquivados === 0;
 
-  if (dadosCarregando) {
+  if (dadosCarregando || isLoading) {
+    console.log('DashboardPeritoDistribuicao - Mostrando estado de carregamento');
     return (
       <div className="bg-gray-800/80 p-4 rounded-lg shadow-md border border-gray-700 h-[300px] flex items-center justify-center">
         <div className="text-amber-500 animate-pulse">Carregando dados...</div>
@@ -61,25 +69,27 @@ export default function DashboardPeritoDistribuicao({
     }],
   };
 
+  console.log('DashboardPeritoDistribuicao - Configuração do gráfico:', dadosGraficoConfig);
+
   const opcoesGrafico = {
     responsive: true,
     maintainAspectRatio: false,
-    cutout: '60%', // Tamanho do buraco no meio do donut
+    cutout: '60%',
     animation: {
       animateRotate: true,
       animateScale: true,
       duration: 2000,
-      easing: 'easeInOutQuart',
+      easing: 'easeInOutQuart' as const,
     },
     plugins: {
       legend: {
         position: 'bottom' as const,
         labels: {
-          color: '#e5e7eb', // text-gray-200
+          color: '#e5e7eb',
           padding: 20,
           font: { 
             size: 12,
-            weight: 'bold',
+            weight: 'bold' as const,
           },
           usePointStyle: true,
           pointStyle: 'circle',
@@ -88,10 +98,10 @@ export default function DashboardPeritoDistribuicao({
       title: {
         display: true,
         text: 'Distribuição dos Casos',
-        color: '#f3f4f6', // text-gray-100
+        color: '#f3f4f6',
         font: {
           size: 18,
-          weight: 'bold',
+          weight: 'bold' as const,
           family: "'Inter', sans-serif",
         },
         padding: {
@@ -100,10 +110,10 @@ export default function DashboardPeritoDistribuicao({
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(17, 24, 39, 0.8)', // bg-gray-900 com opacidade
+        backgroundColor: 'rgba(17, 24, 39, 0.8)',
         titleFont: {
           size: 14,
-          weight: 'bold',
+          weight: 'bold' as const,
         },
         bodyFont: {
           size: 12,

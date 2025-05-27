@@ -138,7 +138,7 @@ export default function Login() {
       
       {/* Hero section - hidden on mobile */}
       <div className="hidden lg:block lg:w-[65%] bg-[#1A3446] relative overflow-hidden">
-      <HeroLogin />
+        <HeroLogin />
       </div>
     </div>
   );

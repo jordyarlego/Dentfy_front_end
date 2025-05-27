@@ -1,19 +1,48 @@
 'use client';
 
+import { useState } from 'react';
 import DashboardPeritoDistribuicao from '../../components/DashboardPeritoDistribuicao';
 import DashboardPeritoCasosMensais from '../../components/DashboardPeritoCasosMensais';
 import SidebarPerito from '../../components/SidebarPerito';
 import HeaderPerito from '../../components/HeaderPerito';
-import { useResumoDashboard, useCasosPorTipo } from '../../../services/api_dashboard';
-import { FolderIcon, CheckCircleIcon, ClockIcon, ArchiveBoxIcon } from '@heroicons/react/24/outline';
+import { useResumoDashboard, useCasosPorTipo, useCasosPorSexo, useCasosPorEtnia } from '../../../services/api_dashboard';
+import { 
+  FolderIcon, 
+  CheckCircleIcon, 
+  ClockIcon, 
+  ArchiveBoxIcon,
+  UserIcon,
+  UserGroupIcon,
+  UsersIcon
+} from '@heroicons/react/24/outline';
 
 export default function Dashboard() {
-  const { casosEmAndamento, casosFinalizados, casosArquivados } = useResumoDashboard();
-  const totalCasos = casosEmAndamento + casosFinalizados + casosArquivados;
+  const [filtroPeriodo, setFiltroPeriodo] = useState('todos');
+  const [filtroSexo, setFiltroSexo] = useState('todos');
+  const [filtroEtnia, setFiltroEtnia] = useState('todos');
 
-  // Dados de exemplo para o gráfico de casos mensais
-   const { casosPorTipo } = useCasosPorTipo();
-  
+  const { casosEmAndamento, casosFinalizados, casosArquivados, isLoading: isLoadingResumo } = useResumoDashboard(filtroPeriodo, filtroSexo);
+  const { casosPorTipo, isLoading: isLoadingCasos } = useCasosPorTipo(filtroPeriodo, filtroSexo);
+  const { masculino, feminino, outro, isLoading: isLoadingSexo } = useCasosPorSexo(filtroPeriodo);
+  const { isLoading: isLoadingEtnia } = useCasosPorEtnia(filtroPeriodo, filtroSexo);
+
+  const totalCasos = casosEmAndamento + casosFinalizados + casosArquivados;
+  const isLoading = isLoadingResumo || isLoadingCasos || isLoadingSexo || isLoadingEtnia;
+
+  const handleFiltroChange = (tipo: 'periodo' | 'sexo' | 'etnia', valor: string) => {
+    console.log('Dashboard - Alterando filtro:', { tipo, valor });
+    switch(tipo) {
+      case 'periodo':
+        setFiltroPeriodo(valor);
+        break;
+      case 'sexo':
+        setFiltroSexo(valor);
+        break;
+      case 'etnia':
+        setFiltroEtnia(valor);
+        break;
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-900">
@@ -23,49 +52,160 @@ export default function Dashboard() {
         <HeaderPerito />
         
         <main className="flex-1 overflow-y-auto p-4 pb-20 lg:pb-4 sm:p-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-100 mb-6 animate-fadeIn">
-            Dashboard do Perito
-          </h1>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-100 animate-fadeIn">
+              Dashboard do Perito
+            </h1>
 
-          {/* Cards de Estatísticas */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
-            <div className="bg-gray-800/80 p-4 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn hover:scale-105 transition-transform duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm">Total de Casos</p>
-                  <p className="text-2xl font-bold text-white">{totalCasos}</p>
+            {/* Filtros */}
+            <div className="flex flex-wrap gap-2">
+              <select
+                value={filtroPeriodo}
+                onChange={(e) => handleFiltroChange('periodo', e.target.value)}
+                disabled={isLoading}
+                className={`bg-gray-800 text-gray-100 border border-gray-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 ${
+                  isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700'
+                }`}
+              >
+                <option value="todos">Todos os Períodos</option>
+                <option value="semana">Última Semana</option>
+                <option value="mes">Último Mês</option>
+                <option value="ano">Último Ano</option>
+              </select>
+
+              <select
+                value={filtroSexo}
+                onChange={(e) => handleFiltroChange('sexo', e.target.value)}
+                disabled={isLoading}
+                className={`bg-gray-800 text-gray-100 border border-gray-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 ${
+                  isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700'
+                }`}
+              >
+                <option value="todos">Todos os Sexos</option>
+                <option value="masculino">Masculino</option>
+                <option value="feminino">Feminino</option>
+                <option value="outro">Outro</option>
+              </select>
+
+              <select
+                value={filtroEtnia}
+                onChange={(e) => handleFiltroChange('etnia', e.target.value)}
+                disabled={isLoading}
+                className={`bg-gray-800 text-gray-100 border border-gray-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 ${
+                  isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700'
+                }`}
+              >
+                <option value="todos">Todas as Etnias</option>
+                <option value="branca">Branca</option>
+                <option value="parda">Parda</option>
+                <option value="preta">Preta</option>
+                <option value="amarela">Amarela</option>
+                <option value="indigena">Indígena</option>
+                <option value="outro">Outra</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Cards de Estatísticas - Status */}
+          <div className="mb-4">
+            <h2 className="text-base font-semibold text-gray-200 mb-3">Status dos Casos</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+              <div className={`bg-gray-800/80 p-3 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 ${
+                isLoading ? 'opacity-50' : 'hover:scale-105'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-400 text-xs">Total de Casos</p>
+                    <p className="text-xl font-bold text-white">
+                      {isLoading ? '...' : totalCasos}
+                    </p>
+                  </div>
+                  <FolderIcon className={`h-6 w-6 text-amber-500 ${isLoading ? 'animate-pulse' : ''}`} />
                 </div>
-                <FolderIcon className="h-8 w-8 text-amber-500 animate-pulse" />
+              </div>
+
+              <div className={`bg-gray-800/80 p-3 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 ${
+                isLoading ? 'opacity-50' : 'hover:scale-105'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-400 text-xs">Em Andamento</p>
+                    <p className="text-xl font-bold text-white">
+                      {isLoading ? '...' : casosEmAndamento}
+                    </p>
+                  </div>
+                  <ClockIcon className={`h-6 w-6 text-yellow-500 ${isLoading ? 'animate-pulse' : ''}`} />
+                </div>
+              </div>
+
+              <div className={`bg-gray-800/80 p-3 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 ${
+                isLoading ? 'opacity-50' : 'hover:scale-105'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-400 text-xs">Finalizados</p>
+                    <p className="text-xl font-bold text-white">
+                      {isLoading ? '...' : casosFinalizados}
+                    </p>
+                  </div>
+                  <CheckCircleIcon className={`h-6 w-6 text-green-500 ${isLoading ? 'animate-pulse' : ''}`} />
+                </div>
+              </div>
+
+              <div className={`bg-gray-800/80 p-3 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 ${
+                isLoading ? 'opacity-50' : 'hover:scale-105'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-400 text-xs">Arquivados</p>
+                    <p className="text-xl font-bold text-white">
+                      {isLoading ? '...' : casosArquivados}
+                    </p>
+                  </div>
+                  <ArchiveBoxIcon className={`h-6 w-6 text-purple-500 ${isLoading ? 'animate-pulse' : ''}`} />
+                </div>
               </div>
             </div>
+          </div>
 
-            <div className="bg-gray-800/80 p-4 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn hover:scale-105 transition-transform duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm">Em Andamento</p>
-                  <p className="text-2xl font-bold text-white">{casosEmAndamento}</p>
+          {/* Cards de Estatísticas - Sexo (Mini Cards) */}
+          <div className="mb-4">
+            <h2 className="text-base font-semibold text-gray-200 mb-3">Distribuição por Sexo</h2>
+            <div className="flex gap-2 max-w-[200px]">
+              <div className={`bg-gray-800/80 p-2 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 flex-1 ${
+                isLoading ? 'opacity-50' : 'hover:scale-105'
+              }`}>
+                <div className="flex flex-col items-center">
+                  <UserIcon className={`h-4 w-4 text-blue-500 mb-1 ${isLoading ? 'animate-pulse' : ''}`} />
+                  <p className="text-gray-400 text-[10px] text-center">Masculino</p>
+                  <p className="text-sm font-bold text-white">
+                    {isLoading ? '...' : masculino}
+                  </p>
                 </div>
-                <ClockIcon className="h-8 w-8 text-yellow-500 animate-pulse" />
               </div>
-            </div>
 
-            <div className="bg-gray-800/80 p-4 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn hover:scale-105 transition-transform duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm">Finalizados</p>
-                  <p className="text-2xl font-bold text-white">{casosFinalizados}</p>
+              <div className={`bg-gray-800/80 p-2 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 flex-1 ${
+                isLoading ? 'opacity-50' : 'hover:scale-105'
+              }`}>
+                <div className="flex flex-col items-center">
+                  <UserGroupIcon className={`h-4 w-4 text-pink-500 mb-1 ${isLoading ? 'animate-pulse' : ''}`} />
+                  <p className="text-gray-400 text-[10px] text-center">Feminino</p>
+                  <p className="text-sm font-bold text-white">
+                    {isLoading ? '...' : feminino}
+                  </p>
                 </div>
-                <CheckCircleIcon className="h-8 w-8 text-green-500 animate-pulse" />
               </div>
-            </div>
 
-            <div className="bg-gray-800/80 p-4 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn hover:scale-105 transition-transform duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm">Arquivados</p>
-                  <p className="text-2xl font-bold text-white">{casosArquivados}</p>
+              <div className={`bg-gray-800/80 p-2 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 flex-1 ${
+                isLoading ? 'opacity-50' : 'hover:scale-105'
+              }`}>
+                <div className="flex flex-col items-center">
+                  <UsersIcon className={`h-4 w-4 text-purple-500 mb-1 ${isLoading ? 'animate-pulse' : ''}`} />
+                  <p className="text-gray-400 text-[10px] text-center">Outros</p>
+                  <p className="text-sm font-bold text-white">
+                    {isLoading ? '...' : outro}
+                  </p>
                 </div>
-                <ArchiveBoxIcon className="h-8 w-8 text-purple-500 animate-pulse" />
               </div>
             </div>
           </div>
@@ -76,8 +216,12 @@ export default function Dashboard() {
               casosEmAndamento={casosEmAndamento}
               casosFinalizados={casosFinalizados}
               casosArquivados={casosArquivados}
+              isLoading={isLoading}
             />
-            <DashboardPeritoCasosMensais casos={casosPorTipo} />
+            <DashboardPeritoCasosMensais 
+              casos={casosPorTipo} 
+              isLoading={isLoading}
+            />
           </div>
         </main>
       </div>

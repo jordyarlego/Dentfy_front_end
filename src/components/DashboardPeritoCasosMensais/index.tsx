@@ -30,9 +30,21 @@ interface CasoTipo {
 
 interface DashboardPeritoCasosMensaisProps {
   casos: CasoTipo[];
+  isLoading?: boolean;
 }
 
-export default function DashboardPeritoCasosMensais({ casos }: DashboardPeritoCasosMensaisProps) {
+export default function DashboardPeritoCasosMensais({ casos, isLoading = false }: DashboardPeritoCasosMensaisProps) {
+  console.log('DashboardPeritoCasosMensais - Props recebidas:', { casos, isLoading });
+
+  if (isLoading || casos.length === 0) {
+    console.log('DashboardPeritoCasosMensais - Mostrando estado de carregamento');
+    return (
+      <div className="bg-gray-800/80 p-4 rounded-lg shadow-md border border-gray-700 h-[300px] flex items-center justify-center">
+        <div className="text-amber-500 animate-pulse">Carregando dados...</div>
+      </div>
+    );
+  }
+
   const dadosColunaConfig = {
     labels: casos.map(caso => caso.tipo),
     datasets: [
@@ -57,12 +69,14 @@ export default function DashboardPeritoCasosMensais({ casos }: DashboardPeritoCa
     ],
   };
 
+  console.log('DashboardPeritoCasosMensais - Configuração do gráfico:', dadosColunaConfig);
+
   const opcoesColuna = {
     responsive: true,
     maintainAspectRatio: false,
     animation: {
       duration: 2000,
-      easing: 'easeInOutQuart',
+      easing: 'easeInOutQuart' as const,
       delay: (context: ScriptableContext<'bar'>) => context.dataIndex * 100,
     },
     plugins: {
@@ -72,10 +86,10 @@ export default function DashboardPeritoCasosMensais({ casos }: DashboardPeritoCa
       title: {
         display: true,
         text: 'Casos por Tipo',
-        color: '#f3f4f6', // text-gray-100
+        color: '#f3f4f6',
         font: {
           size: 18,
-          weight: 'bold',
+          weight: 'bold' as const,
           family: "'Inter', sans-serif",
         },
         padding: {
@@ -84,10 +98,10 @@ export default function DashboardPeritoCasosMensais({ casos }: DashboardPeritoCa
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(17, 24, 39, 0.8)', // bg-gray-900 com opacidade
+        backgroundColor: 'rgba(17, 24, 39, 0.8)',
         titleFont: {
           size: 14,
-          weight: 'bold',
+          weight: 'bold' as const,
         },
         bodyFont: {
           size: 12,
@@ -102,11 +116,11 @@ export default function DashboardPeritoCasosMensais({ casos }: DashboardPeritoCa
       y: {
         beginAtZero: true,
         grid: {
-          color: 'rgba(107, 114, 128, 0.1)', // grid mais suave
+          color: 'rgba(107, 114, 128, 0.1)',
           drawBorder: false,
         },
         ticks: {
-          color: '#e5e7eb', // text-gray-200
+          color: '#e5e7eb',
           font: {
             size: 12,
           },
@@ -119,10 +133,10 @@ export default function DashboardPeritoCasosMensais({ casos }: DashboardPeritoCa
           display: false,
         },
         ticks: {
-          color: '#e5e7eb', // text-gray-200
+          color: '#e5e7eb',
           font: {
             size: 12,
-            weight: 'bold',
+            weight: 'bold' as const,
           },
           padding: 8,
         },
@@ -130,10 +144,10 @@ export default function DashboardPeritoCasosMensais({ casos }: DashboardPeritoCa
     },
     interaction: {
       intersect: false,
-      mode: 'index',
+      mode: 'index' as const,
     },
     hover: {
-      mode: 'nearest',
+      mode: 'nearest' as const,
       intersect: true,
     },
   };
