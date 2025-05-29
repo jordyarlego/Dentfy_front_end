@@ -8,13 +8,15 @@ interface ModalConfirmacaoDeleteProps {
   onClose: () => void;
   onConfirm: () => void;
   titulo: string;
+  buttonText?: string;
 }
 
 export default function ModalConfirmacaoDelete({
   isOpen,
   onClose,
   onConfirm,
-  titulo
+  titulo,
+  buttonText = "Excluir Caso"
 }: ModalConfirmacaoDeleteProps) {
   useEffect(() => {
     if (isOpen) {
@@ -64,13 +66,13 @@ export default function ModalConfirmacaoDelete({
           
           <div className="text-center mb-6">
             <p className="text-gray-300 mb-2">
-              Você está prestes a excluir o caso:
+              Você está prestes a excluir:
             </p>
             <p className="text-amber-500 font-medium">
               {titulo}
             </p>
             <p className="text-gray-400 text-sm mt-4">
-              Esta ação não poderá ser desfeita e todas as evidências relacionadas serão perdidas.
+              Esta ação não poderá ser desfeita.
             </p>
           </div>
 
@@ -91,7 +93,7 @@ export default function ModalConfirmacaoDelete({
             >
               <FaTrash className="h-4 w-4 group-hover:scale-110 transition-transform" />
               <span className="relative">
-                <span className="relative z-10">Excluir Caso</span>
+                <span className="relative z-10">{buttonText}</span>
                 <span className="absolute inset-x-0 bottom-0 h-0.5 bg-white/30 transform scale-x-0 group-hover:scale-x-100 transition-transform"></span>
               </span>
             </button>
