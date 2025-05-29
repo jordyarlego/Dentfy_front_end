@@ -263,13 +263,6 @@ export default function ModalVisualizacaoPerito({
                         <h4 className="text-amber-100 font-medium line-clamp-1">{vitima.nomeCompleto}</h4>
                         <div className="flex gap-2 shrink-0">
                           <button
-                            className="text-gray-400 hover:text-amber-400 transition-all duration-300 cursor-pointer hover:scale-110"
-                            title="Visualizar Vítima"
-                            disabled
-                          >
-                            <FaEye className="h-4 w-4" />
-                          </button>
-                          <button
                             onClick={() => handleDeletarVitima(vitima)}
                             className="text-gray-400 hover:text-red-400 transition-all duration-300 cursor-pointer hover:scale-110"
                             title="Excluir Vítima"
