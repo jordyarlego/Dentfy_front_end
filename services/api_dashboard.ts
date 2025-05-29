@@ -90,7 +90,7 @@ export function useCasosPorTipo(filtroPeriodo: string = 'todos', filtroSexo: str
           .sort((a: CasoTipo, b: CasoTipo) => a.tipo.localeCompare(b.tipo));
 
         console.log('Dados processados (casos por tipo):', novosDados);
-        setCasosPorTipo(novosDados);
+          setCasosPorTipo(novosDados);
       } catch (error) {
         if (error instanceof AxiosError) {
           console.error('Erro detalhado ao buscar dados por tipo:', error);
@@ -149,9 +149,9 @@ export function useResumoDashboard(filtroPeriodo: string = 'todos', filtroSexo: 
         const arquivados = porStatus.find((s: StatusItem) => normalizar(s.status).includes('arquivado'))?.total || 0;
 
         const novosDados = {
-          casosEmAndamento: andamento,
-          casosFinalizados: finalizados,
-          casosArquivados: arquivados,
+            casosEmAndamento: andamento,
+            casosFinalizados: finalizados,
+            casosArquivados: arquivados,
         };
 
         console.log('Dados processados (resumo):', novosDados);

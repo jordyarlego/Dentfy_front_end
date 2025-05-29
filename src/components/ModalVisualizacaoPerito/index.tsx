@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FaTimes, FaPlus, FaFileAlt, FaTrash, FaEye } from "react-icons/fa";
+import { FaTimes, FaPlus, FaFileAlt, FaTrash, FaEye, FaPencilAlt } from "react-icons/fa";
 import Image from "next/image";
 import Logo from "../../../public/assets/Logo.png";
 import ModalNovaEvidencia from "../ModalNovaEvidencia";
@@ -13,6 +13,7 @@ import ModalGerarLaudoEvidencia from "../ModalGerarLaudoEvidencia";
 import ModalDetalhesEvidencia from "../ModalDetalhesEvidencia";
 import ModalNovaVitima from '../ModalNovaVitima';
 import FeedbackModal from '../FeedbackModal';
+import ModalEditarVitima from '../ModalEditarVitima';
 
 interface CasoCompleto extends CasoData {
   _id: string;
@@ -86,6 +87,8 @@ export default function ModalVisualizacaoPerito({
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | 'delete', message: string } | null>(null);
   const [modalDeleteVitimaOpen, setModalDeleteVitimaOpen] = useState(false);
   const [vitimaParaDeletar, setVitimaParaDeletar] = useState<VitimaSalva | null>(null);
+  const [modalEditarVitimaOpen, setModalEditarVitimaOpen] = useState(false);
+  const [vitimaParaEditar, setVitimaParaEditar] = useState<VitimaSalva | null>(null);
 
   useEffect(() => {
     if (isOpen && caso._id) {
@@ -195,6 +198,20 @@ export default function ModalVisualizacaoPerito({
     setEvidenciaSelecionada(null);
   };
 
+  const handleEditarVitima = (vitima: VitimaSalva) => {
+    setVitimaParaEditar(vitima);
+    setModalEditarVitimaOpen(true);
+  };
+
+  const handleSalvarEdicaoVitima = (updatedVictim: VitimaSalva) => {
+    const updatedVictims = victims.map(v => v.id === updatedVictim.id ? updatedVictim : v);
+    saveCasoVictims(caso._id, updatedVictims);
+    setVictims(updatedVictims);
+    setModalEditarVitimaOpen(false);
+    setVitimaParaEditar(null);
+    setFeedback({ type: 'success', message: 'Vítima editada com sucesso!' });
+  };
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-[#0E1A26] border border-amber-500/30 rounded-xl shadow-2xl w-full max-w-6xl flex flex-col max-h-[90vh]">
@@ -262,6 +279,13 @@ export default function ModalVisualizacaoPerito({
                       <div className="flex justify-between items-center mb-2">
                         <h4 className="text-amber-100 font-medium line-clamp-1">{vitima.nomeCompleto}</h4>
                         <div className="flex gap-2 shrink-0">
+                          <button
+                            onClick={() => handleEditarVitima(vitima)}
+                            className="text-gray-400 hover:text-amber-400 transition-all duration-300 cursor-pointer hover:scale-110"
+                            title="Editar Vítima"
+                          >
+                            <FaPencilAlt className="h-4 w-4" />
+                          </button>
                           <button
                             onClick={() => handleDeletarVitima(vitima)}
                             className="text-gray-400 hover:text-red-400 transition-all duration-300 cursor-pointer hover:scale-110"
@@ -387,12 +411,13 @@ export default function ModalVisualizacaoPerito({
         onClose={() => setModalNovaEvidenciaOpen(false)}
         onSave={handleSalvarNovaEvidencia}
         casoId={caso._id}
+        usuarioId={"placeholder_usuario_id"}
       />
 
       <ModalDetalhesEvidencia
         isOpen={!!evidenciaSelecionada}
         onClose={() => setEvidenciaSelecionada(null)}
-        evidencia={evidenciaSelecionada as any}
+        evidencia={evidenciaSelecionada as CasoEvidencia}
         onGerarLaudo={handleGerarLaudo}
       />
 
@@ -406,7 +431,7 @@ export default function ModalVisualizacaoPerito({
         <ModalGerarLaudoEvidencia
           isOpen={!!evidenciaParaLaudo}
           onClose={() => setEvidenciaParaLaudo(null)}
-          evidencia={evidenciaParaLaudo as any}
+          evidencia={evidenciaParaLaudo as CasoEvidencia}
           onLaudoSaved={carregarEvidencias}
         />
       )}
@@ -451,7 +476,7 @@ export default function ModalVisualizacaoPerito({
         <FeedbackModal
           isOpen={!!feedback}
           onClose={() => setFeedback(null)}
-          type={feedback.type}
+          type={feedback.type as 'success' | 'delete' | 'edit'}
           message={feedback.message}
         />
       )}
@@ -466,6 +491,15 @@ export default function ModalVisualizacaoPerito({
           onConfirm={confirmarDelecaoVitima}
           titulo={`vítima ${vitimaParaDeletar.nomeCompleto}`}
           buttonText="Excluir Vítima"
+        />
+      )}
+
+      {modalEditarVitimaOpen && (
+        <ModalEditarVitima
+          isOpen={modalEditarVitimaOpen}
+          onClose={() => setModalEditarVitimaOpen(false)}
+          victim={vitimaParaEditar}
+          onSave={handleSalvarEdicaoVitima}
         />
       )}
 

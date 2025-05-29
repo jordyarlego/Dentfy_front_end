@@ -155,8 +155,8 @@ export default function DashboardPeritoCasosMensais({ casos, isLoading = false }
   return (
     <div className="bg-gray-800/80 p-6 rounded-lg shadow-lg border border-gray-700 transition-all duration-300 hover:shadow-amber-500/10">
       <div className="h-[300px] relative">
-        <Bar data={dadosColunaConfig} options={opcoesColuna} />
-      </div>
+    <Bar data={dadosColunaConfig} options={opcoesColuna} />
+  </div>
     </div>
   );
 }
