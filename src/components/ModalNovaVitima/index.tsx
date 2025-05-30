@@ -3,6 +3,8 @@ import { FaTimes, FaSave, FaArrowLeft } from "react-icons/fa";
 import Image from "next/image";
 import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
 import Logo from "../../../public/assets/Logo.png";
+// Importa o método PostVitima
+import { PostVitima } from "../../../services/api_vitima";
 
 interface NovaVitima {
   nomeCompleto: string;
@@ -23,7 +25,11 @@ interface ModalNovaVitimaProps {
 const etnias = ["Preto", "Pardo", "Branco", "Amarelo", "Indígena"];
 const sexos = ["Masculino", "Feminino", "Outro"];
 
-export default function ModalNovaVitima({ isOpen, onClose, onSave }: ModalNovaVitimaProps) {
+export default function ModalNovaVitima({
+  isOpen,
+  onClose,
+  onSave,
+}: ModalNovaVitimaProps) {
   const [formData, setFormData] = useState<NovaVitima>({
     nomeCompleto: "",
     dataNascimento: "",
@@ -31,9 +37,10 @@ export default function ModalNovaVitima({ isOpen, onClose, onSave }: ModalNovaVi
     endereco: "",
     etnia: "Preto",
     cpf: "",
-    nic: ""
+    nic: "",
   });
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -46,7 +53,7 @@ export default function ModalNovaVitima({ isOpen, onClose, onSave }: ModalNovaVi
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -68,7 +75,33 @@ export default function ModalNovaVitima({ isOpen, onClose, onSave }: ModalNovaVi
       return;
     }
 
-    onSave(formData);
+    setLoading(true);
+    try {
+      // Chama a rota correta já definida em PostVitima ("/api/periciados")
+      await PostVitima({
+        nomeCompleto: formData.nomeCompleto,
+        dataNascimento: formData.dataNascimento,
+        sexo: formData.sexo,
+        etnia: formData.etnia,
+        cpf: formData.cpf,
+        nic: formData.nic,
+      });
+      setLoading(false);
+      onSave(formData);
+      onClose();
+      setFormData({
+        nomeCompleto: "",
+        dataNascimento: "",
+        sexo: "Masculino",
+        endereco: "",
+        etnia: "Preto",
+        cpf: "",
+        nic: "",
+      });
+    } catch (err) {
+      setLoading(false);
+      setError("Erro ao salvar vítima. Tente novamente.");
+    }
   };
 
   if (!isOpen) return null;
@@ -120,7 +153,9 @@ export default function ModalNovaVitima({ isOpen, onClose, onSave }: ModalNovaVi
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-amber-500">Nome Completo *</label>
+              <label className="block text-sm font-medium text-amber-500">
+                Nome Completo *
+              </label>
               <input
                 type="text"
                 name="nomeCompleto"
@@ -132,7 +167,9 @@ export default function ModalNovaVitima({ isOpen, onClose, onSave }: ModalNovaVi
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-amber-500">Data de Nascimento *</label>
+              <label className="block text-sm font-medium text-amber-500">
+                Data de Nascimento *
+              </label>
               <input
                 type="date"
                 name="dataNascimento"
@@ -143,7 +180,9 @@ export default function ModalNovaVitima({ isOpen, onClose, onSave }: ModalNovaVi
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-amber-500">Sexo *</label>
+              <label className="block text-sm font-medium text-amber-500">
+                Sexo *
+              </label>
               <select
                 name="sexo"
                 value={formData.sexo}
@@ -152,12 +191,16 @@ export default function ModalNovaVitima({ isOpen, onClose, onSave }: ModalNovaVi
                 required
               >
                 {sexos.map((sexo) => (
-                  <option key={sexo} value={sexo}>{sexo}</option>
+                  <option key={sexo} value={sexo}>
+                    {sexo}
+                  </option>
                 ))}
               </select>
             </div>
             <div className="col-span-1 sm:col-span-2 md:col-span-3">
-              <label className="block text-sm font-medium text-amber-500">Endereço *</label>
+              <label className="block text-sm font-medium text-amber-500">
+                Endereço *
+              </label>
               <input
                 type="text"
                 name="endereco"
@@ -169,7 +212,9 @@ export default function ModalNovaVitima({ isOpen, onClose, onSave }: ModalNovaVi
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-amber-500">Etnia *</label>
+              <label className="block text-sm font-medium text-amber-500">
+                Etnia *
+              </label>
               <select
                 name="etnia"
                 value={formData.etnia}
@@ -178,12 +223,16 @@ export default function ModalNovaVitima({ isOpen, onClose, onSave }: ModalNovaVi
                 required
               >
                 {etnias.map((etnia) => (
-                  <option key={etnia} value={etnia}>{etnia}</option>
+                  <option key={etnia} value={etnia}>
+                    {etnia}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-amber-500">CPF *</label>
+              <label className="block text-sm font-medium text-amber-500">
+                CPF *
+              </label>
               <input
                 type="text"
                 name="cpf"
@@ -197,7 +246,9 @@ export default function ModalNovaVitima({ isOpen, onClose, onSave }: ModalNovaVi
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-amber-500">NIC *</label>
+              <label className="block text-sm font-medium text-amber-500">
+                NIC *
+              </label>
               <input
                 type="text"
                 name="nic"
@@ -216,8 +267,9 @@ export default function ModalNovaVitima({ isOpen, onClose, onSave }: ModalNovaVi
             <button
               type="submit"
               className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all duration-300 group cursor-pointer"
+              disabled={loading}
             >
-              Salvar
+              {loading ? "Salvando..." : "Salvar"}
               <FaSave className="text-md group-hover:scale-110 transition-transform" />
             </button>
           </div>
@@ -225,4 +277,4 @@ export default function ModalNovaVitima({ isOpen, onClose, onSave }: ModalNovaVi
       </div>
     </div>
   );
-} 
+}

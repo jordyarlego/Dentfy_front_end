@@ -1,19 +1,37 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FaTimes, FaPlus, FaFileAlt, FaTrash, FaEye, FaPencilAlt } from "react-icons/fa";
+import {
+  FaTimes,
+  FaPlus,
+  FaFileAlt,
+  FaTrash,
+  FaEye,
+  FaPencilAlt,
+} from "react-icons/fa";
 import Image from "next/image";
 import Logo from "../../../public/assets/Logo.png";
 import ModalNovaEvidencia from "../ModalNovaEvidencia";
 import EvidenciasSalvaSucess from "../EvidenciasSalvaSucess";
-import { CasoData, Evidencia as CasoEvidencia, deletarCaso } from "../ModalNovoCasoPerito/API_NovoCaso";
-import { postEvidencia, getEvidenciaByCaseId, deleteEvidencia as deleteEvidenciaAPI, Evidencia as ApiEvidencia } from '../../../services/api_nova_evidencia';
+import {
+  CasoData,
+  Evidencia as CasoEvidencia,
+  deletarCaso,
+} from "../ModalNovoCasoPerito/API_NovoCaso";
+import {
+  postEvidencia,
+  getEvidenciaByCaseId,
+  deleteEvidencia as deleteEvidenciaAPI,
+  Evidencia as ApiEvidencia,
+} from "../../../services/api_nova_evidencia";
 import ModalRelatorio from "../ModalRelatorio";
 import ModalConfirmacaoDelete from "../ModalConfirmacaoDelete";
 import ModalGerarLaudoEvidencia from "../ModalGerarLaudoEvidencia";
 import ModalDetalhesEvidencia from "../ModalDetalhesEvidencia";
-import ModalNovaVitima from '../ModalNovaVitima';
-import FeedbackModal from '../FeedbackModal';
-import ModalEditarVitima from '../ModalEditarVitima';
+import ModalNovaVitima from "../ModalNovaVitima";
+import FeedbackModal from "../FeedbackModal";
+import ModalEditarVitima from "../ModalEditarVitima";
+// Importa GetVitimaById para uso futuro
+import { GetVitimaById } from "../../../services/api_vitima";
 
 interface CasoCompleto extends CasoData {
   _id: string;
@@ -33,18 +51,18 @@ interface VitimaSalva {
 }
 
 const getCasoVictims = (casoId: string): VitimaSalva[] => {
-  if (typeof window === 'undefined') return [];
+  if (typeof window === "undefined") return [];
   const victims = localStorage.getItem(`caso_${casoId}_victims`);
   return victims ? JSON.parse(victims) : [];
 };
 
 const saveCasoVictims = (casoId: string, victims: VitimaSalva[]) => {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   localStorage.setItem(`caso_${casoId}_victims`, JSON.stringify(victims));
 };
 
 interface CriarEvidenciaAPI {
-  tipo: 'imagem' | 'texto';
+  tipo: "imagem" | "texto";
   dataColeta: string;
   coletadoPor: string;
   descricao: string;
@@ -53,7 +71,7 @@ interface CriarEvidenciaAPI {
 }
 
 interface NovaEvidenciaForm {
-  tipo: 'imagem' | 'texto';
+  tipo: "imagem" | "texto";
   descricao: string;
   coletadoPor: string;
   arquivo: File | null;
@@ -75,20 +93,31 @@ export default function ModalVisualizacaoPerito({
 }: ModalVisualizacaoPeritoProps) {
   const [modalNovaEvidenciaOpen, setModalNovaEvidenciaOpen] = useState(false);
   const [mostrarSucesso, setMostrarSucesso] = useState(false);
-  const [evidenciaParaLaudo, setEvidenciaParaLaudo] = useState<CasoEvidencia | null>(null);
-  const [evidencias, setEvidencias] = useState<CasoEvidencia[]>(caso.evidencias || []);
-  const [evidenciaSelecionada, setEvidenciaSelecionada] = useState<CasoEvidencia | null>(null);
+  const [evidenciaParaLaudo, setEvidenciaParaLaudo] =
+    useState<CasoEvidencia | null>(null);
+  const [evidencias, setEvidencias] = useState<CasoEvidencia[]>(
+    caso.evidencias || []
+  );
+  const [evidenciaSelecionada, setEvidenciaSelecionada] =
+    useState<CasoEvidencia | null>(null);
   const [modalRelatorioOpen, setModalRelatorioOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [modalDeleteOpen, setModalDeleteOpen] = useState(false);
-  const [evidenciaParaDeletar, setEvidenciaParaDeletar] = useState<CasoEvidencia | null>(null);
+  const [evidenciaParaDeletar, setEvidenciaParaDeletar] =
+    useState<CasoEvidencia | null>(null);
   const [modalNovaVitimaOpen, setModalNovaVitimaOpen] = useState(false);
   const [victims, setVictims] = useState<VitimaSalva[]>([]);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | 'delete', message: string } | null>(null);
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error" | "delete";
+    message: string;
+  } | null>(null);
   const [modalDeleteVitimaOpen, setModalDeleteVitimaOpen] = useState(false);
-  const [vitimaParaDeletar, setVitimaParaDeletar] = useState<VitimaSalva | null>(null);
+  const [vitimaParaDeletar, setVitimaParaDeletar] =
+    useState<VitimaSalva | null>(null);
   const [modalEditarVitimaOpen, setModalEditarVitimaOpen] = useState(false);
-  const [vitimaParaEditar, setVitimaParaEditar] = useState<VitimaSalva | null>(null);
+  const [vitimaParaEditar, setVitimaParaEditar] = useState<VitimaSalva | null>(
+    null
+  );
 
   useEffect(() => {
     if (isOpen && caso._id) {
@@ -96,7 +125,7 @@ export default function ModalVisualizacaoPerito({
       setVictims(getCasoVictims(caso._id));
     }
   }, [isOpen, caso._id]);
-  
+
   const carregarEvidencias = async () => {
     if (!caso._id) return;
     try {
@@ -106,27 +135,29 @@ export default function ModalVisualizacaoPerito({
       console.error("Erro ao carregar evidências:", error);
     }
   };
-  
+
   if (!isOpen) return null;
 
-  const handleSalvarNovaEvidencia = async (novaEvidencia: NovaEvidenciaForm) => {
+  const handleSalvarNovaEvidencia = async (
+    novaEvidencia: NovaEvidenciaForm
+  ) => {
     try {
       const dadosEvidencia: CriarEvidenciaAPI = {
         tipo: novaEvidencia.tipo,
         dataColeta: new Date().toISOString(),
         coletadoPor: novaEvidencia.coletadoPor,
-        descricao: novaEvidencia.descricao || 'Sem descrição',
+        descricao: novaEvidencia.descricao || "Sem descrição",
         caso: caso._id,
-        arquivo: novaEvidencia.arquivo
+        arquivo: novaEvidencia.arquivo,
       };
 
-      console.log('Enviando evidência:', dadosEvidencia);
+      console.log("Enviando evidência:", dadosEvidencia);
 
       await postEvidencia(dadosEvidencia);
       await carregarEvidencias();
       setModalNovaEvidenciaOpen(false);
       setMostrarSucesso(true);
-      
+
       if (onEvidenciaAdicionada) {
         onEvidenciaAdicionada();
       }
@@ -136,13 +167,13 @@ export default function ModalVisualizacaoPerito({
     }
   };
 
-  const handleSalvarNovaVitima = (vitima: Omit<VitimaSalva, 'id'>) => {
+  const handleSalvarNovaVitima = (vitima: Omit<VitimaSalva, "id">) => {
     const novaVitima: VitimaSalva = { ...vitima, id: Date.now().toString() };
     const updatedVictims = [...victims, novaVitima];
     saveCasoVictims(caso._id, updatedVictims);
     setVictims(updatedVictims);
     setModalNovaVitimaOpen(false);
-    setFeedback({ type: 'success', message: 'Vítima adicionada com sucesso!' });
+    setFeedback({ type: "success", message: "Vítima adicionada com sucesso!" });
   };
 
   const handleDeletarVitima = (vitima: VitimaSalva) => {
@@ -152,12 +183,14 @@ export default function ModalVisualizacaoPerito({
 
   const confirmarDelecaoVitima = () => {
     if (vitimaParaDeletar) {
-      const updatedVictims = victims.filter(v => v.id !== vitimaParaDeletar.id);
+      const updatedVictims = victims.filter(
+        (v) => v.id !== vitimaParaDeletar.id
+      );
       saveCasoVictims(caso._id, updatedVictims);
       setVictims(updatedVictims);
       setModalDeleteVitimaOpen(false);
       setVitimaParaDeletar(null);
-      setFeedback({ type: 'delete', message: 'Vítima excluída com sucesso!' });
+      setFeedback({ type: "delete", message: "Vítima excluída com sucesso!" });
     }
   };
 
@@ -204,12 +237,26 @@ export default function ModalVisualizacaoPerito({
   };
 
   const handleSalvarEdicaoVitima = (updatedVictim: VitimaSalva) => {
-    const updatedVictims = victims.map(v => v.id === updatedVictim.id ? updatedVictim : v);
+    const updatedVictims = victims.map((v) =>
+      v.id === updatedVictim.id ? updatedVictim : v
+    );
     saveCasoVictims(caso._id, updatedVictims);
     setVictims(updatedVictims);
     setModalEditarVitimaOpen(false);
     setVitimaParaEditar(null);
-    setFeedback({ type: 'success', message: 'Vítima editada com sucesso!' });
+    setFeedback({ type: "success", message: "Vítima editada com sucesso!" });
+  };
+
+  // Função utilitária para buscar vítima por ID na API (pode ser usada em futuras features)
+  const buscarVitimaPorId = async (id: string) => {
+    try {
+      const vitima = await GetVitimaById(id);
+      // Exemplo de uso: console.log(vitima);
+      return vitima;
+    } catch (error) {
+      setFeedback({ type: "error", message: "Erro ao buscar vítima na API." });
+      return null;
+    }
   };
 
   return (
@@ -226,7 +273,9 @@ export default function ModalVisualizacaoPerito({
                 height={40}
                 className="rounded-lg"
               />
-              <h2 className="text-2xl font-bold text-amber-500">{caso.titulo}</h2>
+              <h2 className="text-2xl font-bold text-amber-500">
+                {caso.titulo}
+              </h2>
             </div>
             <div className="flex items-center gap-4">
               <button
@@ -257,27 +306,42 @@ export default function ModalVisualizacaoPerito({
                 </h3>
                 <div className="space-y-2">
                   <p className="text-gray-300">
-                    <span className="font-medium text-amber-400">Descrição:</span>{" "}
-                    <span className="break-words whitespace-pre-wrap">{caso.descricao}</span>
+                    <span className="font-medium text-amber-400">
+                      Descrição:
+                    </span>{" "}
+                    <span className="break-words whitespace-pre-wrap">
+                      {caso.descricao}
+                    </span>
                   </p>
                   <p className="text-gray-300">
                     <span className="font-medium text-amber-400">Status:</span>{" "}
-                    <span className="bg-amber-500/20 px-2 py-1 rounded text-amber-400">{caso.status}</span>
+                    <span className="bg-amber-500/20 px-2 py-1 rounded text-amber-400">
+                      {caso.status}
+                    </span>
                   </p>
                   <p className="text-gray-300">
-                    <span className="font-medium text-amber-400">Data de Criação:</span>{" "}
+                    <span className="font-medium text-amber-400">
+                      Data de Criação:
+                    </span>{" "}
                     {new Date(caso.dataColeta).toLocaleDateString("pt-BR")}
                   </p>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-amber-500 mb-2">Vítimas</h3>
+                <h3 className="text-lg font-semibold text-amber-500 mb-2">
+                  Vítimas
+                </h3>
                 <div className="grid grid-cols-1 gap-4">
-                  {victims.map(vitima => (
-                    <div key={vitima.id} className="bg-gray-800/30 p-4 rounded-lg border border-gray-700 hover:border-amber-500/50 transition-all duration-300">
+                  {victims.map((vitima) => (
+                    <div
+                      key={vitima.id}
+                      className="bg-gray-800/30 p-4 rounded-lg border border-gray-700 hover:border-amber-500/50 transition-all duration-300"
+                    >
                       <div className="flex justify-between items-center mb-2">
-                        <h4 className="text-amber-100 font-medium line-clamp-1">{vitima.nomeCompleto}</h4>
+                        <h4 className="text-amber-100 font-medium line-clamp-1">
+                          {vitima.nomeCompleto}
+                        </h4>
                         <div className="flex gap-2 shrink-0">
                           <button
                             onClick={() => handleEditarVitima(vitima)}
@@ -296,17 +360,51 @@ export default function ModalVisualizacaoPerito({
                         </div>
                       </div>
                       <div className="text-gray-300 text-sm space-y-1">
-                         <p><span className="font-medium text-amber-400">Nascimento:</span> {new Date(vitima.dataNascimento).toLocaleDateString("pt-BR")}</p>
-                         <p><span className="font-medium text-amber-400">Sexo:</span> {vitima.sexo}</p>
-                         <p><span className="font-medium text-amber-400">Etnia:</span> {vitima.etnia}</p>
-                         <p className="line-clamp-1"><span className="font-medium text-amber-400">Endereço:</span> {vitima.endereco}</p>
-                         <p><span className="font-medium text-amber-400">CPF:</span> {vitima.cpf}</p>
-                         <p><span className="font-medium text-amber-400">NIC:</span> {vitima.nic}</p>
+                        <p>
+                          <span className="font-medium text-amber-400">
+                            Nascimento:
+                          </span>{" "}
+                          {new Date(vitima.dataNascimento).toLocaleDateString(
+                            "pt-BR"
+                          )}
+                        </p>
+                        <p>
+                          <span className="font-medium text-amber-400">
+                            Sexo:
+                          </span>{" "}
+                          {vitima.sexo}
+                        </p>
+                        <p>
+                          <span className="font-medium text-amber-400">
+                            Etnia:
+                          </span>{" "}
+                          {vitima.etnia}
+                        </p>
+                        <p className="line-clamp-1">
+                          <span className="font-medium text-amber-400">
+                            Endereço:
+                          </span>{" "}
+                          {vitima.endereco}
+                        </p>
+                        <p>
+                          <span className="font-medium text-amber-400">
+                            CPF:
+                          </span>{" "}
+                          {vitima.cpf}
+                        </p>
+                        <p>
+                          <span className="font-medium text-amber-400">
+                            NIC:
+                          </span>{" "}
+                          {vitima.nic}
+                        </p>
                       </div>
                     </div>
                   ))}
                   {victims.length === 0 && !modalNovaVitimaOpen && (
-                    <p className="text-gray-400 text-center italic">Nenhuma vítima cadastrada para este caso.</p>
+                    <p className="text-gray-400 text-center italic">
+                      Nenhuma vítima cadastrada para este caso.
+                    </p>
                   )}
                 </div>
               </div>
@@ -317,7 +415,9 @@ export default function ModalVisualizacaoPerito({
           <div className="w-1/2 border-l border-gray-700 flex flex-col min-h-0">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold text-amber-500">Evidências</h3>
+                <h3 className="text-xl font-semibold text-amber-500">
+                  Evidências
+                </h3>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setModalNovaEvidenciaOpen(true)}
@@ -381,7 +481,9 @@ export default function ModalVisualizacaoPerito({
                         {evidencia.coletadoPor}
                       </span>
                       <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">
-                        {new Date(evidencia.dataColeta).toLocaleDateString("pt-BR")}
+                        {new Date(evidencia.dataColeta).toLocaleDateString(
+                          "pt-BR"
+                        )}
                       </span>
                     </div>
                   </div>
@@ -422,9 +524,7 @@ export default function ModalVisualizacaoPerito({
       />
 
       {mostrarSucesso && (
-        <EvidenciasSalvaSucess
-          onClose={() => setMostrarSucesso(false)}
-        />
+        <EvidenciasSalvaSucess onClose={() => setMostrarSucesso(false)} />
       )}
 
       {evidenciaParaLaudo && (
@@ -476,7 +576,7 @@ export default function ModalVisualizacaoPerito({
         <FeedbackModal
           isOpen={!!feedback}
           onClose={() => setFeedback(null)}
-          type={feedback.type as 'success' | 'delete' | 'edit'}
+          type={feedback.type as "success" | "delete" | "edit"}
           message={feedback.message}
         />
       )}
