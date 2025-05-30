@@ -6,26 +6,18 @@ import DashboardPeritoCasosMensais from '../../components/DashboardPeritoCasosMe
 import SidebarPerito from '../../components/SidebarPerito';
 import HeaderPerito from '../../components/HeaderPerito';
 import { useResumoDashboard, useCasosPorTipo, useCasosPorSexo, useCasosPorEtnia } from '../../../services/api_dashboard';
-import {
-  FolderIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  ArchiveBoxIcon,
-  UserIcon,
-  UserGroupIcon,
-  UsersIcon
-} from '@heroicons/react/24/outline';
+import { FolderIcon, CheckCircleIcon, ClockIcon, ArchiveBoxIcon } from '@heroicons/react/24/outline';
+import DashboardPeritoDistribuicaoCombinada from '../../components/DashboardPeritoDistribuicaoCombinada';
 
 export default function Dashboard() {
   const [filtroPeriodo, setFiltroPeriodo] = useState('todos');
   const [filtroSexo, setFiltroSexo] = useState('todos');
   const [filtroEtnia, setFiltroEtnia] = useState('todos');
 
-  const { casosEmAndamento, casosFinalizados, casosArquivados, isLoading: isLoadingResumo } = useResumoDashboard(filtroPeriodo, filtroSexo, filtroEtnia);
-  const { casosPorTipo, isLoading: isLoadingCasos } = useCasosPorTipo(filtroPeriodo, filtroSexo, filtroEtnia);
+  const { casosEmAndamento, casosFinalizados, casosArquivados, isLoading: isLoadingResumo } = useResumoDashboard(filtroPeriodo, filtroSexo);
+  const { casosPorTipo, isLoading: isLoadingCasos } = useCasosPorTipo(filtroPeriodo, filtroSexo);
   const { masculino, feminino, outro, isLoading: isLoadingSexo } = useCasosPorSexo(filtroPeriodo, filtroSexo, filtroEtnia);
   const { casosPorEtnia, isLoading: isLoadingEtnia } = useCasosPorEtnia(filtroPeriodo, filtroSexo, filtroEtnia);
-
 
   const totalCasos = casosEmAndamento + casosFinalizados + casosArquivados;
   const isLoading = isLoadingResumo || isLoadingCasos || isLoadingSexo || isLoadingEtnia;
@@ -161,74 +153,14 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="mb-6">
-            <h2 className="text-base font-semibold text-gray-200 mb-3">Distribuição por Etnia</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 max-w-full">
-              {Object.entries(casosPorEtnia).map(([etnia, total]) => {
-                const colorMap: Record<string, string> = {
-                  branco: 'text-blue-400',
-                  preto: 'text-gray-300',
-                  pardo: 'text-yellow-800',
-                  amarelo: 'text-yellow-400',
-                  indigena: 'text-green-500',
-                  outro: 'text-purple-400',
-                };
+          {/* Substituir os cards de etnia e sexo pelo novo gráfico combinado */}
+          <DashboardPeritoDistribuicaoCombinada
+            casosPorEtnia={casosPorEtnia}
+            casosPorSexo={{ masculino, feminino, outro }}
+            isLoading={isLoading}
+          />
 
-                const iconColor = colorMap[etnia.toLowerCase()] || 'text-white';
-
-                return (
-                  <div
-                    key={etnia}
-                    className={`bg-gray-800/80 p-2 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 flex-1 ${isLoading ? 'opacity-50' : 'hover:scale-105'}`}
-                  >
-                    <div className="flex flex-col items-center">
-                      <UserIcon className={`h-4 w-4 mb-1 ${iconColor} ${isLoading ? 'animate-pulse' : ''}`} />
-                      <p className="text-gray-400 text-[10px] text-center capitalize">{etnia}</p>
-                      <p className="text-sm font-bold text-white">{isLoading ? '...' : total}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Cards de Estatísticas - Sexo (Mini Cards) */}
-<div className="mb-6">
-  <h2 className="text-base font-semibold text-gray-200 mb-3">Distribuição por Sexo</h2>
-  <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-2 max-w-full">
-    <div className={`bg-gray-800/80 p-2 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 flex-1 ${isLoading ? 'opacity-50' : 'hover:scale-105'}`}>
-      <div className="flex flex-col items-center">
-        <UserIcon className={`h-4 w-4 text-blue-500 mb-1 ${isLoading ? 'animate-pulse' : ''}`} />
-        <p className="text-gray-400 text-[10px] text-center">Masculino</p>
-        <p className="text-sm font-bold text-white">
-          {isLoading ? '...' : masculino}
-        </p>
-      </div>
-    </div>
-
-    <div className={`bg-gray-800/80 p-2 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 flex-1 ${isLoading ? 'opacity-50' : 'hover:scale-105'}`}>
-      <div className="flex flex-col items-center">
-        <UserIcon className={`h-4 w-4 text-pink-500 mb-1 ${isLoading ? 'animate-pulse' : ''}`} />
-        <p className="text-gray-400 text-[10px] text-center">Feminino</p>
-        <p className="text-sm font-bold text-white">
-          {isLoading ? '...' : feminino}
-        </p>
-      </div>
-    </div>
-
-    <div className={`bg-gray-800/80 p-2 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 flex-1 ${isLoading ? 'opacity-50' : 'hover:scale-105'}`}>
-      <div className="flex flex-col items-center">
-        <UserIcon className={`h-4 w-4 text-purple-500 mb-1 ${isLoading ? 'animate-pulse' : ''}`} />
-        <p className="text-gray-400 text-[10px] text-center">Outros</p>
-        <p className="text-sm font-bold text-white">
-          {isLoading ? '...' : outro}
-        </p>
-      </div>
-    </div>
-  </div>
-</div>
-
-          {/* Gráficos */}
+          {/* Gráficos (Distribuição e Casos Mensais) */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             <DashboardPeritoDistribuicao
               casosEmAndamento={casosEmAndamento}
