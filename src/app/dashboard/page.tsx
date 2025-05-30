@@ -6,10 +6,10 @@ import DashboardPeritoCasosMensais from '../../components/DashboardPeritoCasosMe
 import SidebarPerito from '../../components/SidebarPerito';
 import HeaderPerito from '../../components/HeaderPerito';
 import { useResumoDashboard, useCasosPorTipo, useCasosPorSexo, useCasosPorEtnia } from '../../../services/api_dashboard';
-import { 
-  FolderIcon, 
-  CheckCircleIcon, 
-  ClockIcon, 
+import {
+  FolderIcon,
+  CheckCircleIcon,
+  ClockIcon,
   ArchiveBoxIcon,
   UserIcon,
   UserGroupIcon,
@@ -21,17 +21,18 @@ export default function Dashboard() {
   const [filtroSexo, setFiltroSexo] = useState('todos');
   const [filtroEtnia, setFiltroEtnia] = useState('todos');
 
-  const { casosEmAndamento, casosFinalizados, casosArquivados, isLoading: isLoadingResumo } = useResumoDashboard(filtroPeriodo, filtroSexo);
-  const { casosPorTipo, isLoading: isLoadingCasos } = useCasosPorTipo(filtroPeriodo, filtroSexo);
-  const { masculino, feminino, outro, isLoading: isLoadingSexo } = useCasosPorSexo(filtroPeriodo);
-  const { isLoading: isLoadingEtnia } = useCasosPorEtnia(filtroPeriodo, filtroSexo);
+  const { casosEmAndamento, casosFinalizados, casosArquivados, isLoading: isLoadingResumo } = useResumoDashboard(filtroPeriodo, filtroSexo, filtroEtnia);
+  const { casosPorTipo, isLoading: isLoadingCasos } = useCasosPorTipo(filtroPeriodo, filtroSexo, filtroEtnia);
+  const { masculino, feminino, outro, isLoading: isLoadingSexo } = useCasosPorSexo(filtroPeriodo, filtroSexo, filtroEtnia);
+  const { casosPorEtnia, isLoading: isLoadingEtnia } = useCasosPorEtnia(filtroPeriodo, filtroSexo, filtroEtnia);
+
 
   const totalCasos = casosEmAndamento + casosFinalizados + casosArquivados;
   const isLoading = isLoadingResumo || isLoadingCasos || isLoadingSexo || isLoadingEtnia;
 
   const handleFiltroChange = (tipo: 'periodo' | 'sexo' | 'etnia', valor: string) => {
     console.log('Dashboard - Alterando filtro:', { tipo, valor });
-    switch(tipo) {
+    switch (tipo) {
       case 'periodo':
         setFiltroPeriodo(valor);
         break;
@@ -47,10 +48,10 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen bg-gray-900">
       <SidebarPerito />
-      
+
       <div className="flex-1 flex flex-col overflow-hidden">
         <HeaderPerito />
-        
+
         <main className="flex-1 overflow-y-auto p-4 pb-20 lg:pb-4 sm:p-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-100 animate-fadeIn">
@@ -63,9 +64,8 @@ export default function Dashboard() {
                 value={filtroPeriodo}
                 onChange={(e) => handleFiltroChange('periodo', e.target.value)}
                 disabled={isLoading}
-                className={`bg-gray-800 text-gray-100 border border-gray-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 ${
-                  isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700'
-                }`}
+                className={`bg-gray-800 text-gray-100 border border-gray-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700'
+                  }`}
               >
                 <option value="todos">Todos os Períodos</option>
                 <option value="semana">Última Semana</option>
@@ -77,9 +77,8 @@ export default function Dashboard() {
                 value={filtroSexo}
                 onChange={(e) => handleFiltroChange('sexo', e.target.value)}
                 disabled={isLoading}
-                className={`bg-gray-800 text-gray-100 border border-gray-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 ${
-                  isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700'
-                }`}
+                className={`bg-gray-800 text-gray-100 border border-gray-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700'
+                  }`}
               >
                 <option value="todos">Todos os Sexos</option>
                 <option value="masculino">Masculino</option>
@@ -91,28 +90,25 @@ export default function Dashboard() {
                 value={filtroEtnia}
                 onChange={(e) => handleFiltroChange('etnia', e.target.value)}
                 disabled={isLoading}
-                className={`bg-gray-800 text-gray-100 border border-gray-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 ${
-                  isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700'
-                }`}
+                className={`bg-gray-800 text-gray-100 border border-gray-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700'
+                  }`}
               >
                 <option value="todos">Todas as Etnias</option>
-                <option value="branca">Branca</option>
-                <option value="parda">Parda</option>
-                <option value="preta">Preta</option>
-                <option value="amarela">Amarela</option>
+                <option value="branco">Branca</option>
+                <option value="pardo">Parda</option>
+                <option value="preto">Preta</option>
+                <option value="amarelo">Amarela</option>
                 <option value="indigena">Indígena</option>
                 <option value="outro">Outra</option>
               </select>
             </div>
           </div>
-
           {/* Cards de Estatísticas - Status */}
           <div className="mb-4">
             <h2 className="text-base font-semibold text-gray-200 mb-3">Status dos Casos</h2>
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-              <div className={`bg-gray-800/80 p-3 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 ${
-                isLoading ? 'opacity-50' : 'hover:scale-105'
-              }`}>
+              <div className={`bg-gray-800/80 p-3 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 ${isLoading ? 'opacity-50' : 'hover:scale-105'
+                }`}>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-400 text-xs">Total de Casos</p>
@@ -124,9 +120,8 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className={`bg-gray-800/80 p-3 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 ${
-                isLoading ? 'opacity-50' : 'hover:scale-105'
-              }`}>
+              <div className={`bg-gray-800/80 p-3 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 ${isLoading ? 'opacity-50' : 'hover:scale-105'
+                }`}>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-400 text-xs">Em Andamento</p>
@@ -138,9 +133,8 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className={`bg-gray-800/80 p-3 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 ${
-                isLoading ? 'opacity-50' : 'hover:scale-105'
-              }`}>
+              <div className={`bg-gray-800/80 p-3 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 ${isLoading ? 'opacity-50' : 'hover:scale-105'
+                }`}>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-400 text-xs">Finalizados</p>
@@ -152,9 +146,8 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className={`bg-gray-800/80 p-3 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 ${
-                isLoading ? 'opacity-50' : 'hover:scale-105'
-              }`}>
+              <div className={`bg-gray-800/80 p-3 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 ${isLoading ? 'opacity-50' : 'hover:scale-105'
+                }`}>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-400 text-xs">Arquivados</p>
@@ -168,48 +161,73 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Cards de Estatísticas - Sexo (Mini Cards) */}
-          <div className="mb-4">
-            <h2 className="text-base font-semibold text-gray-200 mb-3">Distribuição por Sexo</h2>
-            <div className="flex gap-2 max-w-[200px]">
-              <div className={`bg-gray-800/80 p-2 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 flex-1 ${
-                isLoading ? 'opacity-50' : 'hover:scale-105'
-              }`}>
-                <div className="flex flex-col items-center">
-                  <UserIcon className={`h-4 w-4 text-blue-500 mb-1 ${isLoading ? 'animate-pulse' : ''}`} />
-                  <p className="text-gray-400 text-[10px] text-center">Masculino</p>
-                  <p className="text-sm font-bold text-white">
-                    {isLoading ? '...' : masculino}
-                  </p>
-                </div>
-              </div>
+          <div className="mb-6">
+            <h2 className="text-base font-semibold text-gray-200 mb-3">Distribuição por Etnia</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 max-w-full">
+              {Object.entries(casosPorEtnia).map(([etnia, total]) => {
+                const colorMap: Record<string, string> = {
+                  branco: 'text-blue-400',
+                  preto: 'text-gray-300',
+                  pardo: 'text-yellow-800',
+                  amarelo: 'text-yellow-400',
+                  indigena: 'text-green-500',
+                  outro: 'text-purple-400',
+                };
 
-              <div className={`bg-gray-800/80 p-2 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 flex-1 ${
-                isLoading ? 'opacity-50' : 'hover:scale-105'
-              }`}>
-                <div className="flex flex-col items-center">
-                  <UserGroupIcon className={`h-4 w-4 text-pink-500 mb-1 ${isLoading ? 'animate-pulse' : ''}`} />
-                  <p className="text-gray-400 text-[10px] text-center">Feminino</p>
-                  <p className="text-sm font-bold text-white">
-                    {isLoading ? '...' : feminino}
-                  </p>
-                </div>
-              </div>
+                const iconColor = colorMap[etnia.toLowerCase()] || 'text-white';
 
-              <div className={`bg-gray-800/80 p-2 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 flex-1 ${
-                isLoading ? 'opacity-50' : 'hover:scale-105'
-              }`}>
-                <div className="flex flex-col items-center">
-                  <UsersIcon className={`h-4 w-4 text-purple-500 mb-1 ${isLoading ? 'animate-pulse' : ''}`} />
-                  <p className="text-gray-400 text-[10px] text-center">Outros</p>
-                  <p className="text-sm font-bold text-white">
-                    {isLoading ? '...' : outro}
-                  </p>
-                </div>
-              </div>
+                return (
+                  <div
+                    key={etnia}
+                    className={`bg-gray-800/80 p-2 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 flex-1 ${isLoading ? 'opacity-50' : 'hover:scale-105'}`}
+                  >
+                    <div className="flex flex-col items-center">
+                      <UserIcon className={`h-4 w-4 mb-1 ${iconColor} ${isLoading ? 'animate-pulse' : ''}`} />
+                      <p className="text-gray-400 text-[10px] text-center capitalize">{etnia}</p>
+                      <p className="text-sm font-bold text-white">{isLoading ? '...' : total}</p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
-          
+
+          {/* Cards de Estatísticas - Sexo (Mini Cards) */}
+<div className="mb-6">
+  <h2 className="text-base font-semibold text-gray-200 mb-3">Distribuição por Sexo</h2>
+  <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-2 max-w-full">
+    <div className={`bg-gray-800/80 p-2 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 flex-1 ${isLoading ? 'opacity-50' : 'hover:scale-105'}`}>
+      <div className="flex flex-col items-center">
+        <UserIcon className={`h-4 w-4 text-blue-500 mb-1 ${isLoading ? 'animate-pulse' : ''}`} />
+        <p className="text-gray-400 text-[10px] text-center">Masculino</p>
+        <p className="text-sm font-bold text-white">
+          {isLoading ? '...' : masculino}
+        </p>
+      </div>
+    </div>
+
+    <div className={`bg-gray-800/80 p-2 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 flex-1 ${isLoading ? 'opacity-50' : 'hover:scale-105'}`}>
+      <div className="flex flex-col items-center">
+        <UserIcon className={`h-4 w-4 text-pink-500 mb-1 ${isLoading ? 'animate-pulse' : ''}`} />
+        <p className="text-gray-400 text-[10px] text-center">Feminino</p>
+        <p className="text-sm font-bold text-white">
+          {isLoading ? '...' : feminino}
+        </p>
+      </div>
+    </div>
+
+    <div className={`bg-gray-800/80 p-2 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 flex-1 ${isLoading ? 'opacity-50' : 'hover:scale-105'}`}>
+      <div className="flex flex-col items-center">
+        <UserIcon className={`h-4 w-4 text-purple-500 mb-1 ${isLoading ? 'animate-pulse' : ''}`} />
+        <p className="text-gray-400 text-[10px] text-center">Outros</p>
+        <p className="text-sm font-bold text-white">
+          {isLoading ? '...' : outro}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
           {/* Gráficos */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             <DashboardPeritoDistribuicao
@@ -218,8 +236,8 @@ export default function Dashboard() {
               casosArquivados={casosArquivados}
               isLoading={isLoading}
             />
-            <DashboardPeritoCasosMensais 
-              casos={casosPorTipo} 
+            <DashboardPeritoCasosMensais
+              casos={casosPorTipo}
               isLoading={isLoading}
             />
           </div>
