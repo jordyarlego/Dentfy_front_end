@@ -40,15 +40,15 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen bg-gray-900">
       <SidebarPerito />
-
+      
       <div className="flex-1 flex flex-col overflow-hidden">
         <HeaderPerito />
-
+        
         <main className="flex-1 overflow-y-auto p-4 pb-20 lg:pb-4 sm:p-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-100 animate-fadeIn">
-              Dashboard do Perito
-            </h1>
+            Dashboard do Perito
+          </h1>
 
             {/* Filtros */}
             <div className="flex flex-wrap gap-2">
@@ -101,47 +101,47 @@ export default function Dashboard() {
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2">
               <div className={`bg-gray-800/80 p-3 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 ${isLoading ? 'opacity-50' : 'hover:scale-105'
                 }`}>
-                <div className="flex items-center justify-between">
-                  <div>
+              <div className="flex items-center justify-between">
+                <div>
                     <p className="text-gray-400 text-xs">Total de Casos</p>
                     <p className="text-xl font-bold text-white">
                       {isLoading ? '...' : totalCasos}
                     </p>
-                  </div>
-                  <FolderIcon className={`h-6 w-6 text-amber-500 ${isLoading ? 'animate-pulse' : ''}`} />
                 </div>
+                  <FolderIcon className={`h-6 w-6 text-amber-500 ${isLoading ? 'animate-pulse' : ''}`} />
               </div>
+            </div>
 
               <div className={`bg-gray-800/80 p-3 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 ${isLoading ? 'opacity-50' : 'hover:scale-105'
                 }`}>
-                <div className="flex items-center justify-between">
-                  <div>
+              <div className="flex items-center justify-between">
+                <div>
                     <p className="text-gray-400 text-xs">Em Andamento</p>
                     <p className="text-xl font-bold text-white">
                       {isLoading ? '...' : casosEmAndamento}
                     </p>
-                  </div>
-                  <ClockIcon className={`h-6 w-6 text-yellow-500 ${isLoading ? 'animate-pulse' : ''}`} />
                 </div>
+                  <ClockIcon className={`h-6 w-6 text-yellow-500 ${isLoading ? 'animate-pulse' : ''}`} />
               </div>
+            </div>
 
               <div className={`bg-gray-800/80 p-3 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 ${isLoading ? 'opacity-50' : 'hover:scale-105'
                 }`}>
-                <div className="flex items-center justify-between">
-                  <div>
+              <div className="flex items-center justify-between">
+                <div>
                     <p className="text-gray-400 text-xs">Finalizados</p>
                     <p className="text-xl font-bold text-white">
                       {isLoading ? '...' : casosFinalizados}
                     </p>
-                  </div>
-                  <CheckCircleIcon className={`h-6 w-6 text-green-500 ${isLoading ? 'animate-pulse' : ''}`} />
                 </div>
+                  <CheckCircleIcon className={`h-6 w-6 text-green-500 ${isLoading ? 'animate-pulse' : ''}`} />
               </div>
+            </div>
 
               <div className={`bg-gray-800/80 p-3 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 ${isLoading ? 'opacity-50' : 'hover:scale-105'
                 }`}>
-                <div className="flex items-center justify-between">
-                  <div>
+              <div className="flex items-center justify-between">
+                <div>
                     <p className="text-gray-400 text-xs">Arquivados</p>
                     <p className="text-xl font-bold text-white">
                       {isLoading ? '...' : casosArquivados}
@@ -152,7 +152,7 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-
+          
           {/* Substituir os cards de etnia e sexo pelo novo gráfico combinado */}
           <DashboardPeritoDistribuicaoCombinada
             casosPorEtnia={casosPorEtnia}

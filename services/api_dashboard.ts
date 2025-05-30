@@ -61,7 +61,7 @@ const etniaNormalizada = removerAcentos(etnia).toLowerCase();
   return mapaEtnia[etniaNormalizada] || etnia;
 }
 // Hook para casos por tipo com filtros
-export function useCasosPorTipo(filtroPeriodo: string = 'todos', filtroSexo: string = 'todos') {
+export function useCasosPorTipo(filtroPeriodo: string = 'todos', filtroSexo: string = 'todos', filtroEtnia: string = 'todos') {
   const [casosPorTipo, setCasosPorTipo] = useState<CasoTipo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -71,7 +71,11 @@ export function useCasosPorTipo(filtroPeriodo: string = 'todos', filtroSexo: str
       try {
         const token = localStorage.getItem('token');
         const response = await api.get("/api/dashboard/resumo", {
-          params: { periodo: filtroPeriodo, sexo: filtroSexo },
+          params: { 
+            periodo: filtroPeriodo, 
+            sexo: filtroSexo,
+            etnia: ajustarEtniaParaEnvio(filtroEtnia)
+          },
           headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -92,14 +96,14 @@ export function useCasosPorTipo(filtroPeriodo: string = 'todos', filtroSexo: str
     };
 
     fetchData();
-  }, [filtroPeriodo, filtroSexo]);
+  }, [filtroPeriodo, filtroSexo, filtroEtnia]);
 
   return { casosPorTipo, isLoading };
 }
 
 
 // Hook para resumo do dashboard com filtros
-export function useResumoDashboard(filtroPeriodo: string = 'todos', filtroSexo: string = 'todos') {
+export function useResumoDashboard(filtroPeriodo: string = 'todos', filtroSexo: string = 'todos', filtroEtnia: string = 'todos') {
   const [dados, setDados] = useState<ResumoDashboard>({
     casosEmAndamento: 0,
     casosFinalizados: 0,
@@ -109,14 +113,15 @@ export function useResumoDashboard(filtroPeriodo: string = 'todos', filtroSexo: 
 
   useEffect(() => {
     const fetchData = async () => {
-      console.log('Buscando resumo com filtros:', { filtroPeriodo, filtroSexo });
+      console.log('Buscando resumo com filtros:', { filtroPeriodo, filtroSexo, filtroEtnia });
       setIsLoading(true);
       try {
         const token = localStorage.getItem('token');
         const response = await api.get<{ porStatus: StatusItem[] }>("/api/dashboard/resumo", {
           params: {
             periodo: filtroPeriodo,
-            sexo: filtroSexo
+            sexo: filtroSexo,
+            etnia: ajustarEtniaParaEnvio(filtroEtnia)
           },
           headers: {
             Authorization: `Bearer ${token}`
@@ -148,7 +153,7 @@ export function useResumoDashboard(filtroPeriodo: string = 'todos', filtroSexo: 
     };
 
     fetchData();
-  }, [filtroPeriodo, filtroSexo]);
+  }, [filtroPeriodo, filtroSexo, filtroEtnia]);
 
   return { ...dados, isLoading };
 }
