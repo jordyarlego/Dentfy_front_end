@@ -7,6 +7,7 @@ export interface apiVitima {
   cpf: string;
   nic: string;
   etnia: "Preto" | "Pardo" | "Branco" | "Amarelo" | "Indígena";
+  endereco: string; // Campo obrigatório adicionado
   caso?: string;
 }
 

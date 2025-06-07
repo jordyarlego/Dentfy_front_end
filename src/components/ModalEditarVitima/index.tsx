@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { FaTimes } from 'react-icons/fa';
+import { useState, useEffect } from "react";
+import { FaTimes } from "react-icons/fa";
 
 interface VitimaData {
-  id: string;
+  _id: string; // Alterado de id para _id para corresponder à VitimaSalva
   nomeCompleto: string;
   dataNascimento: string;
   sexo: string;
   endereco: string;
-  etnia: string;
+  etnia: "Preto" | "Pardo" | "Branco" | "Amarelo" | "Indígena"; // Ajustando o tipo
   cpf: string;
   nic: string;
+  caso: string; // Alterado de opcional para obrigatório
 }
 
 interface ModalEditarVitimaProps {
@@ -31,20 +32,31 @@ export default function ModalEditarVitima({
 
   useEffect(() => {
     if (victim) {
-      setFormData(victim);
+      // Garantir que a data está no formato correto para o input date
+      const formattedDate = victim.dataNascimento.split("T")[0];
+      setFormData({
+        ...victim,
+        dataNascimento: formattedDate,
+      });
     }
   }, [victim]);
 
   if (!isOpen || !formData) return null;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-     if (name === 'cpf' || name === 'nic') {
+    if (name === "cpf" || name === "nic") {
       // Permitir apenas números
-      const numericValue = value.replace(/[^0-9]/g, '');
-      setFormData(prevData => (prevData ? { ...prevData, [name]: numericValue } : null));
+      const numericValue = value.replace(/[^0-9]/g, "");
+      setFormData((prevData) =>
+        prevData ? { ...prevData, [name]: numericValue } : null
+      );
     } else {
-      setFormData(prevData => (prevData ? { ...prevData, [name]: value } : null));
+      setFormData((prevData) =>
+        prevData ? { ...prevData, [name]: value } : null
+      );
     }
   };
 
@@ -71,62 +83,128 @@ export default function ModalEditarVitima({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} id="edit-victim-form" className="p-6 space-y-4 overflow-y-auto custom-scrollbar grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-4">
+        <form
+          onSubmit={handleSubmit}
+          id="edit-victim-form"
+          className="p-6 space-y-4 overflow-y-auto custom-scrollbar grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-4"
+        >
           {/* Fields */}
           <div>
-            <label className="block text-sm font-medium text-amber-500">Nome Completo *</label>
-            <input type="text" name="nomeCompleto" value={formData.nomeCompleto} onChange={handleChange} className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500" required />
+            <label className="block text-sm font-medium text-amber-500">
+              Nome Completo *
+            </label>
+            <input
+              type="text"
+              name="nomeCompleto"
+              value={formData.nomeCompleto}
+              onChange={handleChange}
+              className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              required
+            />
           </div>
           <div>
-            <label className="block text-sm font-medium text-amber-500">Data de Nascimento *</label>
-            <input type="date" name="dataNascimento" value={formData.dataNascimento} onChange={handleChange} className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500" required />
+            <label className="block text-sm font-medium text-amber-500">
+              Data de Nascimento *
+            </label>
+            <input
+              type="date"
+              name="dataNascimento"
+              value={formData.dataNascimento}
+              onChange={handleChange}
+              className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              required
+            />
           </div>
           <div>
-            <label className="block text-sm font-medium text-amber-500">Sexo *</label>
+            <label className="block text-sm font-medium text-amber-500">
+              Sexo *
+            </label>
             {/* Dropdown de Sexo */}
-            <select name="sexo" value={formData.sexo} onChange={handleChange} className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500" required>
+            <select
+              name="sexo"
+              value={formData.sexo}
+              onChange={handleChange}
+              className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              required
+            >
               <option value="Masculino">Masculino</option>
               <option value="Feminino">Feminino</option>
               <option value="Outro">Outro</option>
             </select>
           </div>
-           <div>
-            <label className="block text-sm font-medium text-amber-500">Etnia</label>
+          <div>
+            <label className="block text-sm font-medium text-amber-500">
+              Etnia
+            </label>
             {/* Dropdown de Etnia */}
-            <select name="etnia" value={formData.etnia} onChange={handleChange} className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
-               <option value="">Selecione</option>
-               <option value="Branca">Branca</option>
-               <option value="Preta">Preta</option>
-               <option value="Parda">Parda</option>
-               <option value="Amarela">Amarela</option>
-               <option value="Indígena">Indígena</option>
-               <option value="Não declarado">Não declarado</option>
+            <select
+              name="etnia"
+              value={formData.etnia}
+              onChange={handleChange}
+              className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              required
+            >
+              <option value="Preto">Preto</option>
+              <option value="Pardo">Pardo</option>
+              <option value="Branco">Branco</option>
+              <option value="Amarelo">Amarelo</option>
+              <option value="Indígena">Indígena</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-amber-500">Endereço</label>
-            <input type="text" name="endereco" value={formData.endereco} onChange={handleChange} className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500" />
+            <label className="block text-sm font-medium text-amber-500">
+              Endereço
+            </label>
+            <input
+              type="text"
+              name="endereco"
+              value={formData.endereco}
+              onChange={handleChange}
+              className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+            />
           </div>
           <div>
-            <label className="block text-sm font-medium text-amber-500">CPF</label>
+            <label className="block text-sm font-medium text-amber-500">
+              CPF
+            </label>
             {/* CPF - Validação numérica e max 11 */}
-            <input type="text" name="cpf" value={formData.cpf} onChange={handleChange} maxLength={11} pattern="[0-9]*" title="Apenas números" className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500" />
+            <input
+              type="text"
+              name="cpf"
+              value={formData.cpf}
+              onChange={handleChange}
+              maxLength={11}
+              pattern="[0-9]*"
+              title="Apenas números"
+              className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+            />
           </div>
           <div>
-            <label className="block text-sm font-medium text-amber-500">NIC</label>
-             {/* NIC - Validação numérica e max 11 */}
-            <input type="text" name="nic" value={formData.nic} onChange={handleChange} maxLength={11} pattern="[0-9]*" title="Apenas números" className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500" />
+            <label className="block text-sm font-medium text-amber-500">
+              NIC
+            </label>
+            {/* NIC - Validação numérica e max 11 */}
+            <input
+              type="text"
+              name="nic"
+              value={formData.nic}
+              onChange={handleChange}
+              maxLength={11}
+              pattern="[0-9]*"
+              title="Apenas números"
+              className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+            />
           </div>
         </form>
-         <div className="flex justify-end p-6 pt-4 border-t border-gray-700">
-            <button
-              type="submit"
-              className="px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-all duration-300 font-semibold cursor-pointer"
-              form="edit-victim-form"
-            >
-              Salvar Edição
-            </button>
-          </div>
+        <div className="flex justify-end p-6 pt-4 border-t border-gray-700">
+          <button
+            type="submit"
+            className="px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-all duration-300 font-semibold cursor-pointer"
+            form="edit-victim-form"
+          >
+            Salvar Edição
+          </button>
+        </div>
       </div>
       {/* Custom Scrollbar Style */}
       <style jsx global>{`
@@ -148,4 +226,4 @@ export default function ModalEditarVitima({
       `}</style>
     </div>
   );
-} 
+}

@@ -31,7 +31,12 @@ import ModalNovaVitima from "../ModalNovaVitima";
 import FeedbackModal from "../FeedbackModal";
 import ModalEditarVitima from "../ModalEditarVitima";
 // Importa GetVitimaById para uso futuro
-import { GetVitimaById } from "../../../services/api_vitima";
+import {
+  GetVitimaById,
+  PostVitima,
+  PutVitima,
+  DeleteVitima,
+} from "../../../services/api_vitima";
 
 interface CasoCompleto extends CasoData {
   _id: string;
@@ -40,26 +45,16 @@ interface CasoCompleto extends CasoData {
 }
 
 interface VitimaSalva {
-  id: string;
+  _id: string;
   nomeCompleto: string;
   dataNascimento: string;
   sexo: string;
-  endereco: string;
   etnia: string;
   cpf: string;
   nic: string;
+  endereco: string;
+  caso: string;
 }
-
-const getCasoVictims = (casoId: string): VitimaSalva[] => {
-  if (typeof window === "undefined") return [];
-  const victims = localStorage.getItem(`caso_${casoId}_victims`);
-  return victims ? JSON.parse(victims) : [];
-};
-
-const saveCasoVictims = (casoId: string, victims: VitimaSalva[]) => {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(`caso_${casoId}_victims`, JSON.stringify(victims));
-};
 
 interface CriarEvidenciaAPI {
   tipo: "imagem" | "texto";
@@ -122,7 +117,7 @@ export default function ModalVisualizacaoPerito({
   useEffect(() => {
     if (isOpen && caso._id) {
       carregarEvidencias();
-      setVictims(getCasoVictims(caso._id));
+      carregarVitimas();
     }
   }, [isOpen, caso._id]);
 
@@ -133,6 +128,19 @@ export default function ModalVisualizacaoPerito({
       setEvidencias(data);
     } catch (error) {
       console.error("Erro ao carregar evidências:", error);
+    }
+  };
+
+  const carregarVitimas = async () => {
+    try {
+      const vitimasData = await GetVitimaById(caso._id);
+      setVictims(vitimasData);
+    } catch (error) {
+      console.error("Erro ao carregar vítimas:", error);
+      setFeedback({
+        type: "error",
+        message: "Erro ao carregar vítimas do caso.",
+      });
     }
   };
 
@@ -167,30 +175,47 @@ export default function ModalVisualizacaoPerito({
     }
   };
 
-  const handleSalvarNovaVitima = (vitima: Omit<VitimaSalva, "id">) => {
-    const novaVitima: VitimaSalva = { ...vitima, id: Date.now().toString() };
-    const updatedVictims = [...victims, novaVitima];
-    saveCasoVictims(caso._id, updatedVictims);
-    setVictims(updatedVictims);
-    setModalNovaVitimaOpen(false);
-    setFeedback({ type: "success", message: "Vítima adicionada com sucesso!" });
+  const handleSalvarNovaVitima = async (vitima: Omit<VitimaSalva, "_id">) => {
+    try {
+      await PostVitima({ ...vitima, caso: caso._id });
+      await carregarVitimas(); // Recarrega a lista de vítimas
+      setModalNovaVitimaOpen(false);
+      setFeedback({
+        type: "success",
+        message: "Vítima adicionada com sucesso!",
+      });
+    } catch (error) {
+      console.error("Erro ao adicionar vítima:", error);
+      setFeedback({
+        type: "error",
+        message: "Erro ao adicionar vítima. Tente novamente.",
+      });
+    }
   };
 
-  const handleDeletarVitima = (vitima: VitimaSalva) => {
+  const handleDeletarVitima = async (vitima: VitimaSalva) => {
     setVitimaParaDeletar(vitima);
     setModalDeleteVitimaOpen(true);
   };
 
-  const confirmarDelecaoVitima = () => {
+  const confirmarDelecaoVitima = async () => {
     if (vitimaParaDeletar) {
-      const updatedVictims = victims.filter(
-        (v) => v.id !== vitimaParaDeletar.id
-      );
-      saveCasoVictims(caso._id, updatedVictims);
-      setVictims(updatedVictims);
-      setModalDeleteVitimaOpen(false);
-      setVitimaParaDeletar(null);
-      setFeedback({ type: "delete", message: "Vítima excluída com sucesso!" });
+      try {
+        await DeleteVitima(vitimaParaDeletar._id);
+        await carregarVitimas(); // Recarrega a lista de vítimas
+        setModalDeleteVitimaOpen(false);
+        setVitimaParaDeletar(null);
+        setFeedback({
+          type: "delete",
+          message: "Vítima excluída com sucesso!",
+        });
+      } catch (error) {
+        console.error("Erro ao deletar vítima:", error);
+        setFeedback({
+          type: "error",
+          message: "Erro ao excluir vítima. Tente novamente.",
+        });
+      }
     }
   };
 
@@ -236,26 +261,22 @@ export default function ModalVisualizacaoPerito({
     setModalEditarVitimaOpen(true);
   };
 
-  const handleSalvarEdicaoVitima = (updatedVictim: VitimaSalva) => {
-    const updatedVictims = victims.map((v) =>
-      v.id === updatedVictim.id ? updatedVictim : v
-    );
-    saveCasoVictims(caso._id, updatedVictims);
-    setVictims(updatedVictims);
-    setModalEditarVitimaOpen(false);
-    setVitimaParaEditar(null);
-    setFeedback({ type: "success", message: "Vítima editada com sucesso!" });
-  };
-
-  // Função utilitária para buscar vítima por ID na API (pode ser usada em futuras features)
-  const buscarVitimaPorId = async (id: string) => {
+  const handleSalvarEdicaoVitima = async (updatedVictim: VitimaSalva) => {
     try {
-      const vitima = await GetVitimaById(id);
-      // Exemplo de uso: console.log(vitima);
-      return vitima;
+      await PutVitima(updatedVictim._id, {
+        ...updatedVictim,
+        caso: caso._id,
+      });
+      await carregarVitimas(); // Recarrega a lista de vítimas
+      setModalEditarVitimaOpen(false);
+      setVitimaParaEditar(null);
+      setFeedback({ type: "success", message: "Vítima editada com sucesso!" });
     } catch (error) {
-      setFeedback({ type: "error", message: "Erro ao buscar vítima na API." });
-      return null;
+      console.error("Erro ao editar vítima:", error);
+      setFeedback({
+        type: "error",
+        message: "Erro ao editar vítima. Tente novamente.",
+      });
     }
   };
 
@@ -323,7 +344,7 @@ export default function ModalVisualizacaoPerito({
                     <span className="font-medium text-amber-400">
                       Data de Criação:
                     </span>{" "}
-                    {new Date(caso.dataColeta).toLocaleDateString("pt-BR")}
+                    {new Date(caso.dataAbertura).toLocaleDateString("pt-BR")}
                   </p>
                 </div>
               </div>
@@ -335,7 +356,7 @@ export default function ModalVisualizacaoPerito({
                 <div className="grid grid-cols-1 gap-4">
                   {victims.map((vitima) => (
                     <div
-                      key={vitima.id}
+                      key={vitima._id} // Trocando id por _id
                       className="bg-gray-800/30 p-4 rounded-lg border border-gray-700 hover:border-amber-500/50 transition-all duration-300"
                     >
                       <div className="flex justify-between items-center mb-2">
@@ -440,9 +461,9 @@ export default function ModalVisualizacaoPerito({
             {/* Lista de Evidências com Scroll */}
             <div className="flex-1 overflow-y-auto custom-scrollbar px-6 pb-6">
               <div className="grid grid-cols-1 gap-4">
-                {evidencias.map((evidencia, index) => (
+                {evidencias.map((evidencia) => (
                   <div
-                    key={index}
+                    key={evidencia._id} // Trocando index por _id
                     className="bg-gray-800/30 p-4 rounded-lg border border-gray-700 hover:border-amber-500/50 transition-all duration-300"
                   >
                     <div className="flex justify-between items-start mb-2">
