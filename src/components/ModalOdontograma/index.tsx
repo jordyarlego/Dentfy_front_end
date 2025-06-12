@@ -1,7 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FaTimes, FaSave, FaUndo, FaTooth, FaHistory } from "react-icons/fa";
+import {
+  FaTimes,
+  FaSave,
+  FaTooth,
+  FaHistory,
+  FaSkullCrossbones,
+  FaWrench,
+  FaMinusSquare,
+  FaCrown,
+  FaCheckCircle,
+  FaPoo,
+  FaTools,
+  FaPlusSquare,
+} from "react-icons/fa";
 import OdontogramaSuccess from "../OdontogramaSuccess";
 import {
   UpdateOdontograma,
@@ -32,32 +45,81 @@ interface Dente {
   observacoes: string;
 }
 
+interface DentePosicao {
+  numero: number;
+  top: string;
+  left: string;
+  width: string;
+  height: string;
+}
+
+const allToothNumbers = [
+  18, 17, 16, 15, 14, 13, 12, 11,
+  21, 22, 23, 24, 25, 26, 27, 28,
+  48, 47, 46, 45, 44, 43, 42, 41,
+  31, 32, 33, 34, 35, 36, 37, 38,
+];
+
 export default function ModalOdontograma({
   isOpen,
   onClose,
   vitima,
 }: ModalOdontogramaProps) {
   const [dentes, setDentes] = useState<Dente[]>([]);
-  const [denteSelecionado, setDenteSelecionado] = useState<Dente | null>(null);
+  const [denteSelecionado, setDenteSelecionado] = useState<number>(allToothNumbers[0]);
+  const [statusSelecionado, setStatusSelecionado] = useState<Dente["status"]>("saudavel");
   const [observacao, setObservacao] = useState("");
   const [loading, setLoading] = useState(false);
   const [showSuccessFeedback, setShowSuccessFeedback] = useState(false);
-  const [historicoDentes, setHistoricoDentes] = useState<{
-    [key: number]: Dente[];
-  }>({});
   const [odontogramaSalvo, setOdontogramaSalvo] = useState<Dente[]>([]);
   const [loadingOdontograma, setLoadingOdontograma] = useState(false);
 
-  // Inicializar dentes (1-32)
+  const dentesPosicoes: DentePosicao[] = [
+    { numero: 18, top: '22%', left: '10%', width: '5%', height: '8%' },
+    { numero: 17, top: '22%', left: '13.5%', width: '5%', height: '8%' },
+    { numero: 16, top: '22%', left: '17%', width: '5%', height: '8%' },
+    { numero: 15, top: '22%', left: '20.5%', width: '5%', height: '8%' },
+    { numero: 14, top: '22%', left: '24%', width: '5%', height: '8%' },
+    { numero: 13, top: '22%', left: '27.5%', width: '5%', height: '8%' },
+    { numero: 12, top: '22%', left: '31%', width: '5%', height: '8%' },
+    { numero: 11, top: '22%', left: '34.5%', width: '5%', height: '8%' },
+    { numero: 21, top: '22%', left: '38%', width: '5%', height: '8%' },
+    { numero: 22, top: '22%', left: '41.5%', width: '5%', height: '8%' },
+    { numero: 23, top: '22%', left: '45%', width: '5%', height: '8%' },
+    { numero: 24, top: '22%', left: '48.5%', width: '5%', height: '8%' },
+    { numero: 25, top: '22%', left: '52%', width: '5%', height: '8%' },
+    { numero: 26, top: '22%', left: '55.5%', width: '5%', height: '8%' },
+    { numero: 27, top: '22%', left: '59%', width: '5%', height: '8%' },
+    { numero: 28, top: '22%', left: '62.5%', width: '5%', height: '8%' },
+    { numero: 48, top: '63%', left: '10%', width: '5%', height: '8%' },
+    { numero: 47, top: '63%', left: '13.5%', width: '5%', height: '8%' },
+    { numero: 46, top: '63%', left: '17%', width: '5%', height: '8%' },
+    { numero: 45, top: '63%', left: '20.5%', width: '5%', height: '8%' },
+    { numero: 44, top: '63%', left: '24%', width: '5%', height: '8%' },
+    { numero: 43, top: '63%', left: '27.5%', width: '5%', height: '8%' },
+    { numero: 42, top: '63%', left: '31%', width: '5%', height: '8%' },
+    { numero: 41, top: '63%', left: '34.5%', width: '5%', height: '8%' },
+    { numero: 31, top: '63%', left: '38%', width: '5%', height: '8%' },
+    { numero: 32, top: '63%', left: '41.5%', width: '5%', height: '8%' },
+    { numero: 33, top: '63%', left: '45%', width: '5%', height: '8%' },
+    { numero: 34, top: '63%', left: '48.5%', width: '5%', height: '8%' },
+    { numero: 35, top: '63%', left: '52%', width: '5%', height: '8%' },
+    { numero: 36, top: '63%', left: '55.5%', width: '5%', height: '8%' },
+    { numero: 37, top: '63%', left: '59%', width: '5%', height: '8%' },
+    { numero: 38, top: '63%', left: '62.5%', width: '5%', height: '8%' },
+  ];
+
+  // Inicializar dentes com a numeração correta
   useEffect(() => {
     if (isOpen) {
-      const dentesIniciais: Dente[] = Array.from({ length: 32 }, (_, i) => ({
-        numero: i + 1,
+      const dentesIniciais: Dente[] = allToothNumbers.map((numero) => ({
+        numero,
         status: "saudavel",
         observacoes: "",
       }));
       setDentes(dentesIniciais);
-      setDenteSelecionado(null);
+      setDenteSelecionado(allToothNumbers[0]);
+      setStatusSelecionado("saudavel");
       setObservacao("");
     }
   }, [isOpen]);
@@ -69,9 +131,36 @@ export default function ModalOdontograma({
         setLoadingOdontograma(true);
         try {
           const response = await GetOdontograma(vitima._id);
+          console.log("API Response (GetOdontograma):", response); // DEBUG: Log da resposta da API
           if (response.length > 0) {
-            setOdontogramaSalvo(response);
-            setDentes(response); // Atualiza o odontograma atual com os dados salvos
+            // Garantir que os dentes salvos sejam mesclados com a estrutura completa
+            const mergedDentes: Dente[] = allToothNumbers.map((num) => {
+              const savedDenteFromApi = response.find((d: { numero: number; status: string; observacoes?: string; }) => d.numero === num);
+              
+              if (savedDenteFromApi) {
+                // Assegura que o status é do tipo correto
+                const validatedStatus: Dente["status"] = validateStatus(savedDenteFromApi.status);
+                return {
+                  numero: savedDenteFromApi.numero,
+                  status: validatedStatus,
+                  observacoes: savedDenteFromApi.observacoes || "",
+                };
+              } else {
+                return { numero: num, status: "saudavel", observacoes: "" };
+              }
+            });
+            console.log("Merged Dentes (after API fetch):", mergedDentes); // DEBUG: Log dos dentes mesclados
+            setOdontogramaSalvo(mergedDentes);
+            setDentes(mergedDentes); // Atualiza o odontograma atual com os dados salvos
+          } else {
+            // Se não houver odontograma salvo, inicializa com dentes saudáveis
+            const dentesIniciais: Dente[] = allToothNumbers.map((numero) => ({
+              numero,
+              status: "saudavel",
+              observacoes: "",
+            }));
+            setDentes(dentesIniciais);
+            setOdontogramaSalvo([]);
           }
         } catch (error) {
           console.error("❌ Erro ao buscar odontograma:", error);
@@ -87,17 +176,34 @@ export default function ModalOdontograma({
   const getStatusColor = (status: string) => {
     switch (status) {
       case "saudavel":
-        return "bg-white border-gray-300";
+        return "text-green-500";
       case "cariado":
-        return "bg-red-500 border-red-600";
+        return "text-red-500";
       case "restaurado":
-        return "bg-blue-500 border-blue-600";
+        return "text-blue-500";
       case "extraido":
-        return "bg-gray-800 border-gray-700";
+        return "text-gray-500";
       case "protesado":
-        return "bg-yellow-500 border-yellow-600";
+        return "text-yellow-500";
       default:
-        return "bg-white border-gray-300";
+        return "text-white";
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "saudavel":
+        return null;
+      case "cariado":
+        return <FaPoo className="h-4 w-4" />;
+      case "restaurado":
+        return <FaTools className="h-4 w-4" />;
+      case "extraido":
+        return <FaMinusSquare className="h-4 w-4" />;
+      case "protesado":
+        return <FaPlusSquare className="h-4 w-4" />;
+      default:
+        return null;
     }
   };
 
@@ -118,41 +224,27 @@ export default function ModalOdontograma({
     }
   };
 
-  const handleDenteClick = (dente: Dente) => {
-    setDenteSelecionado(dente);
-    setObservacao(dente.observacoes);
-    // Inicializa o histórico para o dente se ainda não existir
-    if (!historicoDentes[dente.numero]) {
-      setHistoricoDentes((prev) => ({
-        ...prev,
-        [dente.numero]: [dente],
-      }));
+  // Função auxiliar para validar e tipar o status
+  const validateStatus = (status: string): Dente["status"] => {
+    const validStatuses: Dente["status"][] = ["saudavel", "cariado", "restaurado", "extraido", "protesado"];
+    if (validStatuses.includes(status as Dente["status"])) {
+      return status as Dente["status"];
     }
+    return "saudavel"; // Retorna um status padrão caso seja inválido
   };
 
-  const handleStatusChange = (status: Dente["status"]) => {
-    if (denteSelecionado) {
-      const novoDente = {
-        ...denteSelecionado,
-        status,
-        observacoes: observacao,
-      };
-      const dentesAtualizados = dentes.map((dente) =>
-        dente.numero === denteSelecionado.numero ? novoDente : dente
-      );
-
-      // Atualiza o histórico
-      setHistoricoDentes((prev) => ({
-        ...prev,
-        [denteSelecionado.numero]: [
-          ...(prev[denteSelecionado.numero] || []),
-          novoDente,
-        ],
-      }));
-
-      setDentes(dentesAtualizados);
-      setDenteSelecionado(novoDente);
-    }
+  const handleAplicarMudanca = () => {
+    const dentesAtualizados = dentes.map((dente) =>
+      dente.numero === denteSelecionado
+        ? { ...dente, status: statusSelecionado, observacoes: observacao }
+        : dente
+    );
+    setDentes(dentesAtualizados);
+    // Manter a observação para o dente selecionado se ele já tiver uma, senão limpar
+    const denteAtual = dentesAtualizados.find(d => d.numero === denteSelecionado);
+    setObservacao(denteAtual?.observacoes || "");
+    // Atualizar o status selecionado para refletir o estado atual do dente
+    setStatusSelecionado(denteAtual?.status || "saudavel");
   };
 
   const handleSalvar = async () => {
@@ -180,7 +272,6 @@ export default function ModalOdontograma({
       });
 
       setShowSuccessFeedback(true);
-
       setTimeout(() => {
         onClose();
         setShowSuccessFeedback(false);
@@ -192,32 +283,17 @@ export default function ModalOdontograma({
     }
   };
 
-  const handleDesfazer = () => {
-    if (denteSelecionado) {
-      const historicoDente = historicoDentes[denteSelecionado.numero];
-
-      if (historicoDente && historicoDente.length > 1) {
-        // Remove o último estado do histórico
-        const novoHistorico = historicoDente.slice(0, -1);
-        const estadoAnterior = novoHistorico[novoHistorico.length - 1];
-
-        // Atualiza o histórico
-        setHistoricoDentes((prev) => ({
-          ...prev,
-          [denteSelecionado.numero]: novoHistorico,
-        }));
-
-        // Atualiza o dente para o estado anterior
-        const dentesAtualizados = dentes.map((dente) =>
-          dente.numero === denteSelecionado.numero ? estadoAnterior : dente
-        );
-
-        setDentes(dentesAtualizados);
-        setDenteSelecionado(estadoAnterior);
-        setObservacao(estadoAnterior.observacoes);
-      }
+  // Atualizar observação e status quando o dente selecionado muda
+  useEffect(() => {
+    const currentDente = dentes.find(d => d.numero === denteSelecionado);
+    if (currentDente) {
+      setObservacao(currentDente.observacoes);
+      setStatusSelecionado(currentDente.status);
+    } else {
+      setObservacao("");
+      setStatusSelecionado("saudavel");
     }
-  };
+  }, [denteSelecionado, dentes]);
 
   if (!isOpen || !vitima) return null;
 
@@ -247,104 +323,74 @@ export default function ModalOdontograma({
           {/* Conteúdo */}
           <div className="flex flex-1 min-h-0">
             {/* Odontograma */}
-            <div className="flex-1 p-6 overflow-y-auto">
-              <div className="bg-gray-800/30 p-6 rounded-xl border border-gray-700">
-                <h3 className="text-lg font-medium text-amber-500 mb-4 text-center">
-                  Odontograma - {vitima.nomeCompleto}
-                </h3>
+            <div className="flex-1 p-6 overflow-y-auto relative">
+              <div
+                className="relative w-full pb-[50%] bg-contain bg-no-repeat bg-center"
+                style={{ backgroundImage: "url('/assets/odontograma.png')" }}
+              >
+                {dentesPosicoes.map((pos) => {
+                  const dente = dentes.find((d) => d.numero === pos.numero);
+                  if (!dente) return null;
 
-                {/* Odontograma Superior */}
-                <div className="mb-8">
-                  <h4 className="text-sm font-medium text-amber-400 mb-3 text-center">
-                    Arco Superior
-                  </h4>
-                  <div className="grid grid-cols-16 gap-1 mb-2">
-                    {dentes.slice(0, 16).map((dente) => (
-                      <button
-                        key={dente.numero}
-                        onClick={() => handleDenteClick(dente)}
-                        className={`w-8 h-8 rounded-full border-2 transition-all duration-300 hover:scale-110 ${getStatusColor(
-                          dente.status
-                        )} ${
-                          denteSelecionado?.numero === dente.numero
-                            ? "ring-2 ring-amber-500"
-                            : ""
-                        }`}
-                        title={`Dente ${dente.numero} - ${getStatusLabel(
-                          dente.status
-                        )}`}
-                      >
-                        <span className="text-xs font-bold text-gray-800">
-                          {dente.numero}
-                        </span>
-                      </button>
-                    ))}
+                  return (
+                    <div
+                      key={pos.numero}
+                      className="absolute flex items-center justify-center"
+                      style={{
+                        top: pos.top,
+                        left: pos.left,
+                        width: pos.width,
+                        height: pos.height,
+                      }}
+                    >
+                      {getStatusIcon(dente.status) && (
+                        <div
+                          className={`flex items-center justify-center rounded-full p-1 ${getStatusColor(dente.status)}`}
+                          style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            zIndex: 10 // Garante que o ícone esteja acima da imagem
+                          }}
+                        >
+                          {getStatusIcon(dente.status)}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Legenda */}
+              <div className="mt-6 p-4 bg-gray-800/50 rounded-lg">
+                <h5 className="text-sm font-medium text-amber-400 mb-2">
+                  Legenda:
+                </h5>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 bg-red-500 rounded-full inline-block" />
+                    <FaPoo className="text-red-500 mr-1" /> Cariado
                   </div>
-                </div>
-
-                {/* Odontograma Inferior */}
-                <div>
-                  <h4 className="text-sm font-medium text-amber-400 mb-3 text-center">
-                    Arco Inferior
-                  </h4>
-                  <div className="grid grid-cols-16 gap-1">
-                    {dentes.slice(16, 32).map((dente) => (
-                      <button
-                        key={dente.numero}
-                        onClick={() => handleDenteClick(dente)}
-                        className={`w-8 h-8 rounded-full border-2 transition-all duration-300 hover:scale-110 ${getStatusColor(
-                          dente.status
-                        )} ${
-                          denteSelecionado?.numero === dente.numero
-                            ? "ring-2 ring-amber-500"
-                            : ""
-                        }`}
-                        title={`Dente ${dente.numero} - ${getStatusLabel(
-                          dente.status
-                        )}`}
-                      >
-                        <span className="text-xs font-bold text-gray-800">
-                          {dente.numero}
-                        </span>
-                      </button>
-                    ))}
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 bg-blue-500 rounded-full inline-block" />
+                    <FaTools className="text-blue-500 mr-1" /> Restaurado
                   </div>
-                </div>
-
-                {/* Legenda */}
-                <div className="mt-6 p-4 bg-gray-800/50 rounded-lg">
-                  <h5 className="text-sm font-medium text-amber-400 mb-2">
-                    Legenda:
-                  </h5>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-white border border-gray-300 rounded-full"></div>
-                      <span className="text-gray-300">Saudável</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-red-500 border border-red-600 rounded-full"></div>
-                      <span className="text-gray-300">Cariado</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-blue-500 border border-blue-600 rounded-full"></div>
-                      <span className="text-gray-300">Restaurado</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-gray-800 border border-gray-700 rounded-full"></div>
-                      <span className="text-gray-300">Extraído</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-yellow-500 border border-yellow-600 rounded-full"></div>
-                      <span className="text-gray-300">Protetizado</span>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 bg-gray-500 rounded-full inline-block" />
+                    <FaMinusSquare className="text-gray-500 mr-1" /> Extraído
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 bg-yellow-500 rounded-full inline-block" />
+                    <FaPlusSquare className="text-yellow-500 mr-1" /> Protetizado
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Painel de Controle */}
-            <div className="w-80 p-6 border-l border-gray-700 bg-gray-800/20">
-              <h3 className="text-lg font-medium text-amber-500 mb-4">
+            {/* Controles */}
+            <div className="w-80 border-l border-gray-700 p-6 flex flex-col space-y-4 overflow-y-auto">
+              <h3 className="text-xl font-bold text-white border-b border-gray-700 pb-3 mb-4">
                 Controles
               </h3>
 
@@ -365,6 +411,13 @@ export default function ModalOdontograma({
                   </div>
                   <div className="space-y-2 text-sm text-gray-300">
                     <p>Total de dentes: {odontogramaSalvo.length}</p>
+                    <p>
+                      Dentes saudáveis:{" "}
+                      {
+                        odontogramaSalvo.filter((d) => d.status === "saudavel")
+                          .length
+                      }
+                    </p>
                     <p>
                       Dentes cariados:{" "}
                       {
@@ -396,128 +449,97 @@ export default function ModalOdontograma({
                     </p>
                   </div>
                 </div>
-              ) : null}
-
-              {denteSelecionado ? (
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-sm font-medium text-amber-400 mb-2">
-                      Dente {denteSelecionado.numero}
-                    </h4>
-                    <p className="text-gray-300 text-sm mb-3">
-                      Status atual: {getStatusLabel(denteSelecionado.status)}
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-amber-400 mb-2">
-                      Alterar Status
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {(
-                        [
-                          "saudavel",
-                          "cariado",
-                          "restaurado",
-                          "extraido",
-                          "protesado",
-                        ] as const
-                      ).map((status) => (
-                        <button
-                          key={status}
-                          onClick={() => handleStatusChange(status)}
-                          className={`px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 ${
-                            denteSelecionado.status === status
-                              ? "bg-amber-500 text-white"
-                              : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                          }`}
-                        >
-                          {getStatusLabel(status)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-amber-400 mb-2">
-                      Observações
-                    </label>
-                    <textarea
-                      value={observacao}
-                      onChange={(e) => {
-                        setObservacao(e.target.value);
-                        if (denteSelecionado) {
-                          const dentesAtualizados: Dente[] = dentes.map(
-                            (dente) =>
-                              dente.numero === denteSelecionado.numero
-                                ? { ...dente, observacoes: e.target.value }
-                                : dente
-                          );
-                          setDentes(dentesAtualizados);
-                          setDenteSelecionado({
-                            ...denteSelecionado,
-                            observacoes: e.target.value,
-                          });
-                        }
-                      }}
-                      className="w-full px-3 py-2 bg-gray-800/30 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 resize-none"
-                      rows={3}
-                      placeholder="Adicione observações sobre o dente..."
-                    />
-                  </div>
-
-                  <button
-                    onClick={handleDesfazer}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-300"
-                  >
-                    <FaUndo className="h-4 w-4" />
-                    Desfazer Alterações
-                  </button>
-                </div>
               ) : (
-                <div className="text-center py-8">
-                  <FaTooth className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-                  <p className="text-gray-400 text-sm">
-                    Clique em um dente para selecioná-lo e fazer alterações
+                <div className="mb-6 p-4 bg-gray-800/40 rounded-lg">
+                  <p className="text-gray-400 text-center">
+                    Nenhum odontograma salvo para esta vítima.
                   </p>
                 </div>
               )}
-            </div>
-          </div>
 
-          {/* Footer */}
-          <div className="p-6 border-t border-gray-700 bg-gradient-to-r from-[#0E1A26] via-[#152736] to-[#0E1A26]">
-            <div className="flex justify-end gap-4">
+              {/* Seleção de Dente */}
+              <div>
+                <label className="block text-sm font-medium text-amber-400 mb-2">
+                  Selecionar Dente
+                </label>
+                <select
+                  value={denteSelecionado}
+                  onChange={(e) => setDenteSelecionado(Number(e.target.value))}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                >
+                  {allToothNumbers.map((num) => (
+                    <option key={num} value={num}>
+                      Dente {num}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Seleção de Status */}
+              <div>
+                <label className="block text-sm font-medium text-amber-400 mb-2">
+                  Status do Dente
+                </label>
+                <select
+                  value={statusSelecionado}
+                  onChange={(e) => setStatusSelecionado(e.target.value as Dente["status"])}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                >
+                  <option value="saudavel">Saudável</option>
+                  <option value="cariado">Cariado</option>
+                  <option value="restaurado">Restaurado</option>
+                  <option value="extraido">Extraído</option>
+                  <option value="protesado">Protetizado</option>
+                </select>
+              </div>
+
+              {/* Observações */}
+              <div>
+                <label className="block text-sm font-medium text-amber-400 mb-2">
+                  Observações
+                </label>
+                <textarea
+                  value={observacao}
+                  onChange={(e) => setObservacao(e.target.value)}
+                  placeholder="Adicione observações sobre o dente..."
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-amber-500 resize-none"
+                  rows={3}
+                />
+              </div>
+
+              {/* Botão Aplicar */}
               <button
-                onClick={onClose}
-                className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-300"
+                onClick={handleAplicarMudanca}
+                className="w-full px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-all duration-300 hover:scale-105"
               >
-                Cancelar
+                Aplicar Mudança
               </button>
+
+              {/* Botão Salvar */}
               <button
                 onClick={handleSalvar}
                 disabled={loading}
-                className="flex items-center gap-2 px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-2 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-600 text-white font-medium rounded-lg transition-all duration-300 hover:scale-105 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                <FaSave className="h-4 w-4" />
-                {loading ? "Salvando..." : "Salvar Odontograma"}
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <FaSave className="h-4 w-4" />
+                    Salvar Odontograma
+                  </>
+                )}
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Feedback de sucesso */}
-      <OdontogramaSuccess
-        isOpen={showSuccessFeedback}
-        onClose={() => setShowSuccessFeedback(false)}
-      />
-
-      <style jsx global>{`
-        .grid-cols-16 {
-          grid-template-columns: repeat(16, minmax(0, 1fr));
-        }
-      `}</style>
+      {/* Feedback de Sucesso */}
+      {showSuccessFeedback && <OdontogramaSuccess />}
     </>
   );
 }

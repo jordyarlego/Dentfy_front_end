@@ -5,59 +5,52 @@ import Image from 'next/image';
 import CaveiraPeste from '../../../public/assets/CaveiraPeste.png';
 
 interface OdontogramaSuccessProps {
-  isOpen: boolean;
-  onClose: () => void;
+  // Não há mais props isOpen e onClose, a visibilidade é controlada pelo componente pai
 }
 
-export default function OdontogramaSuccess({
-  isOpen,
-  onClose,
-}: OdontogramaSuccessProps) {
+export default function OdontogramaSuccess() {
   const [progress, setProgress] = useState(0);
   const [showMessage, setShowMessage] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
-      setProgress(0);
-      setShowMessage(false);
-      
-      const duration = 2000; // 2 segundos
-      const interval = 50; // Atualizar a cada 50ms
-      const steps = duration / interval;
-      const increment = 100 / steps;
+    setProgress(0);
+    setShowMessage(false);
+    
+    const duration = 2000; // 2 segundos
+    const interval = 50; // Atualizar a cada 50ms
+    const steps = duration / interval;
+    const increment = 100 / steps;
 
-      const timer = setInterval(() => {
-        setProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(timer);
-            return 100;
-          }
-          return prev + increment;
-        });
-      }, interval);
+    const timer = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(timer);
+          return 100;
+        }
+        return prev + increment;
+      });
+    }, interval);
 
-      // Mostrar mensagem após 500ms
-      const messageTimer = setTimeout(() => {
-        setShowMessage(true);
-      }, 500);
+    // Mostrar mensagem após 500ms
+    const messageTimer = setTimeout(() => {
+      setShowMessage(true);
+    }, 500);
 
-      return () => {
-        clearInterval(timer);
-        clearTimeout(messageTimer);
-      };
-    }
-  }, [isOpen]);
+    return () => {
+      clearInterval(timer);
+      clearTimeout(messageTimer);
+    };
+  }, []); // Esvaziando o array de dependências para rodar apenas uma vez na montagem
 
-  useEffect(() => {
-    if (progress >= 100) {
-      const closeTimer = setTimeout(() => {
-        onClose();
-      }, 500);
-      return () => clearTimeout(closeTimer);
-    }
-  }, [progress, onClose]);
-
-  if (!isOpen) return null;
+  // O fechamento do modal agora é responsabilidade do componente pai (ModalOdontograma)
+  // useEffect(() => {
+  //   if (progress >= 100) {
+  //     const closeTimer = setTimeout(() => {
+  //       onClose();
+  //     }, 500);
+  //     return () => clearTimeout(closeTimer);
+  //   }
+  // }, [progress, onClose]);
 
   return (
     <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/80 backdrop-blur-xl">
