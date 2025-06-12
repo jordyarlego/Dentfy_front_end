@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { FaFilePdf, FaSignature, FaSave, FaArrowLeft, FaDownload } from "react-icons/fa";
 import Image from "next/image";
 import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
-import { PostRelatorio, GetRelatorios, parseJwt, ExportRelatorioPDF, AssinarRelatorio } from "../../../services/api_relatorio";
+import { PostRelatorio, GetRelatoriosPorCaso, GetRelatorios, parseJwt, ExportRelatorioPDF, AssinarRelatorio } from "../../../services/api_relatorio";
 import RelatorioSuccess from '../RelatorioSuccess';
 import AssinaturaSuccess from '../AssinaturaSuccess';
 
@@ -48,20 +48,22 @@ export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorio
   const [assinaturaValidada, setAssinaturaValidada] = useState(false);
 
   useEffect(() => {
-    async function loadRelatorios() {
-      try {
-        const all = await GetRelatorios();
-        const filtrados = all.filter((r: any) => r.caso === casoId);
-        setRelatorios(filtrados as RelatorioDataLocal[]);
-        if (filtrados.length > 0) {
-          setRelatorioId(filtrados[0]._id);
-        }
-      } catch (err) {
-        console.error("Erro ao carregar relatórios:", err);
+  async function loadRelatorios() {
+    try {
+      console.log("casoId usado no fetch:", casoId); // 👈 aqui
+
+      const all = await GetRelatoriosPorCaso(casoId);
+      setRelatorios(all as RelatorioDataLocal[]);
+      if (all.length > 0) {
+        setRelatorioId(all[0]._id);
       }
+    } catch (err) {
+      console.error("Erro ao carregar relatórios por caso:", err);
     }
-    loadRelatorios();
-  }, [casoId]);
+  }
+  loadRelatorios();
+}, [casoId]);
+
 
   const handleSaveRelatorio = async () => {
     try {
@@ -94,25 +96,27 @@ export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorio
     }
   };
 
-  const handleGerarPDF = async () => {
-    try {
-      if (!relatorioId) {
-        alert("Salve o relatório antes de gerar o PDF!");
-        return;
-      }
-      const blob = await ExportRelatorioPDF(relatorioId);
-      const url = window.URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `relatorio_${relatorioId}.pdf`); // CORRIGIDO COM CRASE
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error("Erro ao gerar PDF:", error);
-      alert("Erro ao gerar PDF do relatório.");
+ const handleGerarPDF = async () => {
+  try {
+    if (relatorios.length === 0) {
+      alert("Nenhum relatório disponível para gerar PDF.");
+      return;
     }
-  };
+
+    const ultimoRelatorio = relatorios[0]; // o mais recente
+    const blob = await ExportRelatorioPDF(ultimoRelatorio._id);
+    const url = window.URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `relatorio_${ultimoRelatorio.titulo.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error("Erro ao gerar PDF:", error);
+    alert("Erro ao gerar PDF do relatório.");
+  }
+};
 
   const handleAssinarRelatorio = async () => {
     try {

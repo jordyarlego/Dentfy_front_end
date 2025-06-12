@@ -5,7 +5,9 @@ interface RelatorioData {
   conteudo: string;
   caso: string;
   peritoResponsavel: string;
+  assinado?: boolean;
 }
+
 
 interface JwtPayload {
   id: string;
@@ -133,6 +135,23 @@ export async function AssinarRelatorio(id: string) {
     return response.data;
   } catch (error) {
     console.error("Erro ao assinar relatório", error);
+    throw error;
+  }
+}
+
+export async function GetRelatoriosPorCaso(casoId: string): Promise<RelatorioData[]> {
+  try {
+    const token = localStorage.getItem("token");
+
+    const response = await api.get<RelatorioData[]>(`/api/relatorio/por-caso/${casoId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao buscar relatórios por caso", error);
     throw error;
   }
 }
