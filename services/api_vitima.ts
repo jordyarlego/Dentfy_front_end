@@ -98,3 +98,47 @@ export async function DeleteVitima(id: string) {
     throw error;
   }
 }
+
+interface OdontogramaItem {
+  numero: number;
+  descricao: string;
+  status: "saudavel" | "cariado" | "restaurado" | "extraido" | "protesado";
+  observacoes: string;
+}
+
+export async function UpdateOdontograma(
+  id: string,
+  odontograma: OdontogramaItem[]
+) {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await api.patch(
+      `/api/periciados/${id}/odontograma`,
+      { odontograma },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao atualizar odontograma", error);
+    throw error;
+  }
+}
+
+export async function GetOdontograma(id: string): Promise<OdontogramaItem[]> {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await api.get(`/api/periciados/${id}/odontograma`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data || [];
+  } catch (error) {
+    console.error("Erro ao buscar odontograma", error);
+    throw error;
+  }
+}
