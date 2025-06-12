@@ -78,18 +78,30 @@ export const getLaudos = async (): Promise<Laudo[]> => {
   }
 };
 
-// Atualizar um laudo existente
-export const putLaudo = async (id: string, data: { titulo: string; texto: string }) => {
+export interface CriarLaudoDTO {
+  titulo: string;
+  texto: string;
+  evidence: string;
+  peritoResponsavel: string;
+}
+
+export interface AtualizarLaudoDTO extends Partial<Omit<LaudoData, "_id">> {}
+
+// Atualizar um laudo existente com melhor tipagem
+export const putLaudo = async (
+  id: string,
+  dados: AtualizarLaudoDTO
+): Promise<Laudo> => {
   try {
     const token = localStorage.getItem("token");
-    const response = await api.put(`/api/laudos/${id}`, data, {
+    const response = await api.put<Laudo>(`/api/laudos/${id}`, dados, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
     return response.data;
-  } catch (error) {
-    console.error("Erro ao atualizar laudo:", error);
+  } catch (error: any) {
+    console.error("Erro ao atualizar laudo:", error.response?.data || error);
     throw error;
   }
 };
@@ -110,29 +122,46 @@ export const deleteLaudo = async (id: string) => {
   }
 };
 
-// Exportar laudo em PDF
+// Exportar laudo em PDF com melhor tratamento de erro
 export const getLaudoPDF = async (id: string) => {
   try {
     const token = localStorage.getItem("token");
     const response = await api.get(`/api/laudos/${id}/pdf`, {
       headers: {
         Authorization: `Bearer ${token}`,
+        Accept: "application/pdf",
       },
-      responseType: 'blob',
+      responseType: "blob",
     });
-    
-    // Criar URL do blob e iniciar download
-    const blob = new Blob([response.data], { type: 'application/pdf' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `laudo_${id}.pdf`;
-    link.click();
-    window.URL.revokeObjectURL(url);
-    
-    return response.data;
-  } catch (error) {
-    console.error("Erro ao exportar laudo em PDF:", error);
+
+    // Verificar se o response tem dados e é do tipo correto
+    if (response.data && response.data.type === "application/pdf") {
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `laudo_${id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      console.log("✅ PDF gerado com sucesso!");
+      return response.data;
+    } else {
+      throw new Error("Formato de resposta inválido");
+    }
+  } catch (error: any) {
+    // Melhor tratamento do erro
+    if (error.response?.status === 400) {
+      console.error(
+        "❌ Erro 400: Requisição inválida ao gerar PDF",
+        error.response?.data
+      );
+      throw new Error(
+        "Não foi possível gerar o PDF. Verifique se o laudo está assinado."
+      );
+    }
+    console.error("❌ Erro ao exportar laudo em PDF:", error);
     throw error;
   }
 };
@@ -141,11 +170,15 @@ export const getLaudoPDF = async (id: string) => {
 export const assinarLaudo = async (id: string) => {
   try {
     const token = localStorage.getItem("token");
-    const response = await api.post(`/api/laudos/${id}/assinar`, {}, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await api.post(
+      `/api/laudos/${id}/assinar`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Erro ao assinar laudo:", error);
@@ -169,18 +202,129 @@ export const getLaudoById = async (id: string) => {
   }
 };
 
-// Buscar laudos por evidência
-export const getLaudosByEvidencia = async (evidenciaId: string) => {
+// Buscar laudos por evidência com tratamento melhorado
+export const getLaudosByEvidencia = async (
+  evidenciaId: string
+): Promise<Laudo[]> => {
   try {
     const token = localStorage.getItem("token");
-    const response = await api.get(`/api/laudos/evidencia/${evidenciaId}`, {
+    const response = await api.get(`/api/laudos/por-evidencia/${evidenciaId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = response.data;
+
+    if (Array.isArray(data)) {
+      return data;
+    }
+
+    if (Array.isArray(data.laudos)) {
+      return data.laudos;
+    }
+
+    console.warn("Resposta inesperada ao buscar laudos:", data);
+    return [];
+  } catch (error: any) {
+    console.error(
+      "Erro ao buscar laudos por evidência:",
+      error.response?.data || error
+    );
+    return [];
+  }
+};
+
+// Nova rota para buscar histórico de assinaturas
+export const getLaudoSignatureHistory = async (id: string) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await api.get(`/api/laudos/${id}/assinaturas`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Erro ao buscar histórico de assinaturas:",
+      error.response?.data || error
+    );
+    throw error;
+  }
+};
+
+// Nova rota para validar assinatura
+export const validateLaudoSignature = async (
+  id: string,
+  assinaturaId: string
+) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await api.post(
+      `/api/laudos/${id}/validar-assinatura/${assinaturaId}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("Erro ao validar assinatura:", error.response?.data || error);
+    throw error;
+  }
+};
+
+// Buscar laudos por caso
+export const getLaudosByCaso = async (casoId: string) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await api.get(`/api/laudos/por-caso/${casoId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
     return response.data;
   } catch (error) {
-    console.error("Erro ao buscar laudos da evidência:", error);
+    console.error("Erro ao buscar laudos do caso:", error);
     throw error;
   }
-}; 
+};
+
+// Adicionar revisor ao laudo
+export const addRevisorLaudo = async (id: string, revisorId: string) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await api.post(
+      `/api/laudos/${id}/revisor/${revisorId}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao adicionar revisor:", error);
+    throw error;
+  }
+};
+
+// Remover revisor do laudo
+export const removeRevisorLaudo = async (id: string) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await api.delete(`/api/laudos/${id}/revisor`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao remover revisor:", error);
+    throw error;
+  }
+};
