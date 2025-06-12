@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   FaTimes,
   FaSave,
@@ -73,6 +73,24 @@ export default function ModalOdontograma({
   const [showSuccessFeedback, setShowSuccessFeedback] = useState(false);
   const [odontogramaSalvo, setOdontogramaSalvo] = useState<Dente[]>([]);
   const [loadingOdontograma, setLoadingOdontograma] = useState(false);
+
+  // Refs para os elementos de áudio
+  const toinnAudio = useRef<HTMLAudioElement | null>(null);
+  const pancadaChavesAudio = useRef<HTMLAudioElement | null>(null);
+  const cartoonRisadaAudio = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    toinnAudio.current = new Audio('/assets/toinn.mp3');
+    pancadaChavesAudio.current = new Audio('/assets/pancada_chaves.mp3');
+    cartoonRisadaAudio.current = new Audio('/assets/cartoonrisada.mp3');
+  }, []);
+
+  // Toca 'toinn.mp3' ao selecionar dente ou avaria
+  useEffect(() => {
+    if (isOpen) { // Só toca se o modal estiver aberto
+      toinnAudio.current?.play().catch(e => console.error("Erro ao tocar toinn.mp3:", e));
+    }
+  }, [denteSelecionado, statusSelecionado, isOpen]);
 
   const dentesPosicoes: DentePosicao[] = [
     { numero: 18, top: '22%', left: '10%', width: '5%', height: '8%' },
@@ -245,6 +263,9 @@ export default function ModalOdontograma({
     setObservacao(denteAtual?.observacoes || "");
     // Atualizar o status selecionado para refletir o estado atual do dente
     setStatusSelecionado(denteAtual?.status || "saudavel");
+
+    // Toca cartoonrisada.mp3 ao aplicar mudança
+    cartoonRisadaAudio.current?.play().catch(e => console.error("Erro ao tocar cartoonrisada.mp3:", e));
   };
 
   const handleSalvar = async () => {
@@ -254,12 +275,15 @@ export default function ModalOdontograma({
         throw new Error("ID da vítima não encontrado");
       }
 
+      // Formata os dentes para o formato esperado pela API
       const odontogramaFormatado = dentes.map((dente) => ({
         numero: dente.numero,
-        descricao: getStatusLabel(dente.status),
-        status: dente.status,
-        observacoes: dente.observacoes,
+        descricao: dente.observacoes || getStatusLabel(dente.status), // Prioriza observações, senão usa o rótulo do status
+        status: dente.status, // A API espera este campo
+        observacoes: dente.observacoes, // A API espera este campo
       }));
+
+      console.log("Payload enviado para UpdateOdontograma:", odontogramaFormatado); // DEBUG
 
       const response = await UpdateOdontograma(
         vitima._id,
@@ -270,6 +294,9 @@ export default function ModalOdontograma({
         totalDentes: odontogramaFormatado.length,
         response,
       });
+
+      // Toca pancada_chaves.mp3 ao salvar com sucesso
+      pancadaChavesAudio.current?.play().catch(e => console.error("Erro ao tocar pancada_chaves.mp3:", e));
 
       setShowSuccessFeedback(true);
       setTimeout(() => {
@@ -368,6 +395,10 @@ export default function ModalOdontograma({
                   Legenda:
                 </h5>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 bg-green-500 rounded-full inline-block" />
+                    <FaCheckCircle className="text-green-500 mr-1" /> Saudável
+                  </div>
                   <div className="flex items-center gap-2">
                     <span className="w-3 h-3 bg-red-500 rounded-full inline-block" />
                     <FaPoo className="text-red-500 mr-1" /> Cariado
