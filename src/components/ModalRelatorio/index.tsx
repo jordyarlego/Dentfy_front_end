@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FaFilePdf, FaSignature, FaSave, FaArrowLeft } from "react-icons/fa";
+import { FaFilePdf, FaSignature, FaSave, FaArrowLeft, FaDownload } from "react-icons/fa";
 import Image from "next/image";
 import CaveiraPeste from "../../../public/assets/CaveiraPeste.png";
 import { PostRelatorio, GetRelatorios, parseJwt, ExportRelatorioPDF, AssinarRelatorio } from "../../../services/api_relatorio";
@@ -17,8 +17,9 @@ interface ModalRelatorioProps {
   };
 }
 
-interface RelatorioData {
-  _id?: string;
+// Interface específica para o componente que inclui campos adicionais
+interface RelatorioDataLocal {
+  _id: string;
   titulo: string;
   conteudo: string;
   peritoResponsavel: string;
@@ -26,11 +27,19 @@ interface RelatorioData {
   criadoEm?: string;
 }
 
+// Interface para dados de entrada (sem _id)
+interface RelatorioInputData {
+  titulo: string;
+  conteudo: string;
+  peritoResponsavel: string;
+  caso: string;
+}
+
 export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorioProps) {
   const casoId = caso._id;
 
-  const [relatorioData, setRelatorioData] = useState({ titulo: "", conteudo: "", peritoResponsavel: "" });
-  const [relatorios, setRelatorios] = useState<RelatorioData[]>([]);
+  const [relatorioData, setRelatorioData] = useState<RelatorioInputData>({ titulo: "", conteudo: "", peritoResponsavel: "", caso: "" });
+  const [relatorios, setRelatorios] = useState<RelatorioDataLocal[]>([]);
   const [relatorioId, setRelatorioId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [, setSuccessMessage] = useState<string | null>(null);
@@ -42,8 +51,8 @@ export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorio
     async function loadRelatorios() {
       try {
         const all = await GetRelatorios();
-        const filtrados = all.filter((r: RelatorioData) => r.caso === casoId);
-        setRelatorios(filtrados);
+        const filtrados = all.filter((r: any) => r.caso === casoId);
+        setRelatorios(filtrados as RelatorioDataLocal[]);
         if (filtrados.length > 0) {
           setRelatorioId(filtrados[0]._id);
         }
@@ -70,10 +79,10 @@ export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorio
       };
 
       const saved = await PostRelatorio(data);
-      setRelatorios(prev => [saved, ...prev]);
-      setRelatorioId(saved._id);
+      setRelatorios(prev => [saved as RelatorioDataLocal, ...prev]);
+      setRelatorioId((saved as RelatorioDataLocal)._id);
       setSuccessMessage("Relatório salvo com sucesso!");
-      setRelatorioData({ titulo: "", conteudo: "", peritoResponsavel: "" });
+      setRelatorioData({ titulo: "", conteudo: "", peritoResponsavel: "", caso: "" });
       setTimeout(() => setSuccessMessage(null), 3000);
       setShowRelatorioSuccess(true);
     } catch (error: unknown) {
@@ -127,8 +136,22 @@ export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorio
       alert("Erro ao assinar relatório.");
     }
   };
-  ;
-  
+
+  const handleDownloadRelatorio = async (relatorioId: string, titulo: string) => {
+    try {
+      const blob = await ExportRelatorioPDF(relatorioId);
+      const url = window.URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `relatorio_${titulo.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Erro ao baixar relatório:", error);
+      alert("Erro ao baixar relatório em PDF.");
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -167,8 +190,20 @@ export default function ModalRelatorio({ isOpen, onClose, caso }: ModalRelatorio
               <h3 className="text-lg font-medium text-amber-500">Relatórios Anteriores</h3>
               {relatorios.map(r => (
                 <div key={r._id} className="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
-                  <h4 className="font-semibold text-white">{r.titulo}</h4>
-                  <p className="text-sm text-gray-300 line-clamp-2">{r.conteudo}</p>
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-white">{r.titulo}</h4>
+                      <p className="text-sm text-gray-300 line-clamp-2">{r.conteudo}</p>
+                    </div>
+                    <button
+                      onClick={() => handleDownloadRelatorio(r._id, r.titulo)}
+                      className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-amber-500/20 to-amber-600/20 text-amber-400 border border-amber-500/30 rounded-lg hover:from-amber-500/30 hover:to-amber-600/30 hover:border-amber-400/50 hover:text-amber-300 transition-all duration-300 text-xs group hover:scale-105"
+                      title="Baixar relatório em PDF"
+                    >
+                      <FaDownload className="text-xs cursor-pointer group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
+                      <span className="font-medium cursor-pointer">PDF</span>
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

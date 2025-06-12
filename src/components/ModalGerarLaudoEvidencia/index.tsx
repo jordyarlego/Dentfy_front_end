@@ -1,25 +1,14 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FaFilePdf, FaSignature, FaSave, FaArrowLeft } from "react-icons/fa";
-import { postLaudo, parseJwt, getLaudoPDF, assinarLaudo } from "../../../services/api_laudo";
+import { FaFilePdf, FaSignature, FaSave, FaArrowLeft, FaDownload } from "react-icons/fa";
+import { postLaudo, parseJwt, getLaudoPDF, assinarLaudo, getLaudosByEvidencia } from "../../../services/api_laudo";
 import AssinaturaSuccess from '../AssinaturaSuccess';
 import { Evidencia, Laudo, ModalGerarLaudoEvidenciaProps } from '../../types/evidencia';
-
 
 interface LaudoFormData {
   titulo: string;
   texto: string;
   peritoResponsavel: string;
-}
-interface Evidencia {
-  _id: string;
-  nome: string;
-  tipo: string;
-  descricao: string;
-  coletadoPor: string;
-  arquivo: string;
-  dataColeta: string;
-  laudo?: string;
 }
 
 export default function ModalGerarLaudoEvidencia({
@@ -38,11 +27,11 @@ export default function ModalGerarLaudoEvidencia({
   const [showLaudoSuccess, setShowLaudoSuccess] = useState(false);
   const [showAssinaturaSuccess, setShowAssinaturaSuccess] = useState(false);
   const [assinaturaValidada, setAssinaturaValidada] = useState(false);
-  const [titulo, setTitulo] = useState<string>("");  // Definindo o tipo como string
-const [texto, setTexto] = useState<string>("");  // Definindo o tipo como string
+  const [titulo, setTitulo] = useState<string>("");
+  const [texto, setTexto] = useState<string>("");
+  const [laudosExistentes, setLaudosExistentes] = useState<Laudo[]>([]);
+  const [loadingLaudos, setLoadingLaudos] = useState(false);
 
-
-  
   useEffect(() => {
     if (!isOpen) {
       setTitulo("");
@@ -51,8 +40,41 @@ const [texto, setTexto] = useState<string>("");  // Definindo o tipo como string
       setAssinaturaValidada(false);
     }
   }, [isOpen]);
-  
-  
+
+  useEffect(() => {
+    if (isOpen && evidencia._id) {
+      carregarLaudosExistentes();
+    }
+  }, [isOpen, evidencia._id]);
+
+  const carregarLaudosExistentes = async () => {
+    try {
+      setLoadingLaudos(true);
+      const laudos = await getLaudosByEvidencia(evidencia._id);
+      setLaudosExistentes(laudos);
+    } catch (error) {
+      console.error("Erro ao carregar laudos existentes:", error);
+    } finally {
+      setLoadingLaudos(false);
+    }
+  };
+
+  const handleDownloadLaudo = async (laudoId: string, titulo: string) => {
+    try {
+      const blob = await getLaudoPDF(laudoId);
+      const url = window.URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `laudo_${titulo.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Erro ao baixar laudo:", error);
+      alert("Erro ao baixar laudo em PDF.");
+    }
+  };
+
   const handleSalvarLaudo = async () => {
     try {
       setLoading(true);
@@ -65,12 +87,10 @@ const [texto, setTexto] = useState<string>("");  // Definindo o tipo como string
       const data = {
         titulo: titulo,
         texto: texto,
-        evidence: evidencia._id,        // <<< nome correto do campo esperado pelo backend
-        peritoResponsavel: user.id,      // <<< id do usuário logado
+        evidence: evidencia._id,
+        peritoResponsavel: user.id,
       };
       
-      
-  
       const saved = await postLaudo(data);
       setLaudoId(saved._id);
       setShowLaudoSuccess(true);
@@ -78,6 +98,9 @@ const [texto, setTexto] = useState<string>("");  // Definindo o tipo como string
       // Limpa os campos depois de salvar
       setTitulo("");
       setTexto("");
+      
+      // Recarrega os laudos existentes
+      await carregarLaudosExistentes();
     } catch (error: any) {
       console.error("Erro ao salvar o laudo:", error.response?.data || error.message);
       alert(`Erro ao salvar o laudo: ${error.response?.data?.message || error.message}`);
@@ -85,7 +108,7 @@ const [texto, setTexto] = useState<string>("");  // Definindo o tipo como string
       setLoading(false);
     }
   };
-  
+
   const handleAssinarLaudo = async () => {
     try {
       if (!laudoId) {
@@ -103,12 +126,14 @@ const [texto, setTexto] = useState<string>("");  // Definindo o tipo como string
   
       setShowAssinaturaSuccess(true);
       setAssinaturaValidada(true);
+      
+      // Recarrega os laudos existentes
+      await carregarLaudosExistentes();
     } catch (error) {
       console.error("Erro ao assinar o laudo:", error);
       alert("Erro ao assinar o laudo.");
     }
   };
-  
 
   const handleGerarPDF = async () => {
     try {
@@ -129,7 +154,6 @@ const [texto, setTexto] = useState<string>("");  // Definindo o tipo como string
       alert("Erro ao gerar PDF do laudo.");
     }
   };
-  
 
   if (!isOpen) return null;
 
@@ -154,12 +178,59 @@ const [texto, setTexto] = useState<string>("");  // Definindo o tipo como string
 
           {/* Conteúdo responsivo */}
           <div className="flex flex-col lg:flex-row h-[calc(90vh-140px)] lg:h-[calc(600px-140px)]">
-            {/* Lado Esquerdo - Informações da Evidência */}
+            {/* Lado Esquerdo - Laudos Existentes e Informações da Evidência */}
             <div className="w-full lg:w-1/3 p-4 border-b lg:border-b-0 lg:border-r border-gray-700 overflow-y-auto">
+              {/* Laudos Existentes */}
+              <div className="bg-gray-800/30 p-4 rounded-xl border border-gray-700 mb-4">
+                <h3 className="text-lg font-medium text-amber-500 mb-3">Laudos Existentes</h3>
+                {loadingLaudos ? (
+                  <div className="text-center py-4">
+                    <div className="text-amber-500 animate-pulse">Carregando laudos...</div>
+                  </div>
+                ) : laudosExistentes.length === 0 ? (
+                  <div className="text-center py-4">
+                    <div className="text-gray-400 text-sm">Nenhum laudo encontrado</div>
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-60 overflow-y-auto">
+                    {laudosExistentes.map((laudo) => (
+                      <div key={laudo._id} className="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
+                        <div className="flex justify-between items-start gap-2">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-white text-sm">{laudo.titulo}</h4>
+                            <p className="text-xs text-gray-300 line-clamp-2">{laudo.texto}</p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                laudo.assinado 
+                                  ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                                  : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                              }`}>
+                                {laudo.assinado ? "Assinado" : "Pendente"}
+                              </span>
+                              <span className="text-xs text-gray-400">
+                                {new Date(laudo.dataCriacao).toLocaleDateString('pt-BR')}
+                              </span>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleDownloadLaudo(laudo._id, laudo.titulo)}
+                            className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-amber-500/20 to-amber-600/20 text-amber-400 border border-amber-500/30 rounded-lg hover:from-amber-500/30 hover:to-amber-600/30 hover:border-amber-400/50 hover:text-amber-300 transition-all duration-300 text-xs group hover:scale-105"
+                            title="Baixar laudo em PDF"
+                          >
+                            <FaDownload className="text-xs group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
+                            <span className="font-medium">PDF</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Informações da Evidência */}
               <div className="bg-gray-800/30 p-4 rounded-xl border border-gray-700">
                 <h3 className="text-lg font-medium text-amber-500 mb-3">Informações da Evidência</h3>
                 <div className="space-y-3">
-                  
                   <div>
                     <p className="text-sm text-amber-400">Tipo</p>
                     <p className="text-gray-200">{evidencia.tipo}</p>
@@ -171,7 +242,7 @@ const [texto, setTexto] = useState<string>("");  // Definindo o tipo como string
                   <div>
                     <p className="text-sm text-amber-400">Data de Coleta</p>
                     <p className="text-gray-200">
-                      {new Date(evidencia.dataColeta).toLocaleDateString('pt-BR')}
+                      {new Date(evidencia.dataAdicao).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
                   <div>

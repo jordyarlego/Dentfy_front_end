@@ -7,6 +7,7 @@ import {
   FaTrash,
   FaEye,
   FaPencilAlt,
+  FaTooth,
 } from "react-icons/fa";
 import Image from "next/image";
 import Logo from "../../../public/assets/Logo.png";
@@ -30,6 +31,7 @@ import ModalDetalhesEvidencia from "../ModalDetalhesEvidencia";
 import ModalNovaVitima from "../ModalNovaVitima";
 import FeedbackModal from "../FeedbackModal";
 import ModalEditarVitima from "../ModalEditarVitima";
+import ModalOdontograma from "../ModalOdontograma";
 // Importa GetVitimaById para uso futuro
 import {
   GetVitimaById,
@@ -113,6 +115,8 @@ export default function ModalVisualizacaoPerito({
   const [vitimaParaEditar, setVitimaParaEditar] = useState<VitimaSalva | null>(
     null
   );
+  const [modalOdontogramaOpen, setModalOdontogramaOpen] = useState(false);
+  const [vitimaParaOdontograma, setVitimaParaOdontograma] = useState<VitimaSalva | null>(null);
 
   useEffect(() => {
     if (isOpen && caso._id) {
@@ -280,6 +284,11 @@ export default function ModalVisualizacaoPerito({
     }
   };
 
+  const handleAbrirOdontograma = (vitima: VitimaSalva) => {
+    setVitimaParaOdontograma(vitima);
+    setModalOdontogramaOpen(true);
+  };
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-[#0E1A26] border border-amber-500/30 rounded-xl shadow-2xl w-full max-w-6xl flex flex-col max-h-[90vh]">
@@ -364,6 +373,13 @@ export default function ModalVisualizacaoPerito({
                           {vitima.nomeCompleto}
                         </h4>
                         <div className="flex gap-2 shrink-0">
+                          <button
+                            onClick={() => handleAbrirOdontograma(vitima)}
+                            className="text-gray-400 hover:text-blue-400 transition-all duration-300 cursor-pointer hover:scale-110"
+                            title="Odontograma"
+                          >
+                            <FaTooth className="h-4 w-4" />
+                          </button>
                           <button
                             onClick={() => handleEditarVitima(vitima)}
                             className="text-gray-400 hover:text-amber-400 transition-all duration-300 cursor-pointer hover:scale-110"
@@ -621,6 +637,14 @@ export default function ModalVisualizacaoPerito({
           onClose={() => setModalEditarVitimaOpen(false)}
           victim={vitimaParaEditar}
           onSave={handleSalvarEdicaoVitima}
+        />
+      )}
+
+      {modalOdontogramaOpen && vitimaParaOdontograma && (
+        <ModalOdontograma
+          isOpen={modalOdontogramaOpen}
+          onClose={() => setModalOdontogramaOpen(false)}
+          vitima={vitimaParaOdontograma}
         />
       )}
 
