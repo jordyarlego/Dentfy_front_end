@@ -1,202 +1,281 @@
+// Novo dashboard.tsx usando os novos endpoints e filtros globais
 'use client';
 
-import { useState } from 'react';
-import DashboardPeritoDistribuicao from '../../components/DashboardPeritoDistribuicao';
-import DashboardPeritoCasosMensais from '../../components/DashboardPeritoCasosMensais';
+import { buscarDistribuicaoTipos } from '../../../services/api_dashboard_py';
+import { Pie } from 'react-chartjs-2';
+import { ArcElement } from 'chart.js';
+ChartJS.register(ArcElement);
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import dynamic from 'next/dynamic';
+import 'leaflet/dist/leaflet.css';
+import { useEffect, useState } from 'react';
 import SidebarPerito from '../../components/SidebarPerito';
 import HeaderPerito from '../../components/HeaderPerito';
-import { useResumoDashboard, useCasosPorTipo, useCasosPorSexo, useCasosPorEtnia } from '../../../services/api_dashboard';
-import { FolderIcon, CheckCircleIcon, ClockIcon, ArchiveBoxIcon } from '@heroicons/react/24/outline';
-import DashboardPeritoDistribuicaoCombinada from '../../components/DashboardPeritoDistribuicaoCombinada';
+const Mapa = dynamic(() => import('../../components/Mapa'), { ssr: false });
+import {
+  buscarCasos,
+  buscarCoeficientes,
+  buscarCorrelacoes,
+  buscarAcuracia,
+  buscarProbabilidadePorIdade,
+  buscarLocalizacoes,
+  fazerPredicao
+} from '../../../services/api_dashboard_py';
+import { Bar, Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  PointElement,
+  LineElement,
+} from 'chart.js';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  PointElement,
+  LineElement
+);
+
+
 
 export default function Dashboard() {
-  const [filtroPeriodo, setFiltroPeriodo] = useState('todos');
-  const [filtroSexo, setFiltroSexo] = useState('todos');
-  const [filtroEtnia, setFiltroEtnia] = useState('todos');
+  const [filtros, setFiltros] = useState({
+    sexo: 'todos',
+    etnia: 'todos',
+    idadeMin: null,
+    idadeMax: null,
+    dataInicio: null,
+    dataFim: null,
+  });
 
-  const { casosEmAndamento, casosFinalizados, casosArquivados, isLoading: isLoadingResumo } = useResumoDashboard(filtroPeriodo, filtroSexo);
-  const { casosPorTipo, isLoading: isLoadingCasos } = useCasosPorTipo(filtroPeriodo, filtroSexo);
-  const { masculino, feminino, outro, isLoading: isLoadingSexo } = useCasosPorSexo(filtroPeriodo, filtroSexo, filtroEtnia);
-  const { casosPorEtnia, isLoading: isLoadingEtnia } = useCasosPorEtnia(filtroPeriodo, filtroSexo, filtroEtnia);
+  const [casos, setCasos] = useState([]);
+  const [coefs, setCoefs] = useState<any>({});
+  const [correlacao, setCorrelacao] = useState<any>(null);
+  const [acuracia, setAcuracia] = useState<any>(null);
+  const [probIdade, setProbIdade] = useState<any[]>([]);
+  const [localizacoes, setLocalizacoes] = useState<any[]>([]);
+  const [pizzaData, setPizzaData] = useState<any>(null);
+  const [resultado, setResultado] = useState<any>(null);
 
-  const totalCasos = casosEmAndamento + casosFinalizados + casosArquivados;
-  const isLoading = isLoadingResumo || isLoadingCasos || isLoadingSexo || isLoadingEtnia;
+  useEffect(() => {
+    async function carregar() {
+      try {
+        const [c, co, corr, acc, prob, locs, pizza] = await Promise.all([
+          buscarCasos(filtros),
+          buscarCoeficientes(),
+          buscarCorrelacoes(),
+          buscarAcuracia(filtros),
+          buscarProbabilidadePorIdade(filtros),
+          buscarLocalizacoes(filtros),
+          buscarDistribuicaoTipos(filtros),
+        ]);
+        setCasos(c);
+        setCoefs(co);
+        setCorrelacao(corr);
+        setAcuracia(acc);
+        setProbIdade(prob);
+        setLocalizacoes(locs);
+        setPizzaData(pizza); // <- crie o useState para armazenar
 
-  const handleFiltroChange = (tipo: 'periodo' | 'sexo' | 'etnia', valor: string) => {
-    console.log('Dashboard - Alterando filtro:', { tipo, valor });
-    switch (tipo) {
-      case 'periodo':
-        setFiltroPeriodo(valor);
-        break;
-      case 'sexo':
-        setFiltroSexo(valor);
-        break;
-      case 'etnia':
-        setFiltroEtnia(valor);
-        break;
+      } catch (e) {
+        console.error("Erro ao carregar dados do dashboard:", e);
+      }
     }
+    carregar();
+  }, [filtros]);
+
+  const graficoCoefs = {
+    labels: Object.keys(coefs),
+    datasets: [
+      {
+        label: 'Importância das Variáveis',
+        data: Object.values(coefs),
+        backgroundColor: '#5d759c',
+      },
+    ],
+  };
+
+  const [input, setInput] = useState({
+    idade: 30,
+    etnia: 'Branca',
+    localizacao: 'Centro',
+  });
+
+  const graficoPizza = pizzaData && {
+    labels: Object.keys(pizzaData),
+    datasets: [
+      {
+        data: Object.values(pizzaData),
+        backgroundColor: ['#4e79a7', '#f28e2b', '#e15759', '#76b7b2', '#59a14f'],
+      },
+    ],
+  };
+
+  const graficoAcuracia = acuracia && {
+    labels: acuracia.classes,
+    datasets: [
+      {
+        label: 'Acurácia por Tipo de Caso (%)',
+        data: acuracia.precisao,
+        backgroundColor: '#7b90b1',
+      },
+    ],
+  };
+
+  async function handlePredizer() {
+    try {
+      const res = await fazerPredicao(input);
+      setResultado(res);
+    } catch (e) {
+      console.error("Erro na predição:", e);
+    }
+  }
+
+  const graficoProbIdade = {
+    labels: probIdade.map((d) => d.faixa),
+    datasets:
+      probIdade.length > 0
+        ? Object.keys(probIdade[0].probabilidades).map((classe, idx) => ({
+          label: classe,
+          data: probIdade.map((d) => d.probabilidades[classe]),
+          borderColor: `hsl(${idx * 60}, 70%, 60%)`,
+          fill: false,
+        }))
+        : [],
   };
 
   return (
     <div className="flex h-screen bg-gray-900">
       <SidebarPerito />
-      
       <div className="flex-1 flex flex-col overflow-hidden">
         <HeaderPerito />
-        
-        <main className="flex-1 overflow-y-auto p-4 pb-20 lg:pb-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-100 animate-fadeIn">
-            Dashboard do Perito
-          </h1>
+        <main className="p-4 space-y-8 overflow-y-auto">
+          <h1 className="text-2xl font-bold text-white">Dashboard com Modelos</h1>
 
-            {/* Filtros */}
-            <div className="flex flex-wrap gap-2">
-              <select
-                value={filtroPeriodo}
-                onChange={(e) => handleFiltroChange('periodo', e.target.value)}
-                disabled={isLoading}
-                className={`bg-gray-800 text-gray-100 border border-gray-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700'
-                  }`}
-              >
-                <option value="todos">Todos os Períodos</option>
-                <option value="semana">Última Semana</option>
-                <option value="mes">Último Mês</option>
-                <option value="ano">Último Ano</option>
-              </select>
+          {/* Filtros */}
+          <div className="bg-white p-4 rounded flex flex-wrap gap-4 items-center">
+            <select
+              value={filtros.sexo}
+              onChange={(e) => setFiltros({ ...filtros, sexo: e.target.value })}
+            >
+              <option value="todos">Todos os Sexos</option>
+              <option value="masculino">Masculino</option>
+              <option value="feminino">Feminino</option>
+            </select>
+            <select
+              value={filtros.etnia}
+              onChange={(e) => setFiltros({ ...filtros, etnia: e.target.value })}
+            >
+              <option value="todos">Todas as Etnias</option>
+              <option value="Branca">Branca</option>
+              <option value="Preta">Preta</option>
+              <option value="Parda">Parda</option>
+            </select>
+            <DatePicker
+              selected={filtros.dataInicio ? new Date(filtros.dataInicio) : null}
+              onChange={(date) => setFiltros({ ...filtros, dataInicio: date?.toISOString().split('T')[0] })}
+              placeholderText="Data Início"
+            />
+            <DatePicker
+              selected={filtros.dataFim ? new Date(filtros.dataFim) : null}
+              onChange={(date) => setFiltros({ ...filtros, dataFim: date?.toISOString().split('T')[0] })}
+              placeholderText="Data Fim"
+            />
+          </div>
 
-              <select
-                value={filtroSexo}
-                onChange={(e) => handleFiltroChange('sexo', e.target.value)}
-                disabled={isLoading}
-                className={`bg-gray-800 text-gray-100 border border-gray-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700'
-                  }`}
-              >
-                <option value="todos">Todos os Sexos</option>
-                <option value="masculino">Masculino</option>
-                <option value="feminino">Feminino</option>
-                <option value="outro">Outro</option>
-              </select>
+          <div className="bg-white p-4 rounded space-y-4">
+            <h2 className="text-lg font-semibold">Predição de Tipo de Caso</h2>
 
-              <select
-                value={filtroEtnia}
-                onChange={(e) => handleFiltroChange('etnia', e.target.value)}
-                disabled={isLoading}
-                className={`bg-gray-800 text-gray-100 border border-gray-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700'
-                  }`}
-              >
-                <option value="todos">Todas as Etnias</option>
-                <option value="branco">Branca</option>
-                <option value="pardo">Parda</option>
-                <option value="preto">Preta</option>
-                <option value="amarelo">Amarela</option>
-                <option value="indigena">Indígena</option>
-                <option value="outro">Outra</option>
-              </select>
+            <input
+              type="number"
+              placeholder="Idade"
+              value={input.idade}
+              onChange={(e) => setInput({ ...input, idade: Number(e.target.value) })}
+              className="border p-2 rounded w-full"
+            />
+            <select
+              value={input.etnia}
+              onChange={(e) => setInput({ ...input, etnia: e.target.value })}
+              className="border p-2 rounded w-full"
+            >
+              <option value="Branca">Branca</option>
+              <option value="Preta">Preta</option>
+              <option value="Parda">Parda</option>
+              <option value="Amarela">Amarela</option>
+              <option value="Indígena">Indígena</option>
+            </select>
+            <select
+              value={input.localizacao}
+              onChange={(e) => setInput({ ...input, localizacao: e.target.value })}
+              className="border p-2 rounded w-full"
+            >
+              <option value="Centro">Centro</option>
+              <option value="Bairro A">Bairro A</option>
+              <option value="Bairro B">Bairro B</option>
+              <option value="Zona Rural">Zona Rural</option>
+            </select>
+
+            <button
+              onClick={handlePredizer}
+              className="bg-blue-600 text-white px-4 py-2 rounded"
+            >
+              Fazer Predição
+            </button>
+
+            {resultado && (
+              <div className="mt-4 text-sm text-gray-800">
+                <p><strong>Classe Predita:</strong> {resultado.classe_predita}</p>
+                <p><strong>Probabilidades:</strong></p>
+                <ul className="list-disc ml-4">
+                  {Object.entries(resultado.probabilidades).map(([classe, prob]: any) => (
+                    <li key={classe}>
+                      {classe}: {(prob * 100).toFixed(2)}%
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white rounded p-4">
+            <h2 className="text-lg font-semibold mb-2">Distribuição por Tipo de Caso</h2>
+            {graficoPizza && <Pie data={graficoPizza} />}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white rounded p-4">
+              <h2 className="text-lg font-semibold mb-2">Coeficientes do Modelo</h2>
+              <Bar data={graficoCoefs} />
+            </div>
+
+            <div className="bg-white rounded p-4">
+              <h2 className="text-lg font-semibold mb-2">Acurácia por Tipo de Caso</h2>
+              {graficoAcuracia && <Bar data={graficoAcuracia} />}
             </div>
           </div>
-          {/* Cards de Estatísticas - Status */}
-          <div className="mb-4">
-            <h2 className="text-base font-semibold text-gray-200 mb-3">Status dos Casos</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-              <div className={`bg-gray-800/80 p-3 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 ${isLoading ? 'opacity-50' : 'hover:scale-105'
-                }`}>
-              <div className="flex items-center justify-between">
-                <div>
-                    <p className="text-gray-400 text-xs">Total de Casos</p>
-                    <p className="text-xl font-bold text-white">
-                      {isLoading ? '...' : totalCasos}
-                    </p>
-                </div>
-                  <FolderIcon className={`h-6 w-6 text-amber-500 ${isLoading ? 'animate-pulse' : ''}`} />
-              </div>
-            </div>
 
-              <div className={`bg-gray-800/80 p-3 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 ${isLoading ? 'opacity-50' : 'hover:scale-105'
-                }`}>
-              <div className="flex items-center justify-between">
-                <div>
-                    <p className="text-gray-400 text-xs">Em Andamento</p>
-                    <p className="text-xl font-bold text-white">
-                      {isLoading ? '...' : casosEmAndamento}
-                    </p>
-                </div>
-                  <ClockIcon className={`h-6 w-6 text-yellow-500 ${isLoading ? 'animate-pulse' : ''}`} />
-              </div>
-            </div>
-
-              <div className={`bg-gray-800/80 p-3 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 ${isLoading ? 'opacity-50' : 'hover:scale-105'
-                }`}>
-              <div className="flex items-center justify-between">
-                <div>
-                    <p className="text-gray-400 text-xs">Finalizados</p>
-                    <p className="text-xl font-bold text-white">
-                      {isLoading ? '...' : casosFinalizados}
-                    </p>
-                </div>
-                  <CheckCircleIcon className={`h-6 w-6 text-green-500 ${isLoading ? 'animate-pulse' : ''}`} />
-              </div>
-            </div>
-
-              <div className={`bg-gray-800/80 p-3 rounded-lg border border-gray-700 backdrop-blur-sm animate-fadeIn transition-all duration-300 ${isLoading ? 'opacity-50' : 'hover:scale-105'
-                }`}>
-              <div className="flex items-center justify-between">
-                <div>
-                    <p className="text-gray-400 text-xs">Arquivados</p>
-                    <p className="text-xl font-bold text-white">
-                      {isLoading ? '...' : casosArquivados}
-                    </p>
-                  </div>
-                  <ArchiveBoxIcon className={`h-6 w-6 text-purple-500 ${isLoading ? 'animate-pulse' : ''}`} />
-                </div>
-              </div>
-            </div>
+          <div className="bg-white rounded p-4">
+            <h2 className="text-lg font-semibold mb-2">Probabilidade por Faixa Etária</h2>
+            <Line data={graficoProbIdade} />
           </div>
-          
-          {/* Substituir os cards de etnia e sexo pelo novo gráfico combinado */}
-          <DashboardPeritoDistribuicaoCombinada
-            casosPorEtnia={casosPorEtnia}
-            casosPorSexo={{ masculino, feminino, outro }}
-            isLoading={isLoading}
-          />
 
-          {/* Gráficos (Distribuição e Casos Mensais) */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-            <DashboardPeritoDistribuicao
-              casosEmAndamento={casosEmAndamento}
-              casosFinalizados={casosFinalizados}
-              casosArquivados={casosArquivados}
-              isLoading={isLoading}
-            />
-            <DashboardPeritoCasosMensais
-              casos={casosPorTipo}
-              isLoading={isLoading}
-            />
+          <div className="bg-white rounded p-4">
+            <h2 className="text-lg font-semibold mb-2">Mapa de Localizações</h2>
+            <Mapa pontos={localizacoes} />
           </div>
         </main>
       </div>
-
-      <style jsx global>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .animate-fadeIn {
-          animation: fadeIn 0.5s ease-out forwards;
-        }
-
-        .animate-fadeIn:nth-child(1) { animation-delay: 0.1s; }
-        .animate-fadeIn:nth-child(2) { animation-delay: 0.2s; }
-        .animate-fadeIn:nth-child(3) { animation-delay: 0.3s; }
-        .animate-fadeIn:nth-child(4) { animation-delay: 0.4s; }
-      `}</style>
     </div>
   );
-} 
+
+}
