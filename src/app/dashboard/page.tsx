@@ -1,8 +1,4 @@
-<<<<<<< Updated upstream
-// Novo dashboard.tsx usando os novos endpoints e filtros globais
-=======
 // Dashboard com foco visual - mantendo conexão com backend
->>>>>>> Stashed changes
 'use client';
 
 import { buscarDistribuicaoTipos } from '../../../services/api_dashboard_py';
@@ -16,28 +12,17 @@ import 'leaflet/dist/leaflet.css';
 import { useEffect, useState } from 'react';
 import SidebarPerito from '../../components/SidebarPerito';
 import HeaderPerito from '../../components/HeaderPerito';
-<<<<<<< Updated upstream
-=======
 import { 
   ChartBarIcon, 
-  UserIcon, 
-  CalendarIcon,
-  MagnifyingGlassIcon,
-  BeakerIcon,
   PresentationChartLineIcon,
   MapIcon,
   ArrowTrendingUpIcon,
   DocumentTextIcon
 } from '@heroicons/react/24/outline';
->>>>>>> Stashed changes
 const Mapa = dynamic(() => import('../../components/Mapa'), { ssr: false });
 import {
   buscarCasos,
   buscarCoeficientes,
-<<<<<<< Updated upstream
-  buscarCorrelacoes,
-=======
->>>>>>> Stashed changes
   buscarAcuracia,
   buscarProbabilidadePorIdade,
   buscarLocalizacoes,
@@ -67,80 +52,25 @@ ChartJS.register(
   LineElement
 );
 
-
-
 export default function Dashboard() {
+  const [mounted, setMounted] = useState(false);
+  
   const [filtros, setFiltros] = useState({
     sexo: 'todos',
     etnia: 'todos',
-<<<<<<< Updated upstream
-    idadeMin: null,
-    idadeMax: null,
-    dataInicio: null,
-    dataFim: null,
-  });
-
-  const [casos, setCasos] = useState([]);
-  const [coefs, setCoefs] = useState<any>({});
-  const [correlacao, setCorrelacao] = useState<any>(null);
-  const [acuracia, setAcuracia] = useState<any>(null);
-  const [probIdade, setProbIdade] = useState<any[]>([]);
-  const [localizacoes, setLocalizacoes] = useState<any[]>([]);
-  const [pizzaData, setPizzaData] = useState<any>(null);
-  const [resultado, setResultado] = useState<any>(null);
-
-  useEffect(() => {
-    async function carregar() {
-      try {
-        const [c, co, corr, acc, prob, locs, pizza] = await Promise.all([
-          buscarCasos(filtros),
-          buscarCoeficientes(),
-          buscarCorrelacoes(),
-          buscarAcuracia(filtros),
-          buscarProbabilidadePorIdade(filtros),
-          buscarLocalizacoes(filtros),
-          buscarDistribuicaoTipos(filtros),
-        ]);
-        setCasos(c);
-        setCoefs(co);
-        setCorrelacao(corr);
-        setAcuracia(acc);
-        setProbIdade(prob);
-        setLocalizacoes(locs);
-        setPizzaData(pizza); // <- crie o useState para armazenar
-
-      } catch (e) {
-        console.error("Erro ao carregar dados do dashboard:", e);
-      }
-    }
-    carregar();
-  }, [filtros]);
-
-  const graficoCoefs = {
-    labels: Object.keys(coefs),
-    datasets: [
-      {
-        label: 'Importância das Variáveis',
-        data: Object.values(coefs),
-        backgroundColor: '#5d759c',
-      },
-    ],
-  };
-=======
     idadeMin: undefined as number | undefined,
     idadeMax: undefined as number | undefined,
     dataInicio: undefined as string | undefined,
     dataFim: undefined as string | undefined,
   });
 
-  const [casos, setCasos] = useState<Array<{status: string, [key: string]: any}>>([]);
+  const [casos, setCasos] = useState<Array<{status: string, [key: string]: unknown}>>([]);
   const [coefs, setCoefs] = useState<Record<string, number>>({});
   const [acuracia, setAcuracia] = useState<{classes: string[], precisao: number[]} | null>(null);
   const [probIdade, setProbIdade] = useState<Array<{faixa: string, probabilidades: Record<string, number>}>>([]);
   const [localizacoes, setLocalizacoes] = useState<Array<{lat: number, lon: number, bairro: string}>>([]);
   const [pizzaData, setPizzaData] = useState<Record<string, number> | null>(null);
   const [resultado, setResultado] = useState<{classe_predita: string, probabilidades: Record<string, number>} | null>(null);
->>>>>>> Stashed changes
 
   const [input, setInput] = useState({
     idade: 30,
@@ -148,14 +78,6 @@ export default function Dashboard() {
     localizacao: 'Centro',
   });
 
-<<<<<<< Updated upstream
-  const graficoPizza = pizzaData && {
-    labels: Object.keys(pizzaData),
-    datasets: [
-      {
-        data: Object.values(pizzaData),
-        backgroundColor: ['#4e79a7', '#f28e2b', '#e15759', '#76b7b2', '#59a14f'],
-=======
   // Garantir que o componente só renderize no cliente
   useEffect(() => {
     setMounted(true);
@@ -224,7 +146,6 @@ export default function Dashboard() {
         borderWidth: 3,
         hoverBorderWidth: 5,
         hoverOffset: 10,
->>>>>>> Stashed changes
       },
     ],
   };
@@ -235,22 +156,16 @@ export default function Dashboard() {
       {
         label: 'Acurácia por Tipo de Caso (%)',
         data: acuracia.precisao,
-<<<<<<< Updated upstream
-        backgroundColor: '#7b90b1',
-=======
         backgroundColor: 'rgba(34, 197, 94, 0.8)',
         borderColor: 'rgba(34, 197, 94, 1)',
         borderWidth: 3,
         borderRadius: 8,
         borderSkipped: false,
         hoverBackgroundColor: 'rgba(34, 197, 94, 1)',
->>>>>>> Stashed changes
       },
     ],
   };
 
-<<<<<<< Updated upstream
-=======
   const graficoProbIdade = {
     labels: probIdade.map((d) => d.faixa),
     datasets:
@@ -272,15 +187,12 @@ export default function Dashboard() {
         : [],
   };
 
->>>>>>> Stashed changes
   async function handlePredizer() {
     try {
       const res = await fazerPredicao(input);
       setResultado(res);
     } catch (e) {
       console.error("Erro na predição:", e);
-<<<<<<< Updated upstream
-=======
     }
   }
 
@@ -355,32 +267,18 @@ export default function Dashboard() {
           color: 'rgba(254, 243, 199, 0.2)'
         }
       }
->>>>>>> Stashed changes
     }
   }
 
-  const graficoProbIdade = {
-    labels: probIdade.map((d) => d.faixa),
-    datasets:
-      probIdade.length > 0
-        ? Object.keys(probIdade[0].probabilidades).map((classe, idx) => ({
-          label: classe,
-          data: probIdade.map((d) => d.probabilidades[classe]),
-          borderColor: `hsl(${idx * 60}, 70%, 60%)`,
-          fill: false,
-        }))
-        : [],
-  };
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div className="flex h-screen bg-gray-900">
       <SidebarPerito />
       <div className="flex-1 flex flex-col overflow-hidden">
         <HeaderPerito />
-<<<<<<< Updated upstream
-        <main className="p-4 space-y-8 overflow-y-auto">
-          <h1 className="text-2xl font-bold text-white">Dashboard com Modelos</h1>
-=======
         <main className="p-6 space-y-6 overflow-y-auto bg-gradient-to-br from-[#0E1A26] via-[#0E1A26] to-[#12212B]">
           
           {/* Header do Dashboard */}
@@ -461,120 +359,107 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
->>>>>>> Stashed changes
 
           {/* Filtros */}
-          <div className="bg-white p-4 rounded flex flex-wrap gap-4 items-center">
-            <select
-              value={filtros.sexo}
-              onChange={(e) => setFiltros({ ...filtros, sexo: e.target.value })}
-            >
-              <option value="todos">Todos os Sexos</option>
-              <option value="masculino">Masculino</option>
-              <option value="feminino">Feminino</option>
-            </select>
-            <select
-              value={filtros.etnia}
-              onChange={(e) => setFiltros({ ...filtros, etnia: e.target.value })}
-            >
-              <option value="todos">Todas as Etnias</option>
-              <option value="Branca">Branca</option>
-              <option value="Preta">Preta</option>
-              <option value="Parda">Parda</option>
-            </select>
-            <DatePicker
-              selected={filtros.dataInicio ? new Date(filtros.dataInicio) : null}
-              onChange={(date) => setFiltros({ ...filtros, dataInicio: date?.toISOString().split('T')[0] })}
-              placeholderText="Data Início"
-            />
-            <DatePicker
-              selected={filtros.dataFim ? new Date(filtros.dataFim) : null}
-              onChange={(date) => setFiltros({ ...filtros, dataFim: date?.toISOString().split('T')[0] })}
-              placeholderText="Data Fim"
-            />
+          <div className="bg-gradient-to-br from-[#12212B]/60 to-[#0E1A26]/60 backdrop-blur-sm border border-cyan-900/30 rounded-xl p-6">
+            <h2 className="text-xl font-semibold text-amber-100 mb-4">Filtros</h2>
+            <div className="flex flex-wrap gap-4 items-center">
+              <select
+                value={filtros.sexo}
+                onChange={(e) => setFiltros({ ...filtros, sexo: e.target.value })}
+                className="bg-[#0E1A26] border border-cyan-900/30 text-amber-100 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none"
+              >
+                <option value="todos">Todos os Sexos</option>
+                <option value="masculino">Masculino</option>
+                <option value="feminino">Feminino</option>
+              </select>
+              <select
+                value={filtros.etnia}
+                onChange={(e) => setFiltros({ ...filtros, etnia: e.target.value })}
+                className="bg-[#0E1A26] border border-cyan-900/30 text-amber-100 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none"
+              >
+                <option value="todos">Todas as Etnias</option>
+                <option value="Branca">Branca</option>
+                <option value="Preta">Preta</option>
+                <option value="Parda">Parda</option>
+              </select>
+              <DatePicker
+                selected={filtros.dataInicio ? new Date(filtros.dataInicio) : null}
+                onChange={(date) => setFiltros({ ...filtros, dataInicio: date?.toISOString().split('T')[0] })}
+                placeholderText="Data Início"
+                className="bg-[#0E1A26] border border-cyan-900/30 text-amber-100 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none"
+              />
+              <DatePicker
+                selected={filtros.dataFim ? new Date(filtros.dataFim) : null}
+                onChange={(date) => setFiltros({ ...filtros, dataFim: date?.toISOString().split('T')[0] })}
+                placeholderText="Data Fim"
+                className="bg-[#0E1A26] border border-cyan-900/30 text-amber-100 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none"
+              />
+            </div>
           </div>
 
-          <div className="bg-white p-4 rounded space-y-4">
-            <h2 className="text-lg font-semibold">Predição de Tipo de Caso</h2>
-
-            <input
-              type="number"
-              placeholder="Idade"
-              value={input.idade}
-              onChange={(e) => setInput({ ...input, idade: Number(e.target.value) })}
-              className="border p-2 rounded w-full"
-            />
-            <select
-              value={input.etnia}
-              onChange={(e) => setInput({ ...input, etnia: e.target.value })}
-              className="border p-2 rounded w-full"
-            >
-              <option value="Branca">Branca</option>
-              <option value="Preta">Preta</option>
-              <option value="Parda">Parda</option>
-              <option value="Amarela">Amarela</option>
-              <option value="Indígena">Indígena</option>
-            </select>
-            <select
-              value={input.localizacao}
-              onChange={(e) => setInput({ ...input, localizacao: e.target.value })}
-              className="border p-2 rounded w-full"
-            >
-              <option value="Centro">Centro</option>
-              <option value="Bairro A">Bairro A</option>
-              <option value="Bairro B">Bairro B</option>
-              <option value="Zona Rural">Zona Rural</option>
-            </select>
+          {/* Predição */}
+          <div className="bg-gradient-to-br from-[#12212B]/60 to-[#0E1A26]/60 backdrop-blur-sm border border-cyan-900/30 rounded-xl p-6">
+            <h2 className="text-xl font-semibold text-amber-100 mb-4">Predição de Tipo de Caso</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <input
+                type="number"
+                placeholder="Idade"
+                value={input.idade}
+                onChange={(e) => setInput({ ...input, idade: Number(e.target.value) })}
+                className="bg-[#0E1A26] border border-cyan-900/30 text-amber-100 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none"
+              />
+              <select
+                value={input.etnia}
+                onChange={(e) => setInput({ ...input, etnia: e.target.value })}
+                className="bg-[#0E1A26] border border-cyan-900/30 text-amber-100 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none"
+              >
+                <option value="Branca">Branca</option>
+                <option value="Preta">Preta</option>
+                <option value="Parda">Parda</option>
+                <option value="Amarela">Amarela</option>
+                <option value="Indígena">Indígena</option>
+              </select>
+              <select
+                value={input.localizacao}
+                onChange={(e) => setInput({ ...input, localizacao: e.target.value })}
+                className="bg-[#0E1A26] border border-cyan-900/30 text-amber-100 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none"
+              >
+                <option value="Centro">Centro</option>
+                <option value="Bairro A">Bairro A</option>
+                <option value="Bairro B">Bairro B</option>
+                <option value="Zona Rural">Zona Rural</option>
+              </select>
+            </div>
 
             <button
               onClick={handlePredizer}
-              className="bg-blue-600 text-white px-4 py-2 rounded"
+              className="bg-gradient-to-r from-amber-500 to-amber-600 text-white px-6 py-2 rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all duration-300 font-medium"
             >
               Fazer Predição
             </button>
 
             {resultado && (
-              <div className="mt-4 text-sm text-gray-800">
-                <p><strong>Classe Predita:</strong> {resultado.classe_predita}</p>
-                <p><strong>Probabilidades:</strong></p>
-                <ul className="list-disc ml-4">
-                  {Object.entries(resultado.probabilidades).map(([classe, prob]: any) => (
-                    <li key={classe}>
-                      {classe}: {(prob * 100).toFixed(2)}%
-                    </li>
-                  ))}
-                </ul>
+              <div className="mt-6 p-4 bg-[#0E1A26]/50 border border-amber-500/30 rounded-lg">
+                <h3 className="text-lg font-semibold text-amber-100 mb-2">Resultado da Predição</h3>
+                <p className="text-amber-100/80 mb-2">
+                  <strong>Classe Predita:</strong> <span className="text-amber-500">{resultado.classe_predita}</span>
+                </p>
+                <div>
+                  <p className="text-amber-100/80 mb-2"><strong>Probabilidades:</strong></p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {Object.entries(resultado.probabilidades).map(([classe, prob]: [string, number]) => (
+                      <div key={classe} className="bg-[#0E1A26]/30 p-2 rounded border border-cyan-900/30">
+                        <span className="text-amber-100/70 text-sm">{classe}:</span>
+                        <span className="text-amber-500 font-medium ml-1">{(prob * 100).toFixed(2)}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>
 
-<<<<<<< Updated upstream
-          <div className="bg-white rounded p-4">
-            <h2 className="text-lg font-semibold mb-2">Distribuição por Tipo de Caso</h2>
-            {graficoPizza && <Pie data={graficoPizza} />}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded p-4">
-              <h2 className="text-lg font-semibold mb-2">Coeficientes do Modelo</h2>
-              <Bar data={graficoCoefs} />
-            </div>
-
-            <div className="bg-white rounded p-4">
-              <h2 className="text-lg font-semibold mb-2">Acurácia por Tipo de Caso</h2>
-              {graficoAcuracia && <Bar data={graficoAcuracia} />}
-            </div>
-          </div>
-
-          <div className="bg-white rounded p-4">
-            <h2 className="text-lg font-semibold mb-2">Probabilidade por Faixa Etária</h2>
-            <Line data={graficoProbIdade} />
-          </div>
-
-          <div className="bg-white rounded p-4">
-            <h2 className="text-lg font-semibold mb-2">Mapa de Localizações</h2>
-            <Mapa pontos={localizacoes} />
-=======
           {/* Gráficos */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Gráfico de Pizza */}
@@ -697,11 +582,9 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
->>>>>>> Stashed changes
           </div>
         </main>
       </div>
     </div>
   );
-
 }
