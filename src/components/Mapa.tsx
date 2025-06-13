@@ -1,7 +1,9 @@
+
 'use client';
 
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import { useEffect, useState } from 'react';
 
 type Ponto = {
   lat: number;
@@ -10,6 +12,14 @@ type Ponto = {
 };
 
 export default function Mapa({ pontos }: { pontos: Ponto[] }) {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) return null; // ✅ evita render SSR
+
   return (
     <MapContainer
       center={[-23.55, -46.63]}
@@ -28,3 +38,4 @@ export default function Mapa({ pontos }: { pontos: Ponto[] }) {
     </MapContainer>
   );
 }
+
