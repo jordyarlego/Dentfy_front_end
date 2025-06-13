@@ -388,12 +388,14 @@ export default function Dashboard() {
                 onChange={(date) => setFiltros({ ...filtros, dataInicio: date?.toISOString().split('T')[0] })}
                 placeholderText="Data Início"
                 className="bg-[#0E1A26] border border-cyan-900/30 text-amber-100 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none"
+                popperPlacement="top"
               />
               <DatePicker
                 selected={filtros.dataFim ? new Date(filtros.dataFim) : null}
                 onChange={(date) => setFiltros({ ...filtros, dataFim: date?.toISOString().split('T')[0] })}
                 placeholderText="Data Fim"
                 className="bg-[#0E1A26] border border-cyan-900/30 text-amber-100 rounded-lg px-3 py-2 focus:border-amber-500 focus:outline-none"
+                popperPlacement="top"
               />
             </div>
           </div>
